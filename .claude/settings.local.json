@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 \"c:\\\\Users\\\\anter\\\\Project R\\\\_bmad\\\\scripts\\\\resolve_customization.py\" --skill \"c:\\\\Users\\\\anter\\\\Project R\\\\.claude\\\\skills\\\\bmad-market-research\" --key workflow)"
+    ]
+  }
+}
