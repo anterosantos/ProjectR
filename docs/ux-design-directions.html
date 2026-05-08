@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Project R — UX Design Directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+:root{
+  --bg-base:#FFFFFF;
+  --bg-surface:#FAFAFA;
+  --bg-surface-2:#F5F5F5;
+  --bg-muted:#F5F5F5;
+  --text-primary:#0A0A0A;
+  --text-secondary:#525252;
+  --text-muted:#737373;
+  --text-disabled:#A3A3A3;
+  --border-default:#E5E5E5;
+  --border-strong:#D4D4D4;
+  --border-subtle:#F5F5F5;
+  --accent-primary:#18181B;
+  --accent-primary-hover:#27272A;
+  --accent-focus-ring:#2563EB;
+  --signal-ready:#16A34A;
+  --signal-ready-bg:#F0FDF4;
+  --signal-ready-border:#BBF7D0;
+  --signal-caution:#CA8A04;
+  --signal-caution-bg:#FEFCE8;
+  --signal-caution-border:#FDE68A;
+  --signal-alert:#DC2626;
+  --signal-alert-bg:#FEF2F2;
+  --signal-alert-border:#FECACA;
+  --signal-neutral:#737373;
+  --signal-neutral-bg:#F5F5F5;
+  --signal-info:#2563EB;
+  --signal-info-bg:#EFF6FF;
+  --signal-info-border:#BFDBFE;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -2px rgba(0,0,0,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:'Inter',system-ui,-apple-system,sans-serif;color:var(--text-primary);background:#EFEFEF;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{min-height:100vh}
+
+/* App chrome */
+.chrome{background:#fff;border-bottom:1px solid var(--border-default);position:sticky;top:0;z-index:50}
+.chrome-inner{max-width:1200px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.chrome h1{font-size:18px;font-weight:600;letter-spacing:-.01em}
+.chrome h1 span{color:var(--text-muted);font-weight:400;margin-left:8px;font-size:14px}
+.section-tabs{display:flex;gap:4px;background:var(--bg-surface-2);padding:4px;border-radius:8px}
+.section-tabs button{appearance:none;background:transparent;border:0;padding:8px 14px;font:inherit;font-size:13px;font-weight:500;color:var(--text-secondary);border-radius:6px;cursor:pointer;transition:all 150ms ease-out}
+.section-tabs button.active{background:#fff;color:var(--text-primary);box-shadow:var(--shadow-sm)}
+.section-tabs button:hover:not(.active){color:var(--text-primary)}
+
+/* Container */
+main{max-width:1200px;margin:0 auto;padding:32px 24px 96px}
+.section{display:none}
+.section.active{display:block}
+.section-header{margin-bottom:24px}
+.section-header h2{font-size:24px;font-weight:600;letter-spacing:-.015em;margin-bottom:6px}
+.section-header p{color:var(--text-secondary);font-size:14px;max-width:760px}
+
+/* Variation tabs */
+.var-tabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.var-tabs button{appearance:none;background:#fff;border:1px solid var(--border-default);padding:10px 16px;font:inherit;font-size:13px;font-weight:500;color:var(--text-secondary);border-radius:8px;cursor:pointer;transition:all 150ms ease-out;display:flex;align-items:center;gap:8px}
+.var-tabs button.active{background:var(--accent-primary);color:#fff;border-color:var(--accent-primary)}
+.var-tabs button:hover:not(.active){border-color:var(--border-strong);color:var(--text-primary)}
+.var-tabs .badge{font-size:11px;font-weight:500;padding:2px 6px;border-radius:4px;background:var(--bg-surface-2);color:var(--text-muted)}
+.var-tabs button.active .badge{background:rgba(255,255,255,.15);color:#fff}
+
+/* Variation viewer */
+.viewer{display:none;animation:fade .15s ease-out}
+.viewer.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.viewer-header{margin-bottom:16px}
+.viewer-header h3{font-size:16px;font-weight:600;margin-bottom:4px}
+.viewer-header p{color:var(--text-secondary);font-size:13px;max-width:720px}
+.viewer-header .pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px;padding:12px 16px;background:#fff;border:1px solid var(--border-default);border-radius:8px}
+.viewer-header .pros-cons div{font-size:12px}
+.viewer-header .pros-cons strong{display:block;color:var(--text-primary);font-weight:600;margin-bottom:4px;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+.viewer-header .pros-cons ul{list-style:none;padding:0}
+.viewer-header .pros-cons li{padding:2px 0;color:var(--text-secondary)}
+.viewer-header .pros-cons li::before{content:"— ";color:var(--text-muted)}
+
+/* Device frames */
+.device{margin:0 auto;background:#000;border-radius:36px;padding:10px;box-shadow:0 24px 48px -12px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.05)}
+.device-screen{background:#fff;border-radius:28px;overflow:hidden;position:relative}
+.device-phone{width:390px}
+.device-phone .device-screen{height:780px}
+.device-tablet{width:1024px;border-radius:28px;padding:14px}
+.device-tablet .device-screen{height:680px;border-radius:18px}
+.device-side-by-side{display:flex;gap:24px;flex-wrap:wrap;justify-content:center}
+
+/* Status bar */
+.status-bar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;background:#fff}
+.status-bar-icons{display:flex;gap:6px;align-items:center;color:var(--text-primary)}
+.status-bar-icons svg{width:16px;height:16px}
+
+/* App nav (bottom tab bar) */
+.tabbar{position:absolute;bottom:0;left:0;right:0;height:80px;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);border-top:1px solid var(--border-default);display:flex;align-items:flex-start;justify-content:space-around;padding-top:8px}
+.tabbar-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;color:var(--text-muted);font-size:11px;font-weight:500;cursor:pointer}
+.tabbar-item.active{color:var(--accent-primary)}
+.tabbar-item svg{width:24px;height:24px}
+
+/* App content area */
+.app-content{padding:0;overflow-y:auto;height:calc(100% - 124px)}
+
+/* App header */
+.app-header{padding:16px 20px 8px;background:#fff;border-bottom:1px solid var(--border-subtle);position:sticky;top:0;z-index:5}
+.app-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.app-header h2{font-size:22px;font-weight:600;letter-spacing:-.015em}
+.app-header .date{font-size:13px;color:var(--text-muted);font-weight:500}
+.app-header .meta{font-size:12px;color:var(--text-muted)}
+.app-header .meta b{color:var(--text-primary);font-weight:500}
+
+/* Glance value */
+.glance{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:16px 20px;background:#fff}
+.glance-card{padding:14px 12px;border-radius:10px;border:1px solid;display:flex;align-items:center;gap:10px}
+.glance-card.ready{background:var(--signal-ready-bg);border-color:var(--signal-ready-border)}
+.glance-card.caution{background:var(--signal-caution-bg);border-color:var(--signal-caution-border)}
+.glance-card.alert{background:var(--signal-alert-bg);border-color:var(--signal-alert-border)}
+.glance-num{font-size:32px;font-weight:600;letter-spacing:-.025em;line-height:1}
+.glance-card.ready .glance-num{color:var(--signal-ready)}
+.glance-card.caution .glance-num{color:var(--signal-caution)}
+.glance-card.alert .glance-num{color:var(--signal-alert)}
+.glance-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.glance-card.ready .glance-label{color:#166534}
+.glance-card.caution .glance-label{color:#854D0E}
+.glance-card.alert .glance-label{color:#991B1B}
+.glance-card .meta{font-size:10px;color:var(--text-muted);margin-top:2px}
+
+/* Position groups (Variation A) */
+.pos-group{padding:8px 20px}
+.pos-group h3{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin:16px 0 8px;display:flex;align-items:center;gap:8px}
+.pos-group h3 .count{font-weight:400;color:var(--text-disabled)}
+.player-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border-subtle);cursor:pointer;transition:background 100ms}
+.player-row:hover{background:var(--bg-surface)}
+.player-row:last-child{border-bottom:0}
+.player-num{width:36px;height:36px;border-radius:8px;background:var(--bg-surface-2);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;color:var(--text-secondary);flex-shrink:0}
+.player-info{flex:1;min-width:0}
+.player-name{font-size:15px;font-weight:500;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.player-meta{font-size:12px;color:var(--text-muted);margin-top:2px}
+.semaforo{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0;border:1px solid}
+.semaforo.ready{background:var(--signal-ready-bg);color:#166534;border-color:var(--signal-ready-border)}
+.semaforo.caution{background:var(--signal-caution-bg);color:#854D0E;border-color:var(--signal-caution-border)}
+.semaforo.alert{background:var(--signal-alert-bg);color:#991B1B;border-color:var(--signal-alert-border)}
+.semaforo svg{width:12px;height:12px}
+.semaforo-icon-only{width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid}
+.semaforo-icon-only.ready{background:var(--signal-ready-bg);color:var(--signal-ready);border-color:var(--signal-ready-border)}
+.semaforo-icon-only.caution{background:var(--signal-caution-bg);color:var(--signal-caution);border-color:var(--signal-caution-border)}
+.semaforo-icon-only.alert{background:var(--signal-alert-bg);color:var(--signal-alert);border-color:var(--signal-alert-border)}
+.semaforo-icon-only svg{width:16px;height:16px}
+.chevron{color:var(--text-disabled);flex-shrink:0}
+.chevron svg{width:18px;height:18px}
+
+/* Field formation (Variation B) */
+.field-wrap{padding:20px;background:#fff}
+.field{position:relative;width:100%;aspect-ratio:2/3;background:linear-gradient(180deg,#10B981 0%,#059669 100%);border-radius:12px;overflow:hidden;box-shadow:inset 0 0 0 2px rgba(255,255,255,.4)}
+.field::before{content:"";position:absolute;inset:8px;border:2px solid rgba(255,255,255,.4);border-radius:8px}
+.field::after{content:"";position:absolute;left:8px;right:8px;top:50%;height:2px;background:rgba(255,255,255,.4)}
+.field-circle{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:60px;height:60px;border:2px solid rgba(255,255,255,.4);border-radius:50%}
+.field-spot{position:absolute;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;color:#fff;transform:translate(-50%,-50%);border:2px solid rgba(255,255,255,.7);box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer;transition:transform 100ms}
+.field-spot:hover{transform:translate(-50%,-50%) scale(1.1)}
+.field-spot.ready{background:var(--signal-ready)}
+.field-spot.caution{background:var(--signal-caution)}
+.field-spot.alert{background:var(--signal-alert)}
+.field-name{position:absolute;top:38px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;font-size:9px;padding:1px 5px;border-radius:3px;white-space:nowrap;pointer-events:none}
+.field-bench{margin-top:16px}
+.field-bench h3{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:10px}
+.field-bench-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.bench-spot{width:100%;aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:600;font-size:11px;color:#fff;cursor:pointer;border:1.5px solid;position:relative}
+.bench-spot.ready{background:var(--signal-ready);border-color:#15803D}
+.bench-spot.caution{background:var(--signal-caution);border-color:#A16207}
+.bench-spot.alert{background:var(--signal-alert);border-color:#B91C1C}
+.bench-spot small{font-size:8px;font-weight:400;opacity:.85;line-height:1}
+
+/* Cards densos (Variation C) */
+.cards-list{padding:12px 16px}
+.player-card{background:#fff;border:1px solid var(--border-default);border-radius:12px;padding:14px;margin-bottom:10px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+.player-card-num{width:44px;height:44px;border-radius:12px;background:var(--bg-surface-2);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:16px;color:var(--text-secondary)}
+.player-card-info .player-name{font-size:15px;font-weight:600}
+.player-card-info .player-meta{font-size:12px;color:var(--text-muted);margin-top:2px;display:flex;align-items:center;gap:8px}
+.player-card-info .player-meta span{display:flex;align-items:center;gap:3px}
+.player-card-info .player-meta svg{width:12px;height:12px}
+.metric{display:flex;flex-direction:column;align-items:flex-end;font-size:11px}
+.metric-value{font-weight:600;font-size:14px}
+.metric-label{color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;font-size:9px;margin-top:1px}
+
+/* Questionnaire — Daylio style */
+.q-shell{padding:0;background:#fff;height:100%;display:flex;flex-direction:column}
+.q-header{padding:20px 20px 16px;border-bottom:1px solid var(--border-subtle)}
+.q-header h2{font-size:24px;font-weight:600;letter-spacing:-.015em;margin-bottom:4px}
+.q-header p{font-size:14px;color:var(--text-secondary)}
+.q-progress{display:flex;gap:6px;padding:16px 20px 0}
+.q-progress-step{flex:1;height:3px;border-radius:999px;background:var(--bg-surface-2)}
+.q-progress-step.done{background:var(--accent-primary)}
+.q-progress-step.current{background:var(--accent-primary)}
+.q-body{padding:24px 20px;flex:1}
+.q-question{font-size:18px;font-weight:600;margin-bottom:6px}
+.q-helper{font-size:13px;color:var(--text-muted);margin-bottom:24px}
+.q-emoji-row{display:flex;justify-content:space-between;gap:8px;margin-bottom:12px}
+.q-emoji{flex:1;aspect-ratio:1;background:var(--bg-surface);border:2px solid var(--border-default);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 100ms;font-size:32px}
+.q-emoji.selected{background:var(--accent-primary);border-color:var(--accent-primary);transform:scale(1.05)}
+.q-emoji-label{font-size:10px;color:var(--text-muted);font-weight:500;margin-top:4px;text-align:center}
+.q-emoji.selected + .q-emoji-label{color:var(--text-primary);font-weight:600}
+.q-emoji-row-labels{display:flex;justify-content:space-between;gap:8px}
+.q-emoji-row-labels div{flex:1;text-align:center;font-size:10px;font-weight:500;color:var(--text-muted)}
+.q-emoji-row-labels div.selected{color:var(--text-primary)}
+
+/* Slider variation */
+.q-slider-block{margin-bottom:24px}
+.q-slider-row{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.q-slider-track{position:relative;height:48px;background:var(--bg-surface);border-radius:12px;border:1px solid var(--border-default);overflow:hidden}
+.q-slider-fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent-primary);transition:width 200ms ease-out}
+.q-slider-thumb{position:absolute;top:50%;width:32px;height:32px;background:#fff;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 2px 8px rgba(0,0,0,.15);border:2px solid var(--accent-primary);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;color:var(--accent-primary)}
+.q-slider-marks{position:absolute;inset:0;display:flex;align-items:center;padding:0 16px;pointer-events:none}
+.q-slider-mark{flex:1;font-size:11px;color:var(--text-muted);text-align:center;font-weight:500;mix-blend-mode:difference;color:#fff;opacity:.6}
+
+.q-footer{padding:16px 20px;border-top:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between}
+.q-status{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)}
+.q-status svg{width:14px;height:14px;color:var(--signal-info)}
+.btn{appearance:none;background:var(--accent-primary);color:#fff;border:0;padding:12px 20px;font:inherit;font-weight:600;font-size:14px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background 100ms}
+.btn:hover{background:var(--accent-primary-hover)}
+.btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid var(--border-default)}
+.btn-ghost:hover{background:var(--bg-surface);color:var(--text-primary)}
+
+/* Touchscreen — 3 ecrãs separados */
+.ts-shell{height:100%;display:flex;flex-direction:column;background:#fff}
+.ts-header{padding:14px 20px;border-bottom:1px solid var(--border-default);display:flex;align-items:center;justify-content:space-between;background:var(--bg-surface)}
+.ts-header h3{font-size:14px;font-weight:600}
+.ts-header .timer{font-family:ui-monospace,monospace;font-size:14px;font-weight:600;color:var(--signal-alert)}
+.ts-header .meta{font-size:12px;color:var(--text-muted)}
+
+/* Field of players grid */
+.ts-screen{flex:1;display:none;padding:16px}
+.ts-screen.active{display:block;animation:fade .1s linear}
+.ts-grid-players{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;height:100%;align-content:start}
+.ts-player-btn{aspect-ratio:1.4;background:var(--bg-surface);border:2px solid var(--border-default);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 80ms;padding:6px;font-family:inherit;font-size:inherit}
+.ts-player-btn:hover{border-color:var(--accent-primary);background:#fff}
+.ts-player-btn.selected{background:var(--accent-primary);border-color:var(--accent-primary);color:#fff}
+.ts-player-btn .num{font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1}
+.ts-player-btn .name{font-size:11px;font-weight:500;color:var(--text-secondary);margin-top:4px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ts-player-btn.selected .name{color:#fff;opacity:.85}
+
+.ts-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;height:100%;align-content:start}
+.ts-action-btn{padding:18px 14px;background:var(--bg-surface);border:2px solid var(--border-default);border-radius:14px;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:6px;transition:all 80ms;font-family:inherit;text-align:left;color:inherit}
+.ts-action-btn:hover{border-color:var(--accent-primary);background:#fff}
+.ts-action-btn .label{font-size:15px;font-weight:600}
+.ts-action-btn .desc{font-size:11px;color:var(--text-muted);font-weight:400}
+.ts-action-btn.positive{border-left:3px solid var(--signal-ready)}
+.ts-action-btn.negative{border-left:3px solid var(--signal-alert)}
+
+.ts-zone-field{position:relative;width:100%;aspect-ratio:1.5/1;background:linear-gradient(90deg,#10B981 0%,#059669 100%);border-radius:12px;overflow:hidden;box-shadow:inset 0 0 0 2px rgba(255,255,255,.4)}
+.ts-zone-field::before{content:"";position:absolute;inset:8px;border:2px solid rgba(255,255,255,.5);border-radius:8px}
+.ts-zone-field::after{content:"";position:absolute;left:50%;top:8px;bottom:8px;width:2px;background:rgba(255,255,255,.5);transform:translateX(-1px)}
+.ts-zone-circle{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:18%;aspect-ratio:1;border:2px solid rgba(255,255,255,.5);border-radius:50%}
+.ts-zone-grid{position:absolute;inset:8px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:0}
+.ts-zone-cell{border:1px dashed rgba(255,255,255,.3);cursor:pointer;transition:background 80ms;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.6);font-size:11px;font-weight:500}
+.ts-zone-cell:hover{background:rgba(255,255,255,.18);color:#fff}
+
+/* Header compact for ts */
+.ts-header-context{padding:10px 16px;background:#fff;border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;gap:10px;font-size:13px}
+.ts-header-context .pill{display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--accent-primary);color:#fff;border-radius:8px;font-weight:600;font-size:13px}
+.ts-header-context .pill .num{font-size:14px}
+.ts-header-context .arrow{color:var(--text-muted)}
+.ts-header-context .pill-light{background:var(--bg-surface-2);color:var(--text-secondary)}
+.ts-event-counter{margin-left:auto;font-size:12px;color:var(--text-muted);font-family:ui-monospace,monospace}
+
+/* Stack persistente (Variation B) */
+.ts-stack-shell{height:100%;display:flex;flex-direction:column;background:#fff}
+.ts-stack-sticky{padding:14px 20px;background:var(--accent-primary);color:#fff;display:flex;align-items:center;gap:14px;flex-shrink:0}
+.ts-stack-sticky .num{font-size:28px;font-weight:700;letter-spacing:-.02em;background:rgba(255,255,255,.15);padding:6px 14px;border-radius:10px;line-height:1}
+.ts-stack-sticky .info{flex:1}
+.ts-stack-sticky .name{font-size:15px;font-weight:600}
+.ts-stack-sticky .meta{font-size:11px;opacity:.7}
+.ts-stack-sticky button{appearance:none;background:rgba(255,255,255,.15);border:0;color:#fff;font:inherit;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500}
+.ts-stack-sticky button:hover{background:rgba(255,255,255,.25)}
+.ts-stack-body{flex:1;overflow-y:auto;padding:16px}
+.ts-stack-body h4{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:10px}
+.ts-stack-body .ts-actions{margin-bottom:20px}
+
+.ts-recent{padding:14px 16px;background:var(--bg-surface);border-top:1px solid var(--border-default);font-size:12px}
+.ts-recent-list{display:flex;gap:6px;overflow-x:auto;margin-top:6px}
+.ts-recent-item{flex-shrink:0;padding:4px 10px;background:#fff;border:1px solid var(--border-default);border-radius:6px;font-size:11px;font-weight:500;color:var(--text-secondary);white-space:nowrap}
+.ts-recent-item .num{font-weight:600;color:var(--text-primary);margin-right:4px}
+
+/* Footnote */
+footer{max-width:1200px;margin:0 auto;padding:32px 24px;color:var(--text-muted);font-size:13px;text-align:center}
+footer p{max-width:680px;margin:0 auto}
+
+@media (max-width:900px){
+  .device-tablet{width:100%}
+  .device-side-by-side{flex-direction:column;align-items:center}
+}
+</style>
+</head>
+<body>
+
+<div class="chrome">
+  <div class="chrome-inner">
+    <h1>Project R <span>UX Design Directions</span></h1>
+    <div class="section-tabs" role="tablist">
+      <button class="active" data-section="painel">Painel de Prontidão</button>
+      <button data-section="questionario">Questionário</button>
+      <button data-section="touchscreen">Touchscreen 3-ecrãs</button>
+    </div>
+  </div>
+</div>
+
+<main>
+
+<!-- ============================================================
+SECTION 1: PAINEL DE PRONTIDÃO
+============================================================ -->
+<section class="section active" id="painel">
+  <div class="section-header">
+    <h2>Painel de Prontidão — 3 direções</h2>
+    <p>O ecrã que define o produto. Sábado de manhã, José abre o telemóvel, decide convocatória em &lt;30s. Cada variação prioriza uma decisão UX diferente sobre como apresentar 40 jogadores num iPhone (390px).</p>
+  </div>
+  <div class="var-tabs" data-tabs="painel">
+    <button class="active" data-var="A">Direção A <span class="badge">Lista por posição</span></button>
+    <button data-var="B">Direção B <span class="badge">Field formation</span></button>
+    <button data-var="C">Direção C <span class="badge">Cards densos</span></button>
+  </div>
+
+  <!-- Direção A — Lista por posição -->
+  <div class="viewer active" data-viewer="painel-A">
+    <div class="viewer-header">
+      <h3>A · Lista por posição com semáforos inline</h3>
+      <p>Glance value no topo (3 números grandes). Lista vertical agrupada por posição em campo (GR / DEF / MED / AVA). Cada jogador tem ícone-semáforo redundante (cor + forma) à direita. Tap → drill-down.</p>
+      <div class="pros-cons">
+        <div><strong>Prós</strong>
+          <ul>
+            <li>Densidade alta: 40 jogadores em ~2 scrolls</li>
+            <li>Modelo mental do treinador (pensa por posição)</li>
+            <li>Familiar (Apple Health / Linear)</li>
+          </ul>
+        </div>
+        <div><strong>Contras</strong>
+          <ul>
+            <li>Sem visualização espacial</li>
+            <li>Pouco "wow" visual</li>
+            <li>Listas longas exigem scroll</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="device device-phone">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>10:32</span>
+          <div class="status-bar-icons">
+            <i data-lucide="signal"></i>
+            <i data-lucide="wifi"></i>
+            <i data-lucide="battery-full"></i>
+          </div>
+        </div>
+        <div class="app-content" id="painel-A-content">
+          <div class="app-header">
+            <div class="app-header-row">
+              <h2>Prontidão</h2>
+              <span class="date">Sáb · 10:32</span>
+            </div>
+            <div class="meta">Jogo às <b>16:00</b> · vs CD Estrela</div>
+          </div>
+          <div class="glance">
+            <div class="glance-card ready">
+              <div>
+                <div class="glance-num">28</div>
+                <div class="glance-label">Verdes</div>
+              </div>
+            </div>
+            <div class="glance-card caution">
+              <div>
+                <div class="glance-num">7</div>
+                <div class="glance-label">Atenção</div>
+              </div>
+            </div>
+            <div class="glance-card alert">
+              <div>
+                <div class="glance-num">5</div>
+                <div class="glance-label">Não pronto</div>
+              </div>
+            </div>
+          </div>
+          <div id="position-list-A"></div>
+        </div>
+        <div class="tabbar">
+          <div class="tabbar-item active"><i data-lucide="activity"></i><span>Prontidão</span></div>
+          <div class="tabbar-item"><i data-lucide="calendar"></i><span>Calendário</span></div>
+          <div class="tabbar-item"><i data-lucide="users"></i><span>Plantel</span></div>
+          <div class="tabbar-item"><i data-lucide="user"></i><span>Eu</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Direção B — Field formation -->
+  <div class="viewer" data-viewer="painel-B">
+    <div class="viewer-header">
+      <h3>B · Formação no campo com banco abaixo</h3>
+      <p>Desenho de campo com 11 jogadores titulares posicionados (4-3-3 default). Cor do dot = estado de prontidão. Banco abaixo em grelha 7×n. Único ecrã do produto onde o futebol é representado visualmente.</p>
+      <div class="pros-cons">
+        <div><strong>Prós</strong>
+          <ul>
+            <li>Mais "wow" visual e específico de futebol</li>
+            <li>11 titulares vs banco visível imediatamente</li>
+            <li>Alinhado com mental model do "onze inicial"</li>
+          </ul>
+        </div>
+        <div><strong>Contras</strong>
+          <ul>
+            <li>Exige decisão prévia de quem é titular</li>
+            <li>Complexidade de UI (drag-drop? edição?)</li>
+            <li>Não-titulares no banco perdem hierarquia</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="device device-phone">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>10:32</span>
+          <div class="status-bar-icons">
+            <i data-lucide="signal"></i>
+            <i data-lucide="wifi"></i>
+            <i data-lucide="battery-full"></i>
+          </div>
+        </div>
+        <div class="app-content">
+          <div class="app-header">
+            <div class="app-header-row">
+              <h2>Formação</h2>
+              <span class="date">Sáb · 10:32</span>
+            </div>
+            <div class="meta">4-3-3 · Jogo <b>16:00</b> · <span style="color:var(--signal-info)">tap p/ ver lista</span></div>
+          </div>
+          <div class="field-wrap">
+            <div class="field" id="field-B"></div>
+            <div class="field-bench">
+              <h3>Banco · Restantes 29</h3>
+              <div class="field-bench-grid" id="bench-B"></div>
+            </div>
+          </div>
+        </div>
+        <div class="tabbar">
+          <div class="tabbar-item active"><i data-lucide="activity"></i><span>Prontidão</span></div>
+          <div class="tabbar-item"><i data-lucide="calendar"></i><span>Calendário</span></div>
+          <div class="tabbar-item"><i data-lucide="users"></i><span>Plantel</span></div>
+          <div class="tabbar-item"><i data-lucide="user"></i><span>Eu</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Direção C — Cards densos -->
+  <div class="viewer" data-viewer="painel-C">
+    <div class="viewer-header">
+      <h3>C · Cards densos com ACWR + tendência inline</h3>
+      <p>Cards individuais com mais informação no nível 1: nome, escalão, ACWR, mini-trend de fadiga últimas 7 sessões. Mais informação → menos drill-downs necessários. Mais densidade → menos jogadores por scroll.</p>
+      <div class="pros-cons">
+        <div><strong>Prós</strong>
+          <ul>
+            <li>Decisão sem drill-down em muitos casos</li>
+            <li>Educação inline sobre ACWR</li>
+            <li>Para utilizadores avançados (Ana)</li>
+          </ul>
+        </div>
+        <div><strong>Contras</strong>
+          <ul>
+            <li>Viola "Glance &gt; Read"</li>
+            <li>Densidade alta em ecrã pequeno</li>
+            <li>Podia funcionar melhor para Ana que para José</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="device device-phone">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>10:32</span>
+          <div class="status-bar-icons">
+            <i data-lucide="signal"></i>
+            <i data-lucide="wifi"></i>
+            <i data-lucide="battery-full"></i>
+          </div>
+        </div>
+        <div class="app-content">
+          <div class="app-header">
+            <div class="app-header-row">
+              <h2>Prontidão</h2>
+              <span class="date">Sáb · 10:32</span>
+            </div>
+            <div class="meta">Jogo <b>16:00</b> · Filtro: <b>Todos</b></div>
+          </div>
+          <div class="cards-list" id="cards-C"></div>
+        </div>
+        <div class="tabbar">
+          <div class="tabbar-item active"><i data-lucide="activity"></i><span>Prontidão</span></div>
+          <div class="tabbar-item"><i data-lucide="calendar"></i><span>Calendário</span></div>
+          <div class="tabbar-item"><i data-lucide="users"></i><span>Plantel</span></div>
+          <div class="tabbar-item"><i data-lucide="user"></i><span>Eu</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+SECTION 2: QUESTIONÁRIO DE FADIGA
+============================================================ -->
+<section class="section" id="questionario">
+  <div class="section-header">
+    <h2>Questionário de Fadiga — 2 direções</h2>
+    <p>Tomás (16) abre push notification 30 min após o treino. Tem ≤2 minutos de paciência. 5 dimensões a responder. Cada variação testa um padrão diferente de input.</p>
+  </div>
+  <div class="var-tabs" data-tabs="questionario">
+    <button class="active" data-var="A">Direção A <span class="badge">Daylio-style emoji</span></button>
+    <button data-var="B">Direção B <span class="badge">Slider numérico</span></button>
+  </div>
+
+  <!-- Direção A — Daylio-style -->
+  <div class="viewer active" data-viewer="questionario-A">
+    <div class="viewer-header">
+      <h3>A · Escala visual emoji-style com autosave</h3>
+      <p>Inspirado em Daylio. 5 emojis por dimensão, tap para selecionar, autosave imediato, sem botão "submit" intermédio. Linguagem em primeira pessoa. Tom respeitoso, sem gamification.</p>
+      <div class="pros-cons">
+        <div><strong>Prós</strong>
+          <ul>
+            <li>Rápido (tap em 5 escalas = ~30s)</li>
+            <li>Lúdico sem ser infantil</li>
+            <li>Adaptável a sub-14 (emoji é universal)</li>
+          </ul>
+        </div>
+        <div><strong>Contras</strong>
+          <ul>
+            <li>Emoji pode ser percebido como "infantil" por seniores</li>
+            <li>Granularidade emocional sobre dor física?</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="device device-phone">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>20:14</span>
+          <div class="status-bar-icons">
+            <i data-lucide="signal"></i>
+            <i data-lucide="wifi-off" style="color:var(--text-muted)"></i>
+            <i data-lucide="battery-medium"></i>
+          </div>
+        </div>
+        <div class="q-shell">
+          <div class="q-progress">
+            <div class="q-progress-step done"></div>
+            <div class="q-progress-step done"></div>
+            <div class="q-progress-step current"></div>
+            <div class="q-progress-step"></div>
+            <div class="q-progress-step"></div>
+          </div>
+          <div class="q-header">
+            <h2>Como te sentes?</h2>
+            <p>Pós-treino · 20 min após sessão · 3 de 5</p>
+          </div>
+          <div class="q-body">
+            <div class="q-question">Qualidade do sono ontem</div>
+            <div class="q-helper">Como dormiste? Pensa nas últimas 8 horas.</div>
+            <div class="q-emoji-row">
+              <div class="q-emoji">😴</div>
+              <div class="q-emoji">🥱</div>
+              <div class="q-emoji selected">😐</div>
+              <div class="q-emoji">🙂</div>
+              <div class="q-emoji">✨</div>
+            </div>
+            <div class="q-emoji-row-labels">
+              <div>Mau</div>
+              <div>Fraco</div>
+              <div class="selected">OK</div>
+              <div>Bom</div>
+              <div>Ótimo</div>
+            </div>
+            <div style="margin-top:32px;padding:14px;background:var(--signal-info-bg);border:1px solid var(--signal-info-border);border-radius:10px;display:flex;gap:10px;align-items:flex-start">
+              <i data-lucide="cloud-off" style="color:var(--signal-info);width:18px;height:18px;flex-shrink:0;margin-top:2px"></i>
+              <div style="font-size:12px;color:#1E40AF">
+                <strong style="font-weight:600">1 questionário pendente</strong><br>
+                Vai sincronizar quando voltares a ter rede. As tuas respostas estão guardadas.
+              </div>
+            </div>
+          </div>
+          <div class="q-footer">
+            <div class="q-status">
+              <i data-lucide="check"></i>
+              Guardado automaticamente
+            </div>
+            <button class="btn">Próxima <i data-lucide="arrow-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Direção B — Slider -->
+  <div class="viewer" data-viewer="questionario-B">
+    <div class="viewer-header">
+      <h3>B · Slider 1–5 com extremos rotulados</h3>
+      <p>Slider horizontal com posições discretas 1–5, extremos rotulados. Mais "neutro" e "adulto". Uma única tela com as 5 dimensões empilhadas — submit único no fim.</p>
+      <div class="pros-cons">
+        <div><strong>Prós</strong>
+          <ul>
+            <li>Mais "neutro" — sem conotação lúdica</li>
+            <li>Vista única, sem progressão entre ecrãs</li>
+            <li>Slider familiar a quem usa apps profissionais</li>
+          </ul>
+        </div>
+        <div><strong>Contras</strong>
+          <ul>
+            <li>Mais lento (3-5 toques por slider para ajustar)</li>
+            <li>Frio para sub-14</li>
+            <li>Fadiga numérica sem ancoragem visual</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="device device-phone">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>20:14</span>
+          <div class="status-bar-icons">
+            <i data-lucide="signal"></i>
+            <i data-lucide="wifi"></i>
+            <i data-lucide="battery-medium"></i>
+          </div>
+        </div>
+        <div class="q-shell">
+          <div class="q-header">
+            <h2>Como te sentes?</h2>
+            <p>Pós-treino · 20 min após sessão</p>
+          </div>
+          <div class="q-body" style="overflow-y:auto;flex:1">
+            <div class="q-slider-block">
+              <div class="q-question" style="font-size:15px">Energia muscular</div>
+              <div class="q-slider-row"><span>Esgotado</span><span>Pleno</span></div>
+              <div class="q-slider-track">
+                <div class="q-slider-fill" style="width:60%"></div>
+                <div class="q-slider-thumb" style="left:60%">3</div>
+              </div>
+            </div>
+            <div class="q-slider-block">
+              <div class="q-question" style="font-size:15px">Concentração e motivação</div>
+              <div class="q-slider-row"><span>Disperso</span><span>Focado</span></div>
+              <div class="q-slider-track">
+                <div class="q-slider-fill" style="width:80%"></div>
+                <div class="q-slider-thumb" style="left:80%">4</div>
+              </div>
+            </div>
+            <div class="q-slider-block">
+              <div class="q-question" style="font-size:15px">Qualidade do sono</div>
+              <div class="q-slider-row"><span>Insónia</span><span>Profundo</span></div>
+              <div class="q-slider-track">
+                <div class="q-slider-fill" style="width:40%"></div>
+                <div class="q-slider-thumb" style="left:40%">2</div>
+              </div>
+            </div>
+            <div class="q-slider-block">
+              <div class="q-question" style="font-size:15px">Desconforto muscular/articular</div>
+              <div class="q-slider-row"><span>Sem dor</span><span>Forte</span></div>
+              <div class="q-slider-track">
+                <div class="q-slider-fill" style="width:40%"></div>
+                <div class="q-slider-thumb" style="left:40%">2</div>
+              </div>
+            </div>
+            <div class="q-slider-block">
+              <div class="q-question" style="font-size:15px">Estado emocional</div>
+              <div class="q-slider-row"><span>Em baixo</span><span>Em cima</span></div>
+              <div class="q-slider-track">
+                <div class="q-slider-fill" style="width:60%"></div>
+                <div class="q-slider-thumb" style="left:60%">3</div>
+              </div>
+            </div>
+          </div>
+          <div class="q-footer">
+            <button class="btn-ghost btn">Cancelar</button>
+            <button class="btn">Submeter <i data-lucide="check"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+SECTION 3: TOUCHSCREEN 3-ECRÃS
+============================================================ -->
+<section class="section" id="touchscreen">
+  <div class="section-header">
+    <h2>Touchscreen 3-ecrãs em jogo — 2 direções</h2>
+    <p>Ana, tablet 10" no colo, olhos no campo, regista ~187 eventos em 90 minutos. 1 tap a cada ~10 segundos. Sem desviar olhos. Cada variação testa um trade-off entre simplicidade e ritmo de tap-tap-tap.</p>
+  </div>
+  <div class="var-tabs" data-tabs="touchscreen">
+    <button class="active" data-var="A">Direção A <span class="badge">3 ecrãs separados</span></button>
+    <button data-var="B">Direção B <span class="badge">Stack persistente</span></button>
+  </div>
+
+  <!-- Direção A — 3 ecrãs separados -->
+  <div class="viewer active" data-viewer="touchscreen-A">
+    <div class="viewer-header">
+      <h3>A · 3 ecrãs lineares (jogador → ação → zona)</h3>
+      <p>Fluxo linear como nos drafts originais. Cada evento começa do zero: seleciona jogador, depois ação, depois zona. 3 taps mínimo. Ecrã sempre limpo.</p>
+      <div class="pros-cons">
+        <div><strong>Prós</strong>
+          <ul>
+            <li>Mental model trivial</li>
+            <li>Cada evento é "um caso" completo</li>
+            <li>Sem estado oculto</li>
+          </ul>
+        </div>
+        <div><strong>Contras</strong>
+          <ul>
+            <li>Mesmo jogador 5 eventos = 15 taps</li>
+            <li>Ritmo quebra-se entre eventos sucessivos</li>
+            <li>Latência cumulativa em jogo intenso</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="device device-tablet">
+      <div class="device-screen">
+        <div class="ts-shell">
+          <div class="ts-header">
+            <div style="display:flex;align-items:center;gap:14px">
+              <h3>Jogo · vs CD Estrela</h3>
+              <span class="meta">Análise em curso</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:18px">
+              <span class="meta">Eventos: <b style="color:var(--text-primary);font-family:ui-monospace,monospace">87</b></span>
+              <span class="timer">63:24</span>
+            </div>
+          </div>
+          <div class="ts-header-context">
+            <span style="font-weight:500;color:var(--text-muted);font-size:12px">Passo 1 de 3:</span>
+            <span style="font-weight:600">Seleciona jogador</span>
+            <span class="ts-event-counter">Próximo evento</span>
+          </div>
+          <div class="ts-screen active" id="ts-A-screen">
+            <div class="ts-grid-players" id="ts-A-players"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Direção B — Stack persistente -->
+  <div class="viewer" data-viewer="touchscreen-B">
+    <div class="viewer-header">
+      <h3>B · Sticky player + ações em stack</h3>
+      <p>Jogador selecionado fica fixo no topo (sticky). Lista de ações abaixo. Ana pode encadear "perda de bola → recuperação → remate" do mesmo nº 10 sem voltar ao ecrã 1. Cada ação abre apenas o seletor de zona inline. <b>Ecrã 2 e 3 fundem-se</b>: action → zone num único fluxo, com retorno ao ecrã de ações para próximo evento.</p>
+      <div class="pros-cons">
+        <div><strong>Prós</strong>
+          <ul>
+            <li>Encadeamento de eventos rápido (lost → won → shot)</li>
+            <li>Ritmo preservado sem voltar à seleção</li>
+            <li>Histórico recente visível (auditoria mental)</li>
+          </ul>
+        </div>
+        <div><strong>Contras</strong>
+          <ul>
+            <li>Estado persistente exige "deselect" explícito</li>
+            <li>Risco de Ana esquecer e atribuir evento ao jogador errado</li>
+            <li>Ligeiramente mais complexo conceptualmente</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="device device-tablet">
+      <div class="device-screen">
+        <div class="ts-stack-shell">
+          <div class="ts-stack-sticky">
+            <div class="num">10</div>
+            <div class="info">
+              <div class="name">Tomás Silva</div>
+              <div class="meta">Médio · Sub-17 · 4 ações neste jogo</div>
+            </div>
+            <button>Trocar jogador <i data-lucide="repeat-2" style="width:14px;height:14px"></i></button>
+          </div>
+          <div class="ts-stack-body">
+            <h4>Ação a registar</h4>
+            <div class="ts-actions" id="ts-B-actions"></div>
+          </div>
+          <div class="ts-recent">
+            <span style="color:var(--text-muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em">Últimos eventos</span>
+            <div class="ts-recent-list">
+              <div class="ts-recent-item"><span class="num">10</span>Recuperação · M-D</div>
+              <div class="ts-recent-item"><span class="num">10</span>Passe · M-C</div>
+              <div class="ts-recent-item"><span class="num">7</span>Perda · A-E</div>
+              <div class="ts-recent-item"><span class="num">10</span>Pressão · M-D</div>
+              <div class="ts-recent-item"><span class="num">4</span>Acção def. · D-C</div>
+              <div class="ts-recent-item"><span class="num">11</span>Remate · A-D</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p>Mockups exploratórios — Project R · Step 9 do workflow UX. Tokens de Step 8 aplicados (Inter, paleta semântica, redundância sensorial cor + ícone, touch targets ≥44px). Comparação lado-a-lado, não decisão final.</p>
+</footer>
+
+<script>
+// ===== Data: 40 jogadores =====
+const PLAYERS = [
+  // GR (3)
+  { num: 1, name: 'Rui Carvalho', age: 32, tier: 'Sénior', pos: 'GR', state: 'ready', acwr: '0.95', trend: [3,3,4,3,3,4,3] },
+  { num: 12, name: 'Pedro Sousa', age: 19, tier: 'Sub-19', pos: 'GR', state: 'ready', acwr: '1.02', trend: [3,3,3,3,4,3,3] },
+  { num: 22, name: 'João Antunes', age: 16, tier: 'Sub-17', pos: 'GR', state: 'ready', acwr: '0.88', trend: [3,3,3,3,3,3,3] },
+  // DEF (12)
+  { num: 2, name: 'Tiago Mendes', age: 31, tier: 'Sénior', pos: 'DEF', state: 'ready', acwr: '1.08', trend: [3,3,4,3,4,3,3] },
+  { num: 3, name: 'Bruno Pinto', age: 25, tier: 'Sénior', pos: 'DEF', state: 'ready', acwr: '1.12', trend: [3,4,3,3,3,4,3] },
+  { num: 4, name: 'André Costa', age: 24, tier: 'Sénior', pos: 'DEF', state: 'ready', acwr: '0.97', trend: [3,3,3,4,3,3,3] },
+  { num: 5, name: 'Diogo Ferreira', age: 28, tier: 'Sénior', pos: 'DEF', state: 'caution', acwr: '1.42', trend: [4,4,5,4,4,4,5] },
+  { num: 13, name: 'Hugo Martins', age: 23, tier: 'Sénior', pos: 'DEF', state: 'caution', acwr: '1.38', trend: [3,4,4,3,4,4,4] },
+  { num: 14, name: 'Vasco Teixeira', age: 30, tier: 'Sénior', pos: 'DEF', state: 'ready', acwr: '1.04', trend: [3,3,3,3,3,3,3] },
+  { num: 15, name: 'Ricardo Almeida', age: 18, tier: 'Sub-19', pos: 'DEF', state: 'alert', acwr: '1.78', trend: [4,5,5,5,4,5,5] },
+  { num: 16, name: 'Miguel Lopes', age: 17, tier: 'Sub-19', pos: 'DEF', state: 'ready', acwr: '0.92', trend: [3,3,3,3,3,3,3] },
+  { num: 17, name: 'Daniel Ribeiro', age: 16, tier: 'Sub-17', pos: 'DEF', state: 'ready', acwr: '1.05', trend: [3,3,3,3,3,4,3] },
+  { num: 18, name: 'Manuel Lourenço', age: 15, tier: 'Sub-17', pos: 'DEF', state: 'alert', acwr: '1.62', trend: [4,5,4,5,5,5,4] },
+  { num: 19, name: 'Lucas Magalhães', age: 15, tier: 'Sub-17', pos: 'DEF', state: 'ready', acwr: '0.99', trend: [3,3,3,3,3,3,3] },
+  { num: 23, name: 'Tiago Pacheco', age: 26, tier: 'Sénior', pos: 'DEF', state: 'ready', acwr: '1.15', trend: [3,3,4,3,3,3,3] },
+  { num: 24, name: 'Francisco Neves', age: 14, tier: 'Sub-15', pos: 'DEF', state: 'ready', acwr: '0.85', trend: [2,3,3,3,3,3,3] },
+  // MED (12)
+  { num: 6, name: 'Rafael Oliveira', age: 26, tier: 'Sénior', pos: 'MED', state: 'ready', acwr: '1.10', trend: [3,3,3,4,3,3,3] },
+  { num: 7, name: 'Carlos Marques', age: 29, tier: 'Sénior', pos: 'MED', state: 'caution', acwr: '1.34', trend: [4,4,3,4,4,4,4] },
+  { num: 8, name: 'Nuno Pereira', age: 22, tier: 'Sénior', pos: 'MED', state: 'ready', acwr: '1.06', trend: [3,3,3,3,3,3,3] },
+  { num: 10, name: 'Tomás Silva', age: 16, tier: 'Sub-17', pos: 'MED', state: 'alert', acwr: '1.82', trend: [4,4,5,5,4,5,5] },
+  { num: 20, name: 'Pedro Vieira', age: 19, tier: 'Sub-19', pos: 'MED', state: 'ready', acwr: '0.94', trend: [3,3,3,3,3,3,3] },
+  { num: 25, name: 'Gonçalo Henriques', age: 17, tier: 'Sub-19', pos: 'MED', state: 'ready', acwr: '1.01', trend: [3,3,3,3,3,3,3] },
+  { num: 26, name: 'Henrique Borges', age: 24, tier: 'Sénior', pos: 'MED', state: 'ready', acwr: '1.13', trend: [3,3,4,3,3,3,3] },
+  { num: 27, name: 'Simão Cunha', age: 20, tier: 'Sub-19', pos: 'MED', state: 'caution', acwr: '1.32', trend: [3,4,4,3,4,4,3] },
+  { num: 28, name: 'Eduardo Brito', age: 14, tier: 'Sub-15', pos: 'MED', state: 'ready', acwr: '0.91', trend: [3,3,3,3,3,3,3] },
+  { num: 29, name: 'Luís Fonseca', age: 13, tier: 'Sub-15', pos: 'MED', state: 'ready', acwr: '0.78', trend: [2,2,3,3,3,3,3] },
+  { num: 30, name: 'Salvador Pinheiro', age: 27, tier: 'Sénior', pos: 'MED', state: 'ready', acwr: '1.07', trend: [3,3,3,3,3,3,3] },
+  { num: 31, name: 'Afonso Moreira', age: 16, tier: 'Sub-17', pos: 'MED', state: 'ready', acwr: '0.96', trend: [3,3,3,3,3,3,3] },
+  // AVA (13)
+  { num: 9, name: 'João Reis', age: 27, tier: 'Sénior', pos: 'AVA', state: 'ready', acwr: '1.14', trend: [3,3,3,3,4,3,3] },
+  { num: 11, name: 'Filipe Santos', age: 30, tier: 'Sénior', pos: 'AVA', state: 'alert', acwr: '1.71', trend: [4,5,5,5,4,5,4] },
+  { num: 21, name: 'Bernardo Cardoso', age: 18, tier: 'Sub-19', pos: 'AVA', state: 'ready', acwr: '1.03', trend: [3,3,3,3,3,3,3] },
+  { num: 32, name: 'David Tavares', age: 16, tier: 'Sub-17', pos: 'AVA', state: 'ready', acwr: '0.93', trend: [3,3,3,3,3,3,3] },
+  { num: 33, name: 'Mateus Coelho', age: 21, tier: 'Sénior', pos: 'AVA', state: 'ready', acwr: '1.09', trend: [3,3,3,3,3,3,3] },
+  { num: 34, name: 'Vicente Lima', age: 15, tier: 'Sub-17', pos: 'AVA', state: 'alert', acwr: '1.66', trend: [4,5,4,5,5,4,5] },
+  { num: 35, name: 'Guilherme Rocha', age: 28, tier: 'Sénior', pos: 'AVA', state: 'caution', acwr: '1.36', trend: [3,4,4,4,3,4,4] },
+  { num: 36, name: 'Lourenço Cabral', age: 13, tier: 'Sub-15', pos: 'AVA', state: 'ready', acwr: '0.82', trend: [2,3,3,3,3,3,3] },
+  { num: 37, name: 'Tomé Mota', age: 17, tier: 'Sub-19', pos: 'AVA', state: 'ready', acwr: '1.11', trend: [3,3,3,3,3,3,3] },
+  { num: 38, name: 'Martim Soares', age: 14, tier: 'Sub-15', pos: 'AVA', state: 'ready', acwr: '0.88', trend: [3,3,3,3,3,3,3] },
+  { num: 39, name: 'Dinis Faria', age: 19, tier: 'Sub-19', pos: 'AVA', state: 'caution', acwr: '1.40', trend: [3,4,4,4,4,4,4] },
+  { num: 40, name: 'Xavier Nogueira', age: 22, tier: 'Sénior', pos: 'AVA', state: 'caution', acwr: '1.31', trend: [3,3,4,3,4,4,3] },
+  { num: 41, name: 'Salvador Brandão', age: 16, tier: 'Sub-17', pos: 'AVA', state: 'ready', acwr: '1.00', trend: [3,3,3,3,3,3,3] },
+];
+
+const STATE_LABELS = { ready: 'Pronto', caution: 'Atenção', alert: 'Não pronto', neutral: 'Sem dados' };
+const STATE_ICONS = { ready: 'check-circle-2', caution: 'alert-triangle', alert: 'alert-octagon', neutral: 'circle-dashed' };
+const POSITION_LABELS = { GR: 'Guarda-redes', DEF: 'Defesas', MED: 'Médios', AVA: 'Avançados' };
+
+// ===== Render Direção A: Lista por posição =====
+function renderPositionList(){
+  const container = document.getElementById('position-list-A');
+  if(!container) return;
+  const positions = ['GR', 'DEF', 'MED', 'AVA'];
+  let html = '';
+  positions.forEach(pos => {
+    const players = PLAYERS.filter(p => p.pos === pos).sort((a,b) => {
+      const order = { alert: 0, caution: 1, ready: 2 };
+      return order[a.state] - order[b.state];
+    });
+    if(players.length === 0) return;
+    html += `<div class="pos-group">
+      <h3>${POSITION_LABELS[pos]} <span class="count">· ${players.length}</span></h3>`;
+    players.forEach(p => {
+      html += `
+      <div class="player-row">
+        <div class="player-num">${p.num}</div>
+        <div class="player-info">
+          <div class="player-name">${p.name}</div>
+          <div class="player-meta">${p.tier} · ${p.age} anos · ACWR ${p.acwr}</div>
+        </div>
+        <div class="semaforo-icon-only ${p.state}">
+          <i data-lucide="${STATE_ICONS[p.state]}"></i>
+        </div>
+        <div class="chevron"><i data-lucide="chevron-right"></i></div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  container.innerHTML = html;
+}
+
+// ===== Render Direção B: Field formation =====
+const FORMATION_433 = [
+  { num: 1, x: 50, y: 92 }, // GR
+  { num: 2, x: 15, y: 75 }, // LB
+  { num: 5, x: 35, y: 75 }, // CB
+  { num: 14, x: 65, y: 75 }, // CB
+  { num: 4, x: 85, y: 75 }, // RB
+  { num: 6, x: 30, y: 50 }, // MED
+  { num: 8, x: 50, y: 50 }, // MED
+  { num: 10, x: 70, y: 50 }, // MED
+  { num: 7, x: 18, y: 25 }, // AVA L
+  { num: 9, x: 50, y: 18 },  // AVA C
+  { num: 11, x: 82, y: 25 } // AVA R
+];
+
+function renderFieldFormation(){
+  const field = document.getElementById('field-B');
+  const bench = document.getElementById('bench-B');
+  if(!field || !bench) return;
+  field.innerHTML = '<div class="field-circle"></div>';
+  const startingNums = FORMATION_433.map(f => f.num);
+  FORMATION_433.forEach(spot => {
+    const player = PLAYERS.find(p => p.num === spot.num);
+    if(!player) return;
+    const el = document.createElement('div');
+    el.className = `field-spot ${player.state}`;
+    el.style.left = spot.x + '%';
+    el.style.top = spot.y + '%';
+    el.innerHTML = `${player.num}<div class="field-name">${player.name.split(' ')[0]}</div>`;
+    field.appendChild(el);
+  });
+  // Bench
+  const benchPlayers = PLAYERS.filter(p => !startingNums.includes(p.num));
+  bench.innerHTML = benchPlayers.slice(0, 21).map(p => {
+    const lastName = p.name.split(' ').slice(-1)[0];
+    return `<div class="bench-spot ${p.state}">
+      ${p.num}
+      <small>${lastName}</small>
+    </div>`;
+  }).join('');
+}
+
+// ===== Render Direção C: Cards densos =====
+function renderCards(){
+  const container = document.getElementById('cards-C');
+  if(!container) return;
+  const sorted = [...PLAYERS].sort((a,b) => {
+    const order = { alert: 0, caution: 1, ready: 2 };
+    return order[a.state] - order[b.state];
+  }).slice(0, 12);
+  container.innerHTML = sorted.map(p => {
+    const trendSpark = renderSparkline(p.trend, p.state);
+    return `
+      <div class="player-card">
+        <div class="player-card-num">${p.num}</div>
+        <div class="player-card-info">
+          <div class="player-name">${p.name}</div>
+          <div class="player-meta">
+            <span>${p.tier}</span>
+            <span>·</span>
+            <span>${p.pos}</span>
+            <span>·</span>
+            <span style="display:flex;align-items:center;gap:3px"><i data-lucide="activity"></i>ACWR ${p.acwr}</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          ${trendSpark}
+          <div class="semaforo ${p.state}">
+            <i data-lucide="${STATE_ICONS[p.state]}"></i>
+            ${STATE_LABELS[p.state]}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderSparkline(values, state){
+  const w = 70, h = 22;
+  const max = 5, min = 1;
+  const stroke = state === 'ready' ? 'var(--signal-ready)' : state === 'caution' ? 'var(--signal-caution)' : 'var(--signal-alert)';
+  const points = values.map((v,i) => {
+    const x = (i / (values.length - 1)) * w;
+    const y = h - ((v - min) / (max - min)) * h;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="display:block">
+    <polyline points="${points}" fill="none" stroke="${stroke}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+// ===== Render Touchscreen Direção A: lista de jogadores em grid =====
+function renderTouchscreenPlayers(){
+  const container = document.getElementById('ts-A-players');
+  if(!container) return;
+  // 11 titulares
+  const startingNums = FORMATION_433.map(f => f.num);
+  const starting = PLAYERS.filter(p => startingNums.includes(p.num));
+  container.innerHTML = starting.map((p,i) => {
+    const isSelected = p.num === 10; // Tomás selecionado
+    return `<button class="ts-player-btn ${isSelected ? 'selected' : ''}">
+      <div class="num">${p.num}</div>
+      <div class="name">${p.name.split(' ').slice(-1)[0]}</div>
+    </button>`;
+  }).join('');
+}
+
+// ===== Render Touchscreen Direção B: ações para Tomás =====
+const ACTIONS = [
+  { icon: 'arrow-down-circle', label: 'Perda de bola', desc: 'Posse perdida', kind: 'negative' },
+  { icon: 'arrow-up-circle', label: 'Recuperação', desc: 'Bola recuperada', kind: 'positive' },
+  { icon: 'target', label: 'Remate', desc: 'Total e enquadrado', kind: 'positive' },
+  { icon: 'send', label: 'Passe completado', desc: 'Passe c/ sucesso', kind: 'positive' },
+  { icon: 'shield', label: 'Pressão defensiva', desc: 'Pressionou portador', kind: 'positive' },
+  { icon: 'shield-check', label: 'Acção defensiva', desc: 'Desarme, corte', kind: 'positive' },
+  { icon: 'sword', label: 'Acção ofensiva', desc: 'Drible, assistência', kind: 'positive' },
+  { icon: 'x-circle', label: 'Falta cometida', desc: 'Cartão potencial', kind: 'negative' },
+];
+
+function renderTouchscreenActions(){
+  const container = document.getElementById('ts-B-actions');
+  if(!container) return;
+  container.innerHTML = ACTIONS.map(a => `
+    <button class="ts-action-btn ${a.kind}">
+      <div style="display:flex;align-items:center;gap:8px;width:100%">
+        <i data-lucide="${a.icon}" style="width:20px;height:20px;color:var(--text-secondary)"></i>
+        <div class="label">${a.label}</div>
+      </div>
+      <div class="desc">${a.desc}</div>
+    </button>
+  `).join('');
+}
+
+// ===== Tab switching =====
+function setupTabs(){
+  document.querySelectorAll('.section-tabs button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.section;
+      document.querySelectorAll('.section-tabs button').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.section').forEach(s => s.classList.toggle('active', s.id === id));
+    });
+  });
+  document.querySelectorAll('[data-tabs]').forEach(group => {
+    const groupName = group.dataset.tabs;
+    group.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const v = btn.dataset.var;
+        group.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+        document.querySelectorAll(`[data-viewer^="${groupName}-"]`).forEach(view => {
+          view.classList.toggle('active', view.dataset.viewer === `${groupName}-${v}`);
+        });
+        // re-render lucide icons after tab switch
+        setTimeout(() => lucide.createIcons(), 50);
+      });
+    });
+  });
+}
+
+// ===== Init =====
+document.addEventListener('DOMContentLoaded', () => {
+  renderPositionList();
+  renderFieldFormation();
+  renderCards();
+  renderTouchscreenPlayers();
+  renderTouchscreenActions();
+  setupTabs();
+  lucide.createIcons();
+});
+</script>
+
+</body>
+</html>
