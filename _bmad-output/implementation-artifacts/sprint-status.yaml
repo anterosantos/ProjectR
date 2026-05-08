@@ -1,0 +1,144 @@
+# generated: 2026-05-08
+# last_updated: 2026-05-08
+# project: Project R
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: {project-root}/_bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-05-08
+last_updated: 2026-05-08
+# 2026-05-08: epic-1 → in-progress; 1-1 → ready-for-dev (story criada via bmad-create-story)
+# 2026-05-08: 1-1 → in-progress (dev-story iniciada; Node 22.22.2 LTS confirmado)
+# 2026-05-08: 1-1 → review (dev-story concluída; AC #1-#5 verificados; build/dev/lint/vitest exit 0)
+# 2026-05-08: 1-1 → done (adversarial code review complete; 10 patches implemented & verified; DECISION-01 resolved; ready for merge)
+project: Project R
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  # Epic 1: Fundação Técnica, Identidade & Acesso Multi-Clube
+  epic-1: in-progress
+  1-1-project-initialization-stack-bootstrap: done
+  1-2-supabase-project-setup-dpa-dpia-initial-documentation: backlog
+  1-3-migrations-foundation-core-identity-tables-uuidv7-rls-helpers: backlog
+  1-4-supabase-auth-hook-for-jwt-custom-claims-club-id-role: backlog
+  1-5-email-password-authentication-password-recovery: backlog
+  1-6-role-assignment-multi-tenant-access-enforcement: backlog
+  1-7-optional-mfa-for-treinador-analista: backlog
+  1-8-design-system-foundation-tokens-7-pattern-components-button-hierarchy: backlog
+  1-9-role-based-navigation-shell-route-groups: backlog
+  1-10-browser-compatibility-page-in-app-webview-block: backlog
+  1-11-outbox-foundation-dexie-uuidv7-generation-service-worker-serwist: backlog
+  1-12-audit-logs-telemetry-foundation-tables: backlog
+  1-13-github-actions-ci-pipeline-with-quality-gates: backlog
+  1-14-github-actions-heartbeat-workflow: backlog
+  1-15-github-actions-weekly-backup-workflow: backlog
+  1-16-accessibility-foundation-skip-link-focus-rings-reduced-motion-alt-text: backlog
+  epic-1-retrospective: optional
+
+  # Epic 2: Plantel, Calendário & Sessões (gestão operacional do staff)
+  epic-2: backlog
+  2-1-player-records-plantel-list: backlog
+  2-2-player-photo-upload: backlog
+  2-3-player-metrics-time-series-weight-height: backlog
+  2-4-mark-player-as-inactive-soft-status: backlog
+  2-5-season-management-epocas: backlog
+  2-6-session-management-create-edit-cancel-treino-jogo-amigavel: backlog
+  2-7-calendar-view-per-role: backlog
+  2-8-match-squad-selection-convocados-starting-xi: backlog
+  2-9-retention-policy-preserve-history-5-seasons-anonymization-hook: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Consentimento Parental & Direitos GDPR
+  epic-3: backlog
+  3-1-privacy-policy-versioning-sub-14-adapted-copy: backlog
+  3-2-parental-consent-schema-token-generation-underage-access-block: backlog
+  3-3-parental-consent-email-send-token-landing-page: backlog
+  3-4-parental-consent-reminders-day-7-14-staff-alert: backlog
+  3-5-subject-rights-hub-routing-for-adult-titular-encarregado: backlog
+  3-6-right-to-export-csv-download: backlog
+  3-7-right-to-erasure-cascade-deletion: backlog
+  3-8-right-to-rectification-staff-mediated-with-audit-log: backlog
+  3-9-right-to-restrict-processing-freeze-state: backlog
+  3-10-right-to-withdraw-consent-immediate-effect: backlog
+  3-11-health-data-access-audit-logging-auto-wrapper-for-staff-reads: backlog
+  3-12-subject-visibility-who-accessed-my-health-data: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Recolha de Fadiga & Notificações (jornada do Tomás)
+  epic-4: backlog
+  4-1-fatigue-response-schema-idempotent-server-action: backlog
+  4-2-fatigue-questionnaire-ui-5-sliders-with-snap-single-view: backlog
+  4-3-sub-14-linguistically-adapted-version: backlog
+  4-4-offline-submission-pendentes-badge-force-sync: backlog
+  4-5-staff-read-individual-responses-4-week-trends: backlog
+  4-6-dados-mediados-block-player-has-no-self-access-to-processed-data: backlog
+  4-7-push-subscription-infrastructure-vapid-setup-subscribe-unsubscribe: backlog
+  4-8-pre-post-session-push-notifications-with-configurable-x-y: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: Painel de Prontidão & Inteligência (defining experience do José)
+  epic-5: backlog
+  5-1-srpe-calculation-persistence-per-session: backlog
+  5-2-acwr-calculation-engine-with-age-group-thresholds: backlog
+  5-3-readiness-snapshots-materialized-source-for-the-painel: backlog
+  5-4-painel-de-prontidao-lista-por-posicao-default-view: backlog
+  5-5-painel-drill-down-sheet-with-4-week-series-banda-acwr-presences-nota-livre: backlog
+  5-6-painel-field-formation-4-3-3-view-with-toggle: backlog
+  5-7-realtime-updates-window-4h-pre-session: backlog
+  5-8-analista-dashboard-individual-4-week-fatigue-trends-multi-player-overview: backlog
+  5-9-analista-dashboard-cumulative-load-per-player-per-season: backlog
+  5-10-data-driven-decision-input-audit-fr52: backlog
+  epic-5-retrospective: optional
+
+  # Epic 6: Recolha de Performance — Touchscreen 3-ecrãs (jornada da Ana)
+  epic-6: backlog
+  6-1-match-events-schema-idempotent-server-action: backlog
+  6-2-touchscreen-b-sticky-player-stack-with-action-and-zone: backlog
+  6-3-recent-events-ring-last-6-for-audit-on-the-go: backlog
+  6-4-substitutions-auto-derived-minutes-played: backlog
+  6-5-offline-match-event-capture-outbox-drain: backlog
+  6-6-edit-delete-events-within-configurable-post-session-window: backlog
+  6-7-attendance-recording-for-training-sessions: backlog
+  6-8-session-rpe-entry-per-player-at-end-of-session: backlog
+  epic-6-retrospective: optional
+
+  # Epic 7: Análise Avançada & Operacionalização "Dados Mediados" (Phase 2 / Growth)
+  epic-7: backlog
+  7-1-18-year-re-confirmation-flow-with-90-day-anonymization: backlog
+  7-2-unified-player-profile-perfil-consolidado: backlog
+  7-3-recovery-curve-individual: backlog
+  7-4-team-aggregate-dashboard: backlog
+  7-5-fatigue-performance-correlation-detection: backlog
+  7-6-mediated-pdf-report-generation-storage-sharing: backlog
+  epic-7-retrospective: optional
