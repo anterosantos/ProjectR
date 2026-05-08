@@ -9,10 +9,10 @@
 - Product Name: Project R
 - Status:
     - [x] Em especificação
-    - [ ] Em analise funcional
-    - [ ] Em analise tecnica
-    - [ ] Em estimativa
-    - [ ] Em planeamento
+    - [x] Em analise funcional
+    - [X] Em analise tecnica
+    - [x] Em estimativa
+    - [x] Em planeamento
     - [ ] Em desenvolvimento
     - [ ] Em revisão
     - [ ] Em testes funcionais
