@@ -42,6 +42,7 @@ last_updated: 2026-05-08
 # 2026-05-08: 1-1 → done (adversarial code review complete; 10 patches implemented & verified; DECISION-01 resolved; ready for merge)
 # 2026-05-08: 1-2 → ready-for-dev (bmad-create-story analysis completed; comprehensive story file created with all ACs & tasks)
 # 2026-05-08: 1-2 → in-progress (dev-story iniciada; estratégia: implementar todas as tasks locais; HALT em tasks que requerem dashboards externos)
+# 2026-05-09: 1-2 → review (todas as 12 tasks done; commit 1219a95; ACs #1-#4 satisfied with documented Resend regional deviation; ready for code-review)
 project: Project R
 project_key: NOKEY
 tracking_system: file-system
@@ -51,7 +52,7 @@ development_status:
   # Epic 1: Fundação Técnica, Identidade & Acesso Multi-Clube
   epic-1: in-progress
   1-1-project-initialization-stack-bootstrap: done
-  1-2-supabase-project-setup-dpa-dpia-initial-documentation: in-progress
+  1-2-supabase-project-setup-dpa-dpia-initial-documentation: review
   1-3-migrations-foundation-core-identity-tables-uuidv7-rls-helpers: backlog
   1-4-supabase-auth-hook-for-jwt-custom-claims-club-id-role: backlog
   1-5-email-password-authentication-password-recovery: backlog
