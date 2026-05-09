@@ -1,0 +1,13 @@
+# Repo-root .gitignore (app code lives in project-r/)
+
+# Stray Supabase CLI artifacts created when CLI runs from repo root by accident
+/supabase/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Tool caches
+.cache/
