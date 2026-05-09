@@ -52,7 +52,7 @@ development_status:
   # Epic 1: Fundação Técnica, Identidade & Acesso Multi-Clube
   epic-1: in-progress
   1-1-project-initialization-stack-bootstrap: done
-  1-2-supabase-project-setup-dpa-dpia-initial-documentation: review
+  1-2-supabase-project-setup-dpa-dpia-initial-documentation: done
   1-3-migrations-foundation-core-identity-tables-uuidv7-rls-helpers: backlog
   1-4-supabase-auth-hook-for-jwt-custom-claims-club-id-role: backlog
   1-5-email-password-authentication-password-recovery: backlog

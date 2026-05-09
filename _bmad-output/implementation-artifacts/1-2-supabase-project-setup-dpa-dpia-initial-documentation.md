@@ -1,6 +1,6 @@
 # Story 1.2: Supabase Project Setup, DPA & DPIA Initial Documentation
 
-**Status:** review
+**Status:** done
 
 **Story ID:** 1.2  
 **Epic:** Epic 1 - Fundação Técnica, Identidade & Acesso Multi-Clube  
