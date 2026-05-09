@@ -47,6 +47,7 @@ last_updated: 2026-05-09
 # 2026-05-09: 1-3 → ready-for-dev (bmad-create-story analysis completed; comprehensive story file created with 7 tasks, 5 ACs, full migration specs)
 # 2026-05-09: 1-3 → in-progress (dev-story iniciada; UUIDv7, migrations, auth helpers, RLS policies)
 # 2026-05-09: 1-3 → review (all tasks complete; 4 migrations created & applied; commit f1d84a3; ACs #1-#5 satisfied; Docker validation passed; ready for code-review)
+# 2026-05-09: 1-3 → done (adversarial code review complete; 4 decisions resolved + 13 patches applied; UUIDv7 RFC 9562 compliant; col-level GRANTs; SECURITY DEFINER helper; supabase db reset root-cause fixed; AC #5 contract honored)
 project: Project R
 project_key: NOKEY
 tracking_system: file-system
@@ -57,7 +58,7 @@ development_status:
   epic-1: in-progress
   1-1-project-initialization-stack-bootstrap: done
   1-2-supabase-project-setup-dpa-dpia-initial-documentation: done
-  1-3-migrations-foundation-core-identity-tables-uuidv7-rls-helpers: review
+  1-3-migrations-foundation-core-identity-tables-uuidv7-rls-helpers: done
   1-4-supabase-auth-hook-for-jwt-custom-claims-club-id-role: backlog
   1-5-email-password-authentication-password-recovery: backlog
   1-6-role-assignment-multi-tenant-access-enforcement: backlog

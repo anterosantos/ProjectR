@@ -1,6 +1,6 @@
 # Story 1.3: Migrations Foundation — Core Identity Tables, UUIDv7, RLS & Helpers
 
-**Status:** ready-for-dev
+**Status:** done
 
 **Story ID:** 1.3  
 **Epic:** Epic 1 - Fundação Técnica, Identidade & Acesso Multi-Clube  
@@ -350,7 +350,41 @@ GRANT EXECUTE ON FUNCTION uuidv7 TO anon, authenticated, service_role;
 - [x] Story 1.4 will test real JWT context with custom claims
 - [x] Policies will be validated with actual `club_id` and `role` in JWT
 
-### Task 7 — Commit Migrations
+### Review Findings
+
+**Code review:** 2026-05-09 (3 parallel layers — Blind Hunter, Edge Case Hunter, Acceptance Auditor)
+**Triage:** 4 decision-needed, 9 patches, 3 deferred, 5 dismissed as noise
+
+#### Decision-Needed (resolved 2026-05-09)
+
+- [x] [Review][Decision] **D1 → Patch: Auth helper naming** → Adopted `public.club_id()` / `public.user_role()` (drop `get_` prefix). Originally chose `auth.*` schema but Supabase blocks postgres role from CREATE on `auth` (owned by `supabase_admin`). Fallback: `public.*` without `get_` prefix → minimum-possible schema-only divergence from spec. Future epics.md AC #3 + Story 1.4 AC text needs update.
+- [x] [Review][Decision] **D2 → Patch: Profile INSERT/UPDATE security** → Service-role only INSERT (drop `insert_own_profile` policy; profile creation owned by Story 1.4 auth hook). Column-level UPDATE GRANT (only `full_name`). Privilege escalation via role/club_id mutation now mathematically impossible.
+- [x] [Review][Decision] **D3 → Patch: `supabase db reset` validation** → Root-caused: orphan containers from Story 1.2 named `supabase_db_ProjectR` instead of `supabase_db_project-r` (case mismatch with `config.toml`). Fixed by stopping orphan containers + restart. AC #5 contract command now succeeds. CI pipeline (Story 1.13) will not inherit this bug.
+- [x] [Review][Decision] **D4 → Patch: UUIDv7 monotonicity within ms** → Accept pure-random sub-ms ordering for MVP (server-side fallback only; client uses `uuid` v9 NPM lib as primary). Documented as comment in 000010.
+
+#### Patch (all 13 applied + verified 2026-05-09)
+
+- [x] [Review][Patch] **P1: UUIDv7 RFC 9562 compliance** — Rewrote with byte-level construction (set_byte) to deterministically place version `7` (byte 6 high nibble) and variant `10` (byte 8 high two bits). Switched `now()` → `clock_timestamp()` for statement-time. Verified: generated UUIDs have version `7` and variant in `{8,9,a,b}`. [000010_uuidv7_function.sql]
+- [x] [Review][Patch] **P2: Column-level UPDATE GRANT** — REVOKE Supabase default ALL grants from anon/authenticated, then GRANT UPDATE (full_name) ON profiles TO authenticated. Verified: only `full_name` column shows UPDATE privilege for authenticated. [000040_profiles_rls.sql]
+- [x] [Review][Patch] **P3: Drop insert_own_profile policy** — Profile creation now restricted to service_role (Story 1.4 auth hook + admin/seed tooling). Eliminates pre-JWT INSERT vector. [000040_profiles_rls.sql]
+- [x] [Review][Patch] **P4: SECURITY DEFINER helper for staff_club_read** — Created `public.is_staff_of_club(uuid)` with SECURITY DEFINER + locked search_path. Avoids RLS recursion through profiles. Verified `prosecdef = true`. [000040_profiles_rls.sql]
+- [x] [Review][Patch] **P5: search_path lockdown** — All 4 functions (uuidv7, club_id, user_role, is_staff_of_club) have `SET search_path = pg_catalog, public, [extensions,] pg_temp`. CVE-2018-1058 mitigation. [000010, 000030, 000040]
+- [x] [Review][Patch] **P6: REVOKE uuidv7 from anon** — Replaced broad GRANT with explicit `REVOKE ALL FROM PUBLIC; GRANT EXECUTE TO authenticated, service_role`. CSPRNG DoS surface eliminated. [000010_uuidv7_function.sql]
+- [x] [Review][Patch] **P7: Narrow EXCEPTION to invalid_text_representation** — `public.club_id()` now only swallows uuid cast errors; other errors propagate. `public.user_role()` has no EXCEPTION block (no cast to fail). [000030_auth_helpers.sql]
+- [x] [Review][Patch] **P8: Remove duplicate indexes from 000040** — Indexes `idx_profiles_club` and `idx_profiles_role` live only in 000020. 000040 has only RLS + grants. [000040_profiles_rls.sql]
+- [x] [Review][Patch] **P9: NOT NULL on created_at** — Added to both `clubs.created_at` and `profiles.created_at`. Prevents explicit NULL inserts. [000020_clubs_profiles.sql]
+- [x] [Review][Patch] **P10: CHECK (length > 0) on clubs.name** — Prevents empty-string club names. [000020_clubs_profiles.sql]
+- [x] [Review][Patch] **P11: Function rename** — `get_club_id` → `club_id`, `get_user_role` → `user_role` (D1 resolution). [000030, 000040]
+- [x] [Review][Patch] **P12: Document UUIDv7 monotonicity trade-off** — Comment block in 000010 explaining sub-ms ordering is random (acceptable for MVP fallback). [000010_uuidv7_function.sql]
+- [x] [Review][Patch] **P13: Root-cause `supabase db reset` failure** — Orphan containers named `supabase_db_ProjectR` (capital P) blocked CLI from detecting the stack (which expects `supabase_db_project-r`). Fixed by stopping orphans + restart. AC #5 contract now honored. [process-level]
+
+#### Deferred (pre-existing or out-of-scope)
+
+- [x] [Review][Defer] **DF1: clubs has no INSERT policy — first-club bootstrap requires admin tooling** — Will need a dedicated admin/seed story before Story 1.4 ships, since `enable_signup = false` makes the entire signup path non-functional today. [process/integration gap]
+- [x] [Review][Defer] **DF2: `ON DELETE CASCADE` without audit trail** — Audit logging owned by Story 1.12 (`audit_logs` table); revisit triggers when that table exists. [000020_clubs_profiles.sql:27-28]
+- [x] [Review][Defer] **DF3: Migration numbering deviates from architecture (000010-000040 per-table vs. consolidated 000130 in arch.md L1105-1118)** — Architecture-level decision; reconcile in future doc-pass. [all migration files]
+
+
 
 **Purpose:** Version control for database schema
 
