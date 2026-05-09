@@ -146,14 +146,20 @@ This DPA enters into force upon signature and remains in effect for the duration
 
 ## Pre-Launch Checklist
 
-Before pilot squad onboarding:
+Before pilot squad onboarding (pilot launch gate in Story 1.13):
 
-- [x] DPA accepted via Supabase ToS at signup (2026-05-09) — Free tier model. URL: https://supabase.com/legal/dpa
-- [ ] Vercel DPA reviewed (https://vercel.com/legal/dpa) and accepted on Pro/Team plan if required
-- [ ] Resend DPA reviewed (https://resend.com/legal/dpa) and accepted
-- [ ] DPIA (`./dpia.md`) signed off by Controller
-- [ ] Privacy Policy (Story 3.1) versioned and linked from app
-- [ ] Audit logging operational (Story 3.11)
+- [x] **DPA with Supabase** — accepted via ToS (2026-05-09, Free tier model)
+  - Standard DPA URL: https://supabase.com/legal/dpa ✅
+- [ ] **DPA with Vercel** — review and accept
+  - Standard DPA URL: https://vercel.com/legal/dpa
+  - Action: If hosting on Vercel Pro/Team plan, request signed DPA or confirm ToS covers it
+- [ ] **DPA with Resend** — review and accept (deferred to Story 1.5)
+  - Standard DPA URL: https://resend.com/legal/dpa
+  - Timing: After custom domain registration (Story 1.5), before real athlete data collection
+- [ ] **DPIA signed by Controller** — Antero signature on `./dpia.md` (Section 9)
+- [ ] **Privacy Policy** (Story 3.1) — versioned and linked from app footer
+- [ ] **Audit logging operational** (Story 3.11) — every staff read of health data logged
+- [ ] **Resend EU region configured** (Story 1.5) — `region: 'eu-west-1'` enforced in SDK before real data
 
 ---
 

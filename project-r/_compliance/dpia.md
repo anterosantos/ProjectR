@@ -236,23 +236,35 @@ After controls, residual risks are assessed:
 
 ## 9. Approval & Sign-Off
 
-This DPIA is reviewed and approved before any health data is collected from real subjects.
+This DPIA is reviewed and approved **before pilot squad onboarding** (when real health data collection begins).
+
+### Sign-Off
 
 | Role | Name | Signature | Date |
 |------|------|-----------|------|
 | **Data Controller** | Antero Santos | _____________________ | __________ |
-| **Reviewer** (optional) | _____________________ | _____________________ | __________ |
+| **Reviewer** (optional, DPO/legal) | _____________________ | _____________________ | __________ |
 
-**Pre-launch checklist (must all be ✅ before pilot):**
+**Procedure to sign this DPIA:**
+1. Print this document (`project-r/_compliance/dpia.md`)
+2. Sign and date in the Controller row above (blue ink preferred for scan authenticity)
+3. Upload signed PDF to `project-r/_compliance/dpia-signed-2026-XX-XX.pdf` (date in filename)
+4. Commit: `git add _compliance/dpia-signed-*.pdf && git commit -m "DPIA signed by Controller (Antero) — pilot launch gate"`
+5. Add entry to this file's Change Log (Section 8, Monitoring & Review)
 
+### Pre-Launch Checklist (must all be ✅ before pilot)
+
+- [ ] **DPIA signed by Controller** (Antero) — **DUE: before pilot squad onboarding** (before Story 1.13 CI gate)
 - [ ] All technical controls implemented and verified (Stories 1.3 → 1.16, 3.x complete)
-- [ ] DPA signed with Supabase (`./dpa.md`)
+- [ ] DPA signed with Supabase (`./dpa.md`) — signed 2026-05-09 ✅
+- [ ] Vercel DPA reviewed and accepted (https://vercel.com/legal/dpa)
+- [ ] Resend DPA reviewed and accepted (https://resend.com/legal/dpa) — deferred to Story 1.5/domain registration
 - [ ] Privacy Policy versioned and live (Story 3.1)
 - [ ] Parental consent flow operational (Story 3.3, 3.4)
 - [ ] Subject rights endpoints operational (Stories 3.6–3.10)
 - [ ] Audit logging operational and verified (Story 3.11)
 - [ ] Heartbeat + backup workflows running (Stories 1.14, 1.15)
-- [ ] DPIA signed by Controller (above)
+- [ ] Resend EU region configured post-domain registration (Story 1.5 — before real athlete data collection)
 
 ---
 

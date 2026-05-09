@@ -1,0 +1,17 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "env",
+            "importNames": ["SUPABASE_SERVICE_ROLE_KEY"],
+            "message": "Service role key must only be used in API Routes / Server Actions / GitHub Actions. Never expose to client code. Use process.env directly in server-only files instead."
+          }
+        ]
+      }
+    ]
+  }
+}

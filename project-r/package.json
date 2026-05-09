@@ -6,6 +6,7 @@
     "node": ">=22 <23"
   },
   "scripts": {
+    "predev": "bash scripts/check-docker.sh",
     "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",

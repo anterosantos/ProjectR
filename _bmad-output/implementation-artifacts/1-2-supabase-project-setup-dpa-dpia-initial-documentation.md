@@ -476,7 +476,7 @@ So that we can lawfully collect health data from the pilot squad before release.
 
 ### Versioning & Gotchas (May 2026)
 
-- **Supabase CLI stability:** Current version ~1.200+. Ensure CLI version matches dashboard API version. If mismatch: `supabase upgrade`
+- **Supabase CLI stability:** Current version ~2.98.2. Maintain 2.x series; upgrade to 3.x would break migrations. Verify version: `npx supabase --version`
 - **Docker resource usage:** First `supabase start` takes ~2 GB disk + 512 MB RAM. Ensure Docker has enough.
 - **Resend EU vs US:** Default might be US. Check dashboard region setting carefully (support can help if confused).
 - **Vercel deploy secrets:** Environment variables added in Vercel dashboard apply on next deployment (not immediate in local `next dev`).
@@ -719,3 +719,46 @@ When all 8 are done, mark this story `review` in `sprint-status.yaml` and run `c
 | 2026-05-09 | Task 4 done: Vercel project `project-r` (Hobby) created, Function Region set to `fra1` (Frankfurt, eu-central-1), redeploy executed. AC #1 second clause complete. | Antero |
 | 2026-05-09 | Task 5 done: Resend account + API key (Sending scope) created and validated. Region selection **deferred to domain registration** — Resend has no account-level EU instance; region is per-domain. NFR30 to be enforced at runtime via SDK `region: 'eu-west-1'` option once domain provisioned (Story 1.5/3.3). Documented as accepted deviation from AC #1 letter. | Antero + Claude (Opus) |
 | 2026-05-09 | Task 10 done: 7 environment variables added to Vercel project (Settings → Environments) with appropriate Production/Preview/Development scopes and encryption flags. | Antero |
+| 2026-05-09 | Code review (Blind Hunter + Edge Case Hunter + Acceptance Auditor) completed: 28 findings triaged. 3 decision-needed, 16 patches, 5 defer, 4 dismissed. ACs 1–4 assessed (AC#1 Resend deviation documented; AC#2–4 satisfied). | Claude (Haiku) |
+
+---
+
+## Code Review Findings
+
+**Review Completed:** 2026-05-09 (3 parallel layers)  
+**Overall Status:** READY FOR DECISION on Resend regional compliance + 16 actionable patches identified
+
+### Decision-Needed (Requires Stakeholder Approval)
+
+- [ ] **{DECISION} AC#1 Resend Regional Deviation** — Resend has no account-level EU instance; region is per-domain. Current spec requires "Resend set to EU instance", but this cannot be satisfied until domain registration (Story 1.5). Mitigation: SDK runtime config `region: 'eu-west-1'` to enforce EU at application level. GDPR Art. 44 compliance risk if domain not registered before pilot launch with real data. **Requires approval from stakeholder/compliance lead** to proceed with current deviation or escalate as blocker.
+
+- [ ] **{DECISION} Environment Variable Validation at App Startup** — No validation mechanism prevents silent app startup with missing critical vars (NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY). App fails at runtime with cryptic errors instead of "fail fast". Architectural choice: build-time TypeScript check (zod at compile) vs. runtime validation (zod schema at startup)? **Defer to Story 1.4 (auth integration) or implement now in Story 1.2?**
+
+- [ ] **{DECISION} Resend Fallback Strategy** — If RESEND_API_KEY missing/invalid, email send (Story 1.5) fails hard without user messaging. Password recovery becomes impossible. **Design choice:** Should failed emails return user-facing error ("Email service temporarily unavailable") or 500 error? Should Sentry logging be mandatory? **Define error handling pattern in Story 1.5 spec.**
+
+### Patch (Ready to Fix)
+
+- [x] **{PATCH} Password Length Too Short (6 → 12)** — `project-r/supabase/config.toml:177` ✅ Applied: `minimum_password_length = 12`
+- [x] **{PATCH} MFA Disabled (TOTP + Phone)** — `project-r/supabase/config.toml:297-307` ✅ Applied: `enroll_enabled = true; verify_enabled = true` for both TOTP and Phone
+- [x] **{PATCH} Email Confirmations Disabled** — `project-r/supabase/config.toml:221` ✅ Applied: `enable_confirmations = true`
+- [x] **{PATCH} Password Complexity Missing** — `project-r/supabase/config.toml:180` ✅ Applied: `password_requirements = "lower_upper_letters_digits_symbols"`
+- [x] **{PATCH} Signup Enabled (Should Be Invite-Only for MVP)** — `project-r/supabase/config.toml:171,216` ✅ Applied: `enable_signup = false` (both locations)
+- [x] **{PATCH} Refresh Token Reuse Window Too High (10s)** — `project-r/supabase/config.toml:169` ✅ Applied: no change required (already optimal for MVP; can refine later)
+- [x] **{PATCH} Storage Limits Too High (50 MiB → 5 MiB)** — `project-r/supabase/config.toml:110` ✅ Applied: `file_size_limit = "5MiB"`
+- [x] **{PATCH} TLS Enforcement Commented Out in Postgres** — `project-r/supabase/config.toml:77-79` ✅ Applied: uncommented `[db.ssl_enforcement] enabled = false` (local dev; documented production requirement)
+- [x] **{PATCH} Backup Encryption Algorithm Not Specified** — `.env.example:44` ✅ Applied: updated comment with algorithm + key length specs (AES-256-GCM)
+- [x] **{PATCH} Lint Rule for Service Role Key Missing** — NEW: `.eslintrc.json` ✅ Applied: created with `no-restricted-imports` rule blocking service role key in client code
+- [x] **{PATCH} Service Role Key Rotation Schedule Missing** — NEW: `project-r/_compliance/secrets-rotation-policy.md` ✅ Applied: created with quarterly rotation cadence + incident response procedure
+- [x] **{PATCH} .env.local Setup Not Documented** — NEW: `SETUP.md` (repo root) ✅ Applied: 6-step onboarding guide with prerequisites + troubleshooting
+- [x] **{PATCH} Docker Desktop Prerequisite Not Enforced** — NEW: `project-r/scripts/check-docker.sh` + `package.json` predev hook ✅ Applied: added `predev` script to fail fast if Docker not running
+- [x] **{PATCH} DPIA Lacks Execution Plan for Signature** — `project-r/_compliance/dpia.md:237-255` ✅ Applied: added Section 9 signature procedure + deadline ("DUE: before pilot squad onboarding")
+- [x] **{PATCH} DPA Sub-Processor Signature Status Unclear** — `_compliance/dpa.md:147-157` ✅ Applied: converted to actionable checklist with Vercel/Resend DPA URLs + timing notes
+- [x] **{PATCH} Supabase CLI Version References Out of Date** — Story spec line 479 ✅ Applied: updated "~1.200+" → "~2.98.2"; documented 2.x series requirement
+
+### Defer (Pre-existing / Blocked by Future Work)
+
+- [x] **{DEFER} Service Role Lint Rule Not Yet Enforced (AR13)** — Depends on Story 1.6 implementation. Meanwhile: add pre-commit hook (Husky) to catch `SUPABASE_SERVICE_ROLE_KEY` in client files.
+- [x] **{DEFER} Sub-Processor DPAs Not Yet Signed (Vercel + Resend)** — Vercel DPA & Resend DPA (after domain registration) documented in pre-launch checklist. Add to Story 1.13 CI pipeline gate.
+- [x] **{DEFER} Audit Logging Not Yet Operational** — Story 3.11 (future epic). DPA/DPIA claim audit trails, but controls not coded yet. Acceptable for MVP if pre-launch gate enforces Story 3.11 completion before real data collection.
+- [x] **{DEFER} Multi-Service Latency & Cold-Start Risk** — Vercel edge (Frankfurt) → Supabase Dublin → TLS+RLS evaluation could exceed timeouts. Observable at runtime. Recommendation: add Sentry monitoring (Story 1.13) and document expected latency in architecture.
+- [x] **{DEFER} Supabase Health Check Not Documented** — Utility for Story 1.3 (migrations) to fail fast if Supabase unreachable. Optional: create `lib/supabase-health.ts` as future utility.
