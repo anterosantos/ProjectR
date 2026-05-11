@@ -140,6 +140,39 @@ A jornada emocional dos 4 papéis ao longo dos 5 momentos críticos definidos no
 
 **Insight crítico:** o "wow moment" do José é **vindicação**, nunca correção. UX tem de proteger este sentimento — a app sugere, nunca prescreve, nunca o faz sentir-se corrigido pela máquina.
 
+### Expanded Wellness & Analytics Features - UX Considerations
+
+A expansão do MVP inclui novos campos de bem-estar (dores musculares, humor, contexto de exames) e métricas táticas expandidas (cantos, cartões, golos, clean sheet, entradas na área). Cada adição mantém os princípios emocionais acima mas requer ajustes de UX:
+
+**Para o Jogador (Questionário Expandido):**
+
+- **Dores musculares (seleção de zona):** usar body diagram clicável (estilo Fitbod/Strava) — visual, sub-14 comprehensível, sem linguagem médica. Máximo 2 segundos para seleção.
+- **Humor/estado emocional:** escala de emojis (😢 😐 😊 😄 😃) em vez de números — menos intimidante, cognitivamente mais acessível. Copy em primeira pessoa: "Como te sentiste antes do treino?"
+- **Contexto de exames:** toggle simples "Tem testes/exames esta semana?" — framing neutro, sem urgência. Aparece como campo semanal, não por sessão, para reduzir friç
+
+ção (uma pergunta de quinta para toda a semana).
+- **KPI de preenchimento:** expandir target de ≤2 min para ≤2.5 min para acomodar 3 novos campos (dores, humor, exames), assumindo que cada campo soma ~20s de interação.
+
+**Para a Ana (Touchscreen 3-ecrãs em Jogo - Expansão de Ações):**
+
+- **Novos tipos de ação (cantos, cartões, golos):** adicionar 3 novos botões à "Ecrã com as Ações". Cantos e cartões são eventos raros (2–8 por jogo); golos ainda mais raro. Não impactam fluxo crítico mas requerem segundo ecrã com contexto (tipo de jogada para golo, tipo de infração para cartão, lado para canto).
+- **UX de "jogador" para eventos sem jogador específico (ex: canto):** usar botão "Equipa" ou "Evento Coletivo" na seleção de jogador, permitindo saltar direto para zona/contexto.
+- **Paleita de ações:** manter visual chunking — separar ações por tipo: ações individuais (perdas, recuperações, remates...) | ações coletivas (cantos, entradas área) | eventos (cartões, golos).
+- **Relógios de "tempo útil":** UI separada em ecrã de jogo (pós-jogo em vez de durante), com dois contadores lado-a-lado (total vs. bola em jogo). Relevante para análise, não para Ana em jogo.
+
+**Para José (Painel Expandido e Drill-down):**
+
+- **Novos dashboards (estatísticas, análise tática, disciplina):** acessados via abas secundárias depois de "Prontidão" no bottom nav. Não impactam core action (convocatória em <30s) mas expandem profundidade de análise.
+- **Heatmap de perdas/recuperações por zona:** visual exploratório (não crítico para decisão, mas "nice to have" para padrões). Usar cor quente (vermelho=perdas, azul=recuperações) com transparência para não sobrepor dados.
+- **Drill-down a partir de clean sheet / cartões:** gráfico de timeline do jogo (horizontal, eventos marcados). Clicável para ver contexto de cada golo/cartão.
+
+**Para Relatórios e Dashboards (Growth):**
+
+- **Agregações por jogador (% convocatórias, % minutos):** mostrar como cards com mini gráficos (sparkline) — não tabelas densas. "João: 85% convocado, 62% minutos" em forma de card, comparativa época anterior.
+- **Dashboard de bem-estar por semana:** gráfico de linha (semanas no eixo X, humor/sono/dores no Y) com dots clicáveis para detalhe. Possibilita identificação de padrões (ex: "humor cai sempre pós-jogo"; "sono péssimo = fadiga no treino seguinte").
+
+**Restrição crítica:** tempo de carregamento do Painel continua ≤2s mesmo com estas novas agregações. Arquitetura de materialização (cálculo offline) pode ser necessária.
+
 ### Micro-Emotions
 
 Sete pares emocionais críticos com mitigação UX direta:

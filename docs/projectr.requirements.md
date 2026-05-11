@@ -94,17 +94,30 @@ Os dados recolhidos pelo sistema constituem **dados de categorias especiais** ao
 - **Controlo de acesso estrito:** dados de saúde acessíveis apenas a utilizadores autorizados; logs de acesso recomendados.
 - **Conformidade com a CNPD** (Comissão Nacional de Proteção de Dados, Portugal): manter registo das atividades de tratamento e política de privacidade clara, incluindo versão adaptada para menores.
 
-### Registo de Fadiga dos Jogadores
+### Registo de Fadiga e Bem-estar dos Jogadores
 
-Cada jogador, **antes e depois de cada treino e jogo**, terá que responder a um questionário em que deverá indicar o seu nivel de fadiga em 5 dimensões: Energia muscular, Concentração e motivação, qualidade de descanso, desconforto muscular/articular e estado emocional. O questionário é unipessoal.
+Cada jogador, **antes e depois de cada treino e jogo**, terá que responder a um questionário unipessoal de fadiga e bem-estar. O sistema recolhe múltiplas dimensões:
 
-Os resultados terão de estar disponiveis em tempo real para a equipa técnica e para os analistas.
+**Questionário Pré-Sessão:**
+- 5 dimensões de fadiga: Energia muscular, Concentração e motivação, qualidade de descanso, desconforto muscular/articular e estado emocional
+- **Estado emocional/humor** — escala com emojis para avaliação rápida do estado psicológico (novo)
+- **Flag contextual:** "Tem testes ou exames esta semana?" (impacto previsto na carga de treino) (novo)
+
+**Questionário Pós-Sessão:**
+- 5 dimensões de fadiga originais
+- **Dores musculares específicas** — seleção de zona do corpo onde sente desconforto (pescoço, ombro, cotovelo, punho, costas, anca, joelho, tornozelo, tendão de aquiles, outra) (novo)
+
+**Dados Complementares (Registo pelo Analista):**
+- **Peso do atleta** — registado com série temporal para correlação a fadiga, performance e carga
+- **Estado de sono do dia seguinte** — recolhido no questionário pré-sessão do dia seguinte, registando qualidade de sono após sessão anterior
+
+Os resultados terão de estar disponíveis em tempo real para a equipa técnica e para os analistas.
 
 O sistema calcula automaticamente um **Índice de Carga Acumulada** por jogador, somando minutos jogados, presenças em treino e scores de fadiga numa janela configurável (ex: últimos 7 e 30 dias), gerando um indicador verde/amarelo/vermelho. O cálculo segue a metodologia **Acute:Chronic Workload Ratio (ACWR)** — rácio entre carga aguda (últimos 7 dias) e carga crónica (últimos 28 dias). ACWR entre 0,8–1,3 indica zona segura; acima de 1,5 o risco de lesão não-contacto aumenta 5–7x.
 
 O sistema suporta adicionalmente o registo de **Session-RPE** (escala de esforço percebido × duração da sessão em minutos) como indicador complementar de carga interna, registado pelo analista após cada sessão.
 
-A linguagem do questionário de fadiga deve ser testada e validada para jogadores dos escalões sub-14, garantindo que os conceitos (ex: "desconforto articular", "estado emocional") são compreensíveis para a faixa etária.
+A linguagem do questionário de fadiga deve ser testada e validada para jogadores dos escalões sub-14, garantindo que os conceitos (ex: "desconforto articular", "estado emocional") são compreensíveis para a faixa etária. Escalas emocionais com pictogramas devem ser usadas em vez de escalas numéricas puras.
 
 ### Notificações Push
 
@@ -112,15 +125,28 @@ O sistema envia notificações push automáticas aos jogadores X minutos antes e
 
 ### Dados Estatísticos Individuais por Jogador
 
-Métricas de registo manual validadas pela investigação científica como as mais preditivas de resultados em futebol 11:
+Métricas de registo manual validadas pela investigação científica como as mais preditivas de resultados em futebol 11, agora expandidas para cobrir análise tática mais detalhada:
 
-- Perdas de bola
-- Recuperação de bola
-- Remates (totais e enquadrados)
+**Ações Individuais:**
+- Perdas de bola (com zona de construção: Zona 1 ou Zona 2) (novo detalhe)
+- Recuperação de bola (com zona: Zona 1, 2 ou 3) (novo detalhe)
+- Remates (totais e enquadrados, com zona de onde foi efetuado) (novo detalhe)
 - Passes completados
 - Pressões defensivas
-- Acções defensivas com sucesso
-- Acções ofensivas com sucesso
+- Ações defensivas com sucesso
+- Ações ofensivas com sucesso
+
+**Ações Táticas Coletivas:**
+- **Cantos defensivos e ofensivos** (quantitativa por parte do jogo e indicação do lado do campo — esquerda/direita) (novo)
+- **Entradas na área adversária** vs. **entradas permitidas na nossa área** (novo)
+
+**Contexto de Golos e Disciplina:**
+- **Golos marcados e sofridos** (quantitativa por parte, zona onde foi marcado/sofrido, período do jogo, tipo de jogada: canto, jogada corrida, livre direto, outro) (novo)
+- **Cartões amarelos e vermelhos** (com tipo de infração: palavra ou falta, e zona do campo onde ocorreu) (novo)
+- **Clean sheet / Minutos sem sofrer golos** (novo)
+
+**Tempo de Jogo:**
+- **Tempo de jogo útil** — registo via 2 relógios: tempo total vs. tempo com bola em jogo (novo)
 
 ### Registo de Treinos
 
@@ -128,7 +154,13 @@ Nas sessões de treinos vai ter presenças dos jogadores com o questionário de 
 
 ### Registo de Jogos
 
-No registo dos jogos teremos estatisticas associadas ao jogador, jogadores convocados, equipa titular, tempo de utilização, posição dos jogadores.
+No registo dos jogos teremos:
+- Estatísticas associadas ao jogador (ações individuais e táticas conforme detalhado acima)
+- Jogadores convocados
+- Equipa titular
+- Tempo de utilização (minutos jogados, substituições)
+- Posição dos jogadores
+- **Novas adições:** contexto de golos (tipo de jogada, período, zona), cartões com infração, cantos registados, clean sheet, tempo de jogo útil via 2 relógios
 
 ### Relatórios e Dashboards
 
@@ -136,12 +168,24 @@ A consulta de relatórios é sempre manual — não há envio automático de res
 
 Os seguintes relatórios e dashboards deverão estar disponíveis:
 
+**Prontidão e Fadiga:**
 - **Painel de Prontidão do Plantel** — vista consolidada de todos os jogadores com status de prontidão (verde/amarelo/vermelho) calculado a partir de fadiga, carga acumulada e presenças. Suporta decisão de convocatória.
 - **Correlação Fadiga × Performance** — cruzamento dos inputs do questionário de fadiga com as estatísticas do mesmo jogador no treino ou jogo seguinte, revelando padrões individuais.
 - **Curva de Recuperação Individual** — evolução da fadiga de cada jogador nos dias após uma sessão intensa, gerando um perfil de recuperação.
-- **Dashboard de Equipa Agregado** — métricas coletivas do plantel: média de fadiga, taxa de presença em treinos, estatísticas agregadas por época.
-- **Perfil individual** — todos os dados de um jogador numa única vista (ver Gestão de Plantel).
-- **Exportação em PDF** — a equipa técnica pode gerar e partilhar com jogadores individuais um relatório PDF com os seus dados de performance.
+- **Tendências de Bem-estar** — gráficos de humor, sono, dores musculares e estado físico ao longo de semanas, com correlação a performance ou carga.
+
+**Performance e Estatísticas:**
+- **Dashboard de Estatísticas por Jogador** — histórico de ações (perdas, recuperações, remates, passes, etc) com filtros por época, tipo de ação e zona do campo.
+- **Dashboard de Análise Tática** — agregações de cantos, entradas na área, cartões, clean sheets, tempo de jogo útil por período de jogo.
+- **Percentagens de Participação** — % convocatórias e % minutos jogados por atleta, com comparativas época anterior.
+- **Análise de Eficiência de Zona** — onde a equipa perde/recupera bola, onde remata, onde sofre golos, com heatmaps por zona do campo.
+- **Registo de Cartões e Disciplina** — histórico de cartões amarelos e vermelhos com tipo de infração e zona, para análise de tendências.
+- **Análise de Golos** — detalhe de golos marcados (tipo de jogada, período, zona, atleta) e sofridos, com identificação de padrões ofensivos/defensivos.
+
+**Consolidado:**
+- **Dashboard de Equipa Agregado** — métricas coletivas do plantel: média de fadiga, taxa de presença em treinos, estatísticas agregadas por época, índices de disciplina.
+- **Perfil individual** — todos os dados de um jogador numa única vista: perfil pessoal, histórico de fadiga/bem-estar, estatísticas por época, presenças, estado de prontidão atual.
+- **Exportação em PDF** — a equipa técnica pode gerar e partilhar com jogadores individuais um relatório PDF com os seus dados de performance (sem acesso direto do jogador).
 
 ### Análise de Adversários *(opcional)*
 

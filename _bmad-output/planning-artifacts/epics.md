@@ -48,21 +48,29 @@ This document provides the complete epic and story breakdown for Project R, deco
 **Fatigue & Wellness Tracking**
 
 - FR21: Jogador responde a questionário de fadiga com 5 dimensões (energia muscular, concentração, sono, desconforto, estado emocional) antes/depois de cada sessão. [MVP]
-- FR22: Sistema apresenta versão linguisticamente adaptada do questionário aos jogadores sub-14. [MVP]
+- FR21a: Questionário pré-sessão inclui novo campo de **estado emocional/humor** (escala com emojis). [MVP]
+- FR21b: Questionário pós-sessão inclui novo campo de **dores musculares específicas** com seleção de zona do corpo (pescoço, ombro, cotovelo, punho, costas, anca, joelho, tornozelo, tendão de aquiles, outra). [MVP]
+- FR21c: Sistema regista **flag booleano "tem testes/exames esta semana?"** como contexto de carga. [MVP]
+- FR22: Sistema apresenta versão linguisticamente adaptada do questionário aos jogadores sub-14 (incluindo escalas emocionais com pictogramas). [MVP]
 - FR23: Jogador pode submeter o questionário em offline; sincroniza ao recuperar conectividade. [MVP]
 - FR24: Sistema mostra contagem de submissões pendentes e permite forçar sincronização. [MVP]
-- FR25: Treinador e Analista podem consultar respostas e tendências históricas de fadiga por jogador. [MVP]
+- FR25: Treinador e Analista podem consultar respostas e tendências históricas de fadiga, bem-estar e dores musculares por jogador. [MVP]
 - FR26: Jogador NÃO pode aceder ao seu Painel de Prontidão, Curva de Recuperação ou relatórios — entregues exclusivamente via staff. [MVP — decisão deliberada]
 
 **Performance Recording**
 
-- FR27: Analista pode registar eventos via touchscreen com 3 ecrãs sequenciais (jogador → ação → zona) cobrindo 7 métricas (perdas, recuperações, remates totais, remates enquadrados, passes completados, pressões defensivas, ações defensivas/ofensivas com sucesso). [MVP]
+- FR27: Analista pode registar eventos via touchscreen com 3 ecrãs sequenciais (jogador → ação → zona) cobrindo métricas individuais (perdas com zona de construção: Z1/Z2, recuperações com zona: Z1/Z2/Z3, remates totais e enquadrados com zona, passes completados, pressões defensivas, ações defensivas/ofensivas com sucesso) e métricas táticas (cantos defensivos/ofensivos com parte e lado do campo, entradas na área adversária vs. permitidas na nossa área). [MVP]
+- FR27a: Sistema regista contexto completo de golos (parte, zona, período do jogo, tipo de jogada: canto/jogada corrida/livre direto/outro, atleta envolvido). [MVP]
+- FR27b: Sistema regista cartões (amarelos e vermelhos) com tipo de infração (palavra/falta) e zona do campo. [MVP]
+- FR27c: Sistema calcula e apresenta **clean sheet** (minutos sem sofrer golos) como agregação de jogo. [MVP]
+- FR27d: Sistema oferece 2 relógios configuráveis para registar **tempo de jogo útil** (tempo total vs. tempo com bola em jogo). [MVP]
 - FR28: Analista pode registar eventos em offline; sistema sincroniza sem perda de dados. [MVP]
 - FR29: Analista pode editar ou apagar eventos registados por engano dentro de janela configurável após sessão. [MVP]
 - FR30: Analista pode registar presença e ausência de jogadores em sessões de treino. [MVP]
 - FR31: Analista pode registar Session-RPE (1–10 × duração) para cada jogador no fim de cada sessão. [MVP]
+- FR31a: Sistema calcula automaticamente **% de convocatórias por atleta** (época/carreira) e **% minutos por atleta** (época/carreira). [MVP]
 
-**Readiness Intelligence**
+**Readiness Intelligence & Analytics Dashboards**
 
 - FR32: Sistema calcula automaticamente o ACWR (rácio carga aguda 7d / crónica 28d) por jogador com limiares por escalão etário. [MVP]
 - FR33: Sistema calcula sRPE (Session-RPE × duração) por sessão e mantém histórico cumulativo. [MVP]
@@ -70,10 +78,16 @@ This document provides the complete epic and story breakdown for Project R, deco
 - FR35: Treinador pode fazer drill-down a partir do Painel para detalhe individual com séries de fadiga e ACWR das últimas 4 semanas. [MVP]
 - FR36: Sistema atualiza Painel em tempo real durante a janela de 4 horas anterior a sessão agendada. [MVP]
 - FR37: Analista pode consultar dashboard de tendências individuais de fadiga das últimas 4 semanas. [MVP]
+- FR37a: Analista pode consultar dashboard de tendências de bem-estar (humor, sono, dores musculares) com correlação a performance ou carga. [Growth]
 - FR38: Analista pode consultar dashboard de carga acumulada por jogador na época atual. [MVP]
+- FR38a: Analista pode consultar dashboard de estatísticas por jogador (ações históricas com filtros: época, tipo de ação, zona do campo). [Growth]
+- FR38b: Analista pode consultar dashboard de análise tática (agregações de cantos, entradas na área, clean sheets, cartões, tempo de jogo útil). [Growth]
+- FR38c: Analista pode consultar dashboard de eficiência de zona (onde a equipa perde/recupera bola, onde remata, onde sofre golos, com heatmaps). [Growth]
+- FR38d: Analista pode consultar dashboard de disciplina (histórico de cartões com tipo de infração, zona, e identificação de tendências). [Growth]
+- FR38e: Analista pode consultar dashboard de golos (detalhe de golos marcados e sofridos com tipo de jogada, período, zona, atleta envolvido). [Growth]
 - FR39: Sistema deteta correlações individuais entre fadiga e desempenho estatístico. [Growth]
 - FR40: Sistema gera Curva de Recuperação Individual mostrando trajectória de fadiga após sessão intensa. [Growth]
-- FR41: Treinador pode consultar Dashboard de Equipa Agregado (média fadiga, presença, estatísticas agregadas). [Growth]
+- FR41: Treinador pode consultar Dashboard de Equipa Agregado (média fadiga, presença, estatísticas agregadas, índices de disciplina). [Growth]
 
 **Notifications & Reminders**
 
@@ -187,6 +201,109 @@ This document provides the complete epic and story breakdown for Project R, deco
 
 - NFR59: Sistema funciona em Chrome (últimas 2), Safari iOS 16.4+, Safari macOS (últimas 2), Firefox (últimas 2), Edge (últimas 2), Samsung Internet (últimas 2).
 - NFR60: Sistema bloqueia WebView in-app e browsers sem Service Worker (Opera Mini, UC Browser, IE 11).
+
+---
+
+## Implementation Stories — Sprint 1.5: Wellness & Analytics Expansion
+
+### Technical Infrastructure Stories
+
+**T1.5.1 — Database Schema Expansion: Wellness + Analytics**
+- [ ] Apply migration `20260509_wellness_analytics_expansion.sql`
+- [ ] Verify all indexes created (performance validation)
+- [ ] Add RLS policies for new tables (fatigue_responses, performance_events)
+- [ ] Test data integrity constraints (muscle_pain_zones required on post-session, player_id checks for team events)
+- [ ] Estimate: 2 days backend
+
+**T1.5.2 — Materialized Views: Athlete Stats & Clean Sheet Aggregations**
+- [ ] Implement `v_athlete_stats_per_season` (% convocations, % minutes, per season per player)
+- [ ] Implement `v_clean_sheets` (goals analysis, minutes without conceding)
+- [ ] Add triggers for incremental refresh on substitution/goal record
+- [ ] Performance benchmark: query <500ms for 40 players
+- [ ] Estimate: 1 day backend
+
+**T1.5.3 — RLS Validation & Testing**
+- [ ] Audit: CI lint check for all new queries with `club_id` scoping
+- [ ] Test suite: RLS policies with different JWT claims (player, analyst, coach)
+- [ ] Validate: jogador never sees wellness data post-submission
+- [ ] Validate: jogador cannot INSERT performance_events
+- [ ] Estimate: 1 day backend
+
+**T1.5.4 — Sync & Outbox Tests (Idempotência)**
+- [ ] Test outbox with new fields (mood, muscle_pain_zones, has_exams_this_week, context JSON)
+- [ ] Test replay idempotent with UUIDv7 client-generated IDs
+- [ ] Test JSON null fields handling (muscle_pain_zones in pre-session)
+- [ ] Test performance_events with polymorphic context
+- [ ] Estimate: 1.5 days backend/frontend
+
+**T1.5.5 — Performance Benchmarking & Tuning**
+- [ ] Benchmark: Painel ≤2s confirmed with 40 jogadores (real or synthetic data)
+- [ ] Benchmark: aggregation queries <500ms
+- [ ] Validate: GIN indexes on context JSONB performant
+- [ ] Lighthouse CI: Performance ≥85, bundle ≤200KB
+- [ ] Estimate: 1 day devops/backend
+
+### Frontend Components Stories
+
+**T1.5.6 — Body Diagram Component (SVG Custom)**
+- [ ] Implement `BodyDiagram.tsx` with 10 muscle pain zones (SVG custom, zero npm dependency)
+- [ ] Offline functional (DOM only, no external assets)
+- [ ] Accessibility: aria-labels for each zone
+- [ ] UX test with sub-14: zone comprehension, touch targets ≥44px
+- [ ] Estimate: 1.5 days frontend
+
+**T1.5.7 — Mood Scale Component (Emoji)**
+- [ ] Implement `MoodScale.tsx` with 5 emoji buttons (😢 😐 😊 😄 😃)
+- [ ] Integration with React Hook Form
+- [ ] Accessibility: aria-labels in PT-PT
+- [ ] Estimate: 0.5 days frontend
+
+**T1.5.8 — Exams Toggle**
+- [ ] Implement `ExamsToggle.tsx` (boolean flag, weekly context)
+- [ ] Layout: explanatory note "Impacta o treino da semana"
+- [ ] Estimate: 0.25 days frontend
+
+**T1.5.9 — Wellness Questionnaire Integration**
+- [ ] Integrate BodyDiagram + MoodScale + ExamsToggle in pré/pós-questionnaire
+- [ ] Update questionnaire layout for 3 new fields
+- [ ] Verify: completion time ≤2.5 min (P95)
+- [ ] Offline sync test: outbox with new fields
+- [ ] Estimate: 1.5 days frontend
+
+**T1.5.10 — Touchscreen Recorder V2: 4º Ecrã Condicional**
+- [ ] Refactor `TouchscreenRecorder.tsx` for conditional 4th screen
+- [ ] Screen 1: 11 players + "Equipa" button (sticky for collective events)
+- [ ] Screen 2: Expanded actions (7 original + corner, card, goal, entry_*)
+- [ ] Screen 3: 6 universal zones (field_zone_enum)
+- [ ] Screen 4: Context screen ONLY for goal/card (play_type, period, infraction)
+- [ ] Performance: ≤1s per event (heuristic)
+- [ ] Offline: outbox with new event_type + context JSON
+- [ ] Estimate: 3 days frontend
+
+**T1.5.11 — Match Time Recorders (Pós-Jogo)**
+- [ ] Implement `MatchTimeRecorders.tsx` (2 inputs: total_minutes, useful_minutes)
+- [ ] Validation: 0–90 range
+- [ ] Storage: `performance_events` with `event_type='match_time_record'` + context JSON
+- [ ] Estimate: 0.5 days frontend
+
+### Documentation & Testing
+
+**T1.5.12 — Documentation Update**
+- [ ] Update API docs with new event_types (corner, goal, card, entry_opp_area, entry_own_area)
+- [ ] Update schema diagram (new field_zone_enum, performance_events context)
+- [ ] Update migration guide (apply migration, refresh views, test RLS)
+- [ ] Estimate: 0.5 days documentation
+
+---
+
+### Sprint 1.5 Totals
+- **Estimated effort:** 40–45 hours (5–6 days, one full-time backend + one full-time frontend)
+- **Dependencies:** None (architecture independent)
+- **Go/No-Go Criteria:** All performance benchmarks pass, all RLS tests pass, no integration blockers from GDPR review
+
+### Growth Features (Post-MVP, meses 2–6)
+
+Analytics Dashboards & Reporting:
 
 ### Additional Requirements
 

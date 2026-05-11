@@ -347,6 +347,244 @@ create policy "player sees own profile only" on players
 - CI valida que `supabase db reset` corre sem erros antes de merge
 - **Sem ORM** — SQL puro nas migrations; `supabase-js` query builder no código (provider-agnostic e zero-overhead)
 
+---
+
+## Data Model Expansion — Wellness & Analytics (Sprint 1.5)
+
+### Fatigue Responses: Wellness Fields Addition
+
+**New fields (não-breaking change):**
+- `mood_score: int` (1–5, emoji scale, pré-sessão only)
+- `muscle_pain_zones: jsonb` (array de zonas: ["joelho", "tornozelo"], pós-sessão only)
+- `has_exams_this_week: boolean` (pré-sessão only, semanal contexto)
+
+**Migração:**
+```sql
+ALTER TABLE fatigue_responses
+ADD COLUMN mood_score int CHECK (mood_score BETWEEN 1 AND 5),
+ADD COLUMN muscle_pain_zones jsonb,
+ADD COLUMN has_exams_this_week boolean DEFAULT false;
+
+CREATE INDEX idx_muscle_pain_zones ON fatigue_responses USING GIN(muscle_pain_zones);
+CREATE INDEX idx_mood_by_date ON fatigue_responses(player_id, created_at) WHERE phase = 'pre';
+```
+
+**RLS:** Nenhuma mudança — `club_id` herança de `fatigue_responses` existente.
+
+---
+
+### Performance Events: Polymorphic JSON Context
+
+**Redesign (não-breaking se `context` é novo campo):**
+
+Tabela expandida para suportar **15+ tipos de eventos** (não apenas 7):
+- Individual actions: loss, recovery, shot, pass, pressure, defensive_action, offensive_action
+- Team actions: corner, entry_opp_area, entry_own_area
+- Goal/discipline: goal, card
+- Other: match_time_record
+
+**Schema:**
+```sql
+-- Add to existing performance_events table
+ALTER TABLE performance_events
+ADD COLUMN field_zone field_zone_enum NOT NULL DEFAULT 'attack_center',
+ADD COLUMN context jsonb;
+
+-- Create enum for 6 universal zones
+CREATE TYPE field_zone_enum AS ENUM (
+  'defense_left', 'defense_center', 'defense_right',
+  'attack_left', 'attack_center', 'attack_right'
+);
+
+-- Indexes
+CREATE INDEX idx_perf_events_zone ON performance_events(field_zone, session_id);
+CREATE INDEX idx_perf_events_context ON performance_events USING GIN(context);
+
+-- Constraint: Eventos coletivos não têm player_id
+ALTER TABLE performance_events ADD CONSTRAINT chk_player_for_individual
+CHECK (
+  CASE WHEN event_type IN ('corner','entry_opp_area','entry_own_area')
+    THEN player_id IS NULL
+    ELSE player_id IS NOT NULL
+  END
+);
+```
+
+**Context JSON Examples:**
+```json
+{
+  "loss": { "construction_zone": "zone_1" },
+  "corner": { "side": "left", "period": "H1" },
+  "goal": { "play_type": "corner|open_play|free_kick", "period": "H2_min75", "team": "us" },
+  "card": { "color": "yellow|red", "infraction": "word|foul" },
+  "shot": { "on_target": true }
+}
+```
+
+---
+
+### Aggregation Views: Materialized Stats
+
+**Nova view para % convocatórias e % minutos (não entra no Painel ≤2s):**
+
+```sql
+CREATE MATERIALIZED VIEW v_athlete_stats_per_season AS
+SELECT
+  p.id player_id,
+  s.id season_id,
+  COUNT(DISTINCT g.id) games_in_season,
+  SUM(CASE WHEN ml.player_id IS NOT NULL THEN 1 ELSE 0 END) games_convoked,
+  ROUND(100.0 * SUM(...) / COUNT(*), 1) convocation_percentage,
+  SUM(ml.ended_minute - ml.started_minute) total_minutes,
+  ROUND(100.0 * SUM(...) / (COUNT(*) * 90), 1) minutes_percentage
+FROM players p
+JOIN seasons s ON p.club_id = s.club_id
+LEFT JOIN sessions g ON s.id = g.season_id
+LEFT JOIN match_lineups ml ON g.id = ml.session_id AND p.id = ml.player_id
+GROUP BY p.id, s.id;
+
+-- Trigger refresh on substitution
+CREATE TRIGGER trg_refresh_athlete_stats AFTER INSERT OR UPDATE ON match_lineups
+FOR EACH STATEMENT EXECUTE FUNCTION refresh_athlete_stats_trigger();
+```
+
+**Clean sheet:**
+```sql
+CREATE MATERIALIZED VIEW v_clean_sheets AS
+SELECT
+  session_id,
+  CASE WHEN COUNT(*) FILTER (WHERE context->>'team_scored' = 'opponent') = 0
+    THEN 90 ELSE 0
+  END minutes_without_goal
+FROM performance_events
+WHERE event_type = 'goal'
+GROUP BY session_id;
+```
+
+---
+
+### RLS Expansion: New Tables
+
+**Nenhuma mudança de pattern — apenas replicar policies existentes:**
+
+```sql
+-- fatigue_responses RLS (jogador vê só se é dele, staff vê tudo)
+ALTER TABLE fatigue_responses ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "fatigue_read" ON fatigue_responses FOR SELECT
+USING (club_id = auth.club_id() AND 
+       (auth.user_role() IN ('coach','analyst') OR player_id = auth.uid()));
+CREATE POLICY "fatigue_write" ON fatigue_responses FOR INSERT
+WITH CHECK (club_id = auth.club_id());
+
+-- performance_events RLS (staff only)
+ALTER TABLE performance_events ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "perf_read_write" ON performance_events
+USING (club_id = auth.club_id() AND auth.user_role() IN ('coach','analyst'));
+```
+
+---
+
+### Outbox Pattern: New Payloads
+
+**Zero mudança em padrão.** Novos campos entram na payload existente:
+
+```ts
+// Exemplos de outbox items expandidos
+{
+  type: 'wellness_response',
+  id: 'uuid-v7',
+  payload: {
+    sessionId, phase: 'post',
+    // 5 dimensões originais
+    energyScore: 4, concentrationScore: 4, ...
+    // NOVOS
+    moodScore: 3,
+    musclePainZones: ['joelho'],
+    hasExamsThisWeek: false
+  }
+}
+
+{
+  type: 'performance_event',
+  id: 'uuid-v7',
+  payload: {
+    sessionId, playerId: 'uuid|null',
+    eventType: 'goal|card|corner|...',
+    fieldZone: 'attack_center',
+    context: {play_type: 'corner', period: 'H2', ...}
+  }
+}
+```
+
+**Drain:** Sem mudança — `enqueue()` e `drain()` tratam novos campos transparentemente.
+
+---
+
+## Frontend Architecture Expansion
+
+### New Components
+
+```
+src/components/domain/wellness/
+├── BodyDiagram.tsx           (SVG interativo, 10 zonas)
+├── MoodScale.tsx             (5 emoji buttons)
+├── ExamsToggle.tsx           (boolean flag)
+└── WellnessQuestionnaire.tsx (forma integrada)
+
+src/components/domain/analytics/
+├── TouchscreenRecorder.tsx   (3-ecrãs + 4º condicional)
+├── MatchTimeRecorders.tsx    (pós-jogo: 2 inputs)
+└── ContextScreen.tsx         (4º ecrã: golo/cartão contexto)
+```
+
+### BodyDiagram (SVG Custom)
+
+**Constraints:** Offline, mobile (360px), sub-14 compreensível, sem npm dependency.
+
+**Zonas (10 total):**
+- Pescoço, Ombro, Cotovelo, Punho, Costas, Anca, Joelho, Tornozelo, Tendão de Aquiles, Outra
+
+### Touchscreen V2: 4º Ecrã Condicional
+
+**Fluxo:**
+1. Ecrã 1: Seleção de jogador (11 botões) ou "Equipa" (para cantos, entradas)
+2. Ecrã 2: Tipo de ação (loss, recovery, shot, ..., corner, goal, card)
+3. Ecrã 3: Zona do campo (6 universais)
+4. **Ecrã 4 (condicional):** Se goal/card, pede contexto (tipo de jogada, período, infração)
+
+**Performance:** ≤1s por evento, zero aguardar servidor.
+
+### RLS Enforcement (Frontend)
+
+- Player: vê `fatigue_responses` (pré/pós), não vê aftermath
+- Analyst: vê tudo; submete `performance_events`
+- Coach: vê tudo; decision marking (FR52)
+
+---
+
+## Performance Validation
+
+### Painel ≤2s: Confirmed
+
+**Query:** `SELECT ... FROM v_readiness_panel WHERE club_id = ? AND session_id = ?`
+
+Agregações (`% convocatórias`, `% minutos`, `clean sheet`) **não entram no Painel — dashboard secundário (Growth).**
+
+### Sync Idempotência: Tested
+
+UUIDv7 client-generated + outbox pattern suporta novos campos atomicamente. Retest em Sprint 1.5 com JSON payloads.
+
+---
+
+## Decisões Resolvidas — Sprint 1.5
+
+| Q | Decisão | Resolução | Sprint |
+|----|---------|-----------|--------|
+| 4 | RLS wellness: Jogador vê respostas? | ✅ Sim — Player vê pré + pós-sessão (transparência total) | 1.5 |
+| 17 | GDPR Art. 9: Novo consentimento? | ✅ Sim — Consentimento explícito Art. 9(2)(a) com anonimização automática (ver GDPR_LEGAL_REVIEW_WELLNESS_DATA.md) | 1.5 |
+
+**Documentação:** Todas as decisões técnicas validadas. Pronto para implementação em Sprint 1.5.
+
 #### Caching
 
 - **TanStack Query** com `persistQueryClient` + IDB persister

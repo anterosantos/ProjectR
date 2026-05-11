@@ -157,18 +157,27 @@ O MVP cobre o ciclo completo: onboarding com consentimento → recolha de fadiga
 - Calendário de treinos e jogos com data, hora, tipo
 - Gestão de épocas (start/end dates configuráveis, dados acumulados ao longo da carreira no clube)
 
-#### Recolha de fadiga
+#### Recolha de fadiga e bem-estar
 
-- Questionário pré e pós-sessão com 5 dimensões (energia muscular, concentração/motivação, qualidade do sono, desconforto músculo-articular, estado emocional)
-- Linguagem do questionário adaptada e validada para escalão sub-14
+- **Questionário pré-sessão:** 5 dimensões (energia muscular, concentração/motivação, qualidade do sono, desconforto músculo-articular, estado emocional) + novo campo de **estado emocional/humor** antes da sessão (escala emocional com emojis)
+- **Questionário pós-sessão:** 5 dimensões originais + novo campo de **dores musculares específicas com zona do corpo** (seleção de zonas: pescoço, ombro, cotovelo, punho, costas, anca, joelho, tornozelo, tendão de aquiles, outra)
+- **Novos campos de contexto:** 
+  - Flag booleano **"tem testes/exames esta semana?"** (impacto na carga prevista)
+  - **Histórico de peso** — registado pelo analista, com série temporal para correlação com fadiga/performance
+- Linguagem do questionário adaptada e validada para escalão sub-14 (incluindo escalas emocionais com pictogramas)
 - Push notifications automáticas configuráveis (X minutos antes/depois da sessão) — Web Push (VAPID) via Supabase Edge Function
 - Modo offline com sincronização automática (Serwist + Dexie + outbox UUIDv7)
 
 #### Recolha de performance
 
 - Registo de assiduidade e minutos jogados por sessão
-- Estatísticas manuais via interface touchscreen de 3 ecrãs (jogador → ação → zona do campo): perdas de bola, recuperação, remates totais e enquadrados, passes completados, pressões defensivas, ações defensivas e ofensivas com sucesso
-- Session-RPE (escala × duração) registado pelo analista após cada sessão
+- **Estatísticas manuais via interface touchscreen de 3 ecrãs (jogador → ação → zona do campo):**
+  - **Ações individuais:** perdas de bola (com zona de construção: Zona 1 ou 2), recuperação de bola (com zona: 1, 2 ou 3), remates (totais e enquadrados, com zona onde foi efetuado), passes completados, pressões defensivas, ações defensivas e ofensivas com sucesso
+  - **Ações coletivas/táticas:** cantos defensivos e ofensivos (quantitativa por parte, com indicação do lado do campo), entradas na área adversária vs. entradas permitidas na nossa área
+  - **Contexto de jogo:** golos marcados e sofridos (quantitativa, parte, zona, período do jogo, tipo de jogada — canto, jogada corrida, livre direto, outro), cartões amarelos e vermelhos (com tipo: palavra ou falta, e zona do campo onde ocorreu), clean sheet (minutos sem sofrer golos)
+  - **Tempo de jogo:** registo de tempo de jogo útil via 2 relógios configuráveis (tempo total vs. tempo com bola em jogo)
+- Session-RPE (escala 1–10 × duração) registado pelo analista após cada sessão
+- **Agregações automáticas:** % de convocatórias por atleta (época/carreira), % minutos por atleta (época/carreira)
 
 #### Inteligência de prontidão
 
