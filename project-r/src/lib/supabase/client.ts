@@ -207,6 +207,7 @@ export function getRoleHomePath(
 
 /**
  * Get current user and their profile role
+ * Queries the profiles table to fetch the role directly
  */
 export async function getCurrentUserWithRole() {
   const supabase = getSupabaseInstance();
@@ -218,11 +219,19 @@ export async function getCurrentUserWithRole() {
     return { user: null, role: null };
   }
 
-  // Role is injected as 'user_role' in app_metadata by the auth hook (Story 1.4)
-  // app_metadata is service-role-only; user_metadata is user-editable and must not be trusted
-  const role = (user.app_metadata?.["user_role"] as string | null) ?? null;
+  // Fetch profile from the profiles table to get the role
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
 
-  return { user, role };
+  if (error || !profile) {
+    console.warn("Could not fetch profile role:", error?.message);
+    return { user, role: null };
+  }
+
+  return { user, role: profile.role as string | null };
 }
 
 /**
