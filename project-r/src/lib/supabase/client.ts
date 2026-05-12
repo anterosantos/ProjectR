@@ -74,9 +74,19 @@ export async function updatePassword(newPassword: string) {
       };
     }
 
-    // Sign out all other sessions by signing out the current session
-    // This ensures NFR18 is satisfied (all existing sessions invalidated)
-    await supabase.auth.signOut({ scope: "global" });
+    // Invalidate all sessions (NFR18) — must succeed for a complete password reset
+    const signOutResponse = await supabase.auth.signOut({ scope: "global" });
+
+    if (signOutResponse.error) {
+      return {
+        success: false,
+        error: {
+          message:
+            "Password atualizada, mas não foi possível invalidar as outras sessões. Tenta novamente.",
+          originalError: signOutResponse.error,
+        },
+      };
+    }
 
     return {
       success: true,
@@ -102,8 +112,14 @@ export async function requestPasswordRecovery(email: string) {
   try {
     // Supabase will send recovery email if account exists
     // We always return success to avoid enumeration attacks
+    // Use window.location.origin in browser; fall back to env var for SSR
+    const appUrl =
+      (typeof window !== "undefined" ? window.location.origin : null) ??
+      process.env.NEXT_PUBLIC_APP_URL ??
+      "";
+
     const response = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || ""}/reset-password`,
+      redirectTo: `${appUrl}/reset-password`,
     });
 
     return {
@@ -202,11 +218,9 @@ export async function getCurrentUserWithRole() {
     return { user: null, role: null };
   }
 
-  // Extract role from JWT claims (set by auth-hook in Story 1.4)
-  const role =
-    user.user_metadata?.role ||
-    user.app_metadata?.role ||
-    user.user_metadata?.["role"];
+  // Role is injected as 'user_role' in app_metadata by the auth hook (Story 1.4)
+  // app_metadata is service-role-only; user_metadata is user-editable and must not be trusted
+  const role = (user.app_metadata?.["user_role"] as string | null) ?? null;
 
   return { user, role };
 }

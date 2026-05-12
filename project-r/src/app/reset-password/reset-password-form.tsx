@@ -1,38 +1,49 @@
 "use client";
 
-import { FormEvent, useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { updatePassword, getSupabaseClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 export default function ResetPasswordForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isValidating, setIsValidating] = useState(true);
+  const [invalidToken, setInvalidToken] = useState(false);
+  const [succeeded, setSucceeded] = useState(false);
+  const resolvedRef = useRef(false);
 
-  // Check if recovery token is present in URL
   useEffect(() => {
-    const validateRecoveryLink = async () => {
-      const supabase = getSupabaseClient();
-      const { data } = await supabase.auth.getSession();
+    const supabase = getSupabaseClient();
 
-      // If no session, the recovery link may be invalid
-      if (!data.session) {
-        // Check if there's a recovery link in the URL hash
-        const hash = window.location.hash;
-        if (!hash.includes("access_token")) {
-          setError("Link de recuperação inválido ou expirado");
-        }
+    // Listen for PASSWORD_RECOVERY event — emitted by Supabase SDK when a valid
+    // recovery link is clicked (works for both PKCE ?code= and implicit #access_token= flows)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        resolvedRef.current = true;
+        setIsValidating(false);
       }
-      setIsValidating(false);
-    };
+    });
 
-    validateRecoveryLink();
+    // If no PASSWORD_RECOVERY event fires within 3s, the link is invalid or expired
+    const fallback = setTimeout(() => {
+      if (!resolvedRef.current) {
+        setInvalidToken(true);
+        setIsValidating(false);
+      }
+    }, 3000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(fallback);
+    };
   }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -41,21 +52,18 @@ export default function ResetPasswordForm() {
     setIsLoading(true);
 
     try {
-      // Validate passwords match
       if (password !== confirmPassword) {
         setError("As passwords não correspondem");
         setIsLoading(false);
         return;
       }
 
-      // Validate password length (minimum 6 characters as per Supabase default)
       if (password.length < 6) {
         setError("A password deve ter pelo menos 6 caracteres");
         setIsLoading(false);
         return;
       }
 
-      // Update password
       const response = await updatePassword(password);
 
       if (!response.success) {
@@ -64,8 +72,8 @@ export default function ResetPasswordForm() {
         return;
       }
 
-      // Redirect to login after successful reset
-      router.push("/login");
+      setSucceeded(true);
+      setTimeout(() => router.push("/login"), 2000);
     } catch (err) {
       setError("Erro ao atualizar password");
       setIsLoading(false);
@@ -77,6 +85,42 @@ export default function ResetPasswordForm() {
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
           <p className="text-gray-600">A validar link...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (invalidToken) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md space-y-8">
+          <Alert variant="destructive">
+            <AlertDescription>
+              Link de recuperação inválido ou expirado.
+            </AlertDescription>
+          </Alert>
+          <div className="text-center">
+            <Link
+              href="/recuperar-password"
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
+              Pedir novo link
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (succeeded) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md space-y-8">
+          <Alert variant="success">
+            <AlertDescription>
+              Password atualizada com sucesso. A redirecionar...
+            </AlertDescription>
+          </Alert>
         </div>
       </div>
     );
@@ -117,9 +161,7 @@ export default function ResetPasswordForm() {
               placeholder="••••••••"
               disabled={isLoading}
             />
-            <p className="mt-1 text-xs text-gray-500">
-              Mínimo 6 caracteres
-            </p>
+            <p className="mt-1 text-xs text-gray-500">Mínimo 6 caracteres</p>
           </div>
 
           <div>
@@ -140,11 +182,7 @@ export default function ResetPasswordForm() {
             />
           </div>
 
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full"
-          >
+          <Button type="submit" disabled={isLoading} className="w-full">
             {isLoading ? "A atualizar..." : "Atualizar password"}
           </Button>
         </form>

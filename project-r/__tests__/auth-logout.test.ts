@@ -1,27 +1,38 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
+
+const mockSignOut = vi.fn();
+
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: () => ({
+    auth: {
+      signOut: mockSignOut,
+      getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+    },
+  }),
+}));
+
+beforeAll(() => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost:54321";
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "test-key";
+});
 
 describe("Auth: Logout Flow", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    mockSignOut.mockReset();
+    mockSignOut.mockResolvedValue({ error: null });
   });
 
   describe("AC #3: Logout revokes session", () => {
-    it("should export a logout function", async () => {
+    it("calls signOut on the Supabase client", async () => {
       const { logout } = await import("@/lib/supabase/client");
-      expect(typeof logout).toBe("function");
+      await logout();
+      expect(mockSignOut).toHaveBeenCalledOnce();
     });
 
-    it("logout should be callable without parameters", async () => {
+    it("propagates errors from signOut so LogoutButton can handle them", async () => {
+      mockSignOut.mockRejectedValue(new Error("network failure"));
       const { logout } = await import("@/lib/supabase/client");
-      expect(logout.length).toBe(0); // Function takes no required parameters
-    });
-  });
-
-  describe("Session management", () => {
-    it("should provide logout functionality", async () => {
-      const { logout, isAuthenticated } = await import("@/lib/supabase/client");
-      expect(typeof logout).toBe("function");
-      expect(typeof isAuthenticated).toBe("function");
+      await expect(logout()).rejects.toThrow("network failure");
     });
   });
 });

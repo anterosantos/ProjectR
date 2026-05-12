@@ -1,48 +1,60 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
+
+const mockGetSession = vi.fn();
+
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: () => ({
+    auth: {
+      signOut: vi.fn().mockResolvedValue({ error: null }),
+      getSession: mockGetSession,
+    },
+  }),
+}));
+
+beforeAll(() => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost:54321";
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "test-key";
+});
 
 describe("Auth: Protected Routes", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    mockGetSession.mockReset();
   });
 
-  describe("AC #6: Session expiry + transport security", () => {
-    it("should export isAuthenticated function", async () => {
+  describe("AC #6: isAuthenticated reflects session state", () => {
+    it("returns false when no session exists", async () => {
+      mockGetSession.mockResolvedValue({ data: { session: null } });
       const { isAuthenticated } = await import("@/lib/supabase/client");
-      expect(typeof isAuthenticated).toBe("function");
+      expect(await isAuthenticated()).toBe(false);
     });
 
-    it("isAuthenticated should check session validity", async () => {
+    it("returns true when a valid session exists", async () => {
+      mockGetSession.mockResolvedValue({
+        data: { session: { user: { id: "u1" }, access_token: "tok" } },
+      });
       const { isAuthenticated } = await import("@/lib/supabase/client");
-      expect(isAuthenticated.length).toBe(0); // Takes no parameters
+      expect(await isAuthenticated()).toBe(true);
+    });
+
+    it("returns false when getSession throws (network error)", async () => {
+      mockGetSession.mockRejectedValue(new Error("offline"));
+      const { isAuthenticated } = await import("@/lib/supabase/client");
+      expect(await isAuthenticated()).toBe(false);
     });
   });
 
-  describe("Session management", () => {
-    it("should export getSession function", async () => {
+  describe("getSession", () => {
+    it("returns the session object when authenticated", async () => {
+      const fakeSession = { user: { id: "u1" }, access_token: "tok" };
+      mockGetSession.mockResolvedValue({ data: { session: fakeSession } });
       const { getSession } = await import("@/lib/supabase/client");
-      expect(typeof getSession).toBe("function");
+      expect(await getSession()).toEqual(fakeSession);
     });
 
-    it("should provide session validation helpers", async () => {
-      const { isAuthenticated, getSession } = await import("@/lib/supabase/client");
-      expect(typeof isAuthenticated).toBe("function");
-      expect(typeof getSession).toBe("function");
-    });
-  });
-
-  describe("Token expiry (NFR17)", () => {
-    it("should respect 1-hour token expiry", () => {
-      // Supabase default token expiry is 1 hour (3600 seconds)
-      const tokenExpirySeconds = 3600;
-      expect(tokenExpirySeconds).toBe(3600);
-    });
-  });
-
-  describe("HTTPS enforcement (NFR14)", () => {
-    it("should redirect unauthenticated requests to /login", () => {
-      // Middleware should redirect to /login for protected routes
-      const redirectPath = "/login";
-      expect(redirectPath).toBe("/login");
+    it("returns null when no session", async () => {
+      mockGetSession.mockResolvedValue({ data: { session: null } });
+      const { getSession } = await import("@/lib/supabase/client");
+      expect(await getSession()).toBeNull();
     });
   });
 });

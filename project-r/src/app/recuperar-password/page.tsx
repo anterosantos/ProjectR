@@ -16,22 +16,16 @@ export default function RecoverPasswordPage() {
     setIsLoading(true);
 
     try {
-      if (!email) {
-        setIsLoading(false);
-        return;
+      // Call recovery even if email is empty — Supabase handles it gracefully,
+      // and we always show the same confirmation to avoid enumeration (AC #4)
+      if (email) {
+        await requestPasswordRecovery(email);
       }
-
-      // Request recovery email
-      await requestPasswordRecovery(email);
-
-      // Always show success message to avoid enumeration
-      setSubmitted(true);
-      setEmail("");
-    } catch (err) {
-      // Still show success message for security
-      setSubmitted(true);
-      setEmail("");
+    } catch {
+      // Intentionally ignored — enumeration prevention requires identical UX on all paths
     } finally {
+      setSubmitted(true);
+      setEmail("");
       setIsLoading(false);
     }
   };

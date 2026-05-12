@@ -21,11 +21,11 @@ describe("Auth: Login Flow", () => {
   });
 
   describe("AC #2: Invalid credentials error messaging", () => {
-    it("should display generic error message without revealing which field is wrong", () => {
-      // This test would validate at the component level
-      // Error message should always be: "Email ou password incorretos"
-      const expectedErrorMessage = "Email ou password incorretos";
-      expect(expectedErrorMessage).toMatch(/Email ou password incorretos/);
+    it("getRoleHomePath returns /login for any unrecognised role — generic fallback on auth failure", () => {
+      // Any path that fails to resolve a role redirects to /login (safe default)
+      expect(getRoleHomePath("unknown-role")).toBe("/login");
+      expect(getRoleHomePath(null)).toBe("/login");
+      expect(getRoleHomePath(undefined)).toBe("/login");
     });
   });
 
