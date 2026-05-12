@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * Integration Tests for Auth Hook + RLS Policies
@@ -11,7 +12,7 @@ import { createClient } from "@supabase/supabase-js";
  * - Local Supabase running (`supabase start`)
  * - Migrations applied (Story 1.3)
  * - Auth hook deployed locally (`supabase functions deploy auth-hook`)
- * - SUPABASE_URL and SUPABASE_ANON_KEY available
+ * - SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY available
  */
 
 interface TestUser {
@@ -27,9 +28,9 @@ interface TestClub {
   name: string;
 }
 
-let supabaseAdmin = null as any; // Service-role client (unrestricted)
-let clubs: TestClub[] = [];
-let testUsers: TestUser[] = [];
+let supabaseAdmin: SupabaseClient | null = null; // Service-role client (unrestricted)
+const clubs: TestClub[] = [];
+const testUsers: TestUser[] = [];
 
 beforeAll(async () => {
   const supabaseUrl = process.env.SUPABASE_URL || "http://localhost:54321";

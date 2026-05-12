@@ -1,0 +1,9 @@
+# Deno Edge Functions use different import system
+# These files are deployed separately and don't need Next.js linting
+supabase/functions/**/*
+
+# Build artifacts and dependencies
+.next/
+node_modules/
+dist/
+
