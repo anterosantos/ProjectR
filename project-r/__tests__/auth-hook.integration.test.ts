@@ -12,7 +12,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * - Local Supabase running (`supabase start`)
  * - Migrations applied (Story 1.3)
  * - Auth hook deployed locally (`supabase functions deploy auth-hook`)
- * - SUPABASE_URL and SUPABASE_ANON_KEY available
+ * - SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY available
  */
 
 interface TestUser {

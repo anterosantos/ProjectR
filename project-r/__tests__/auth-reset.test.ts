@@ -1,35 +1,65 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
+
+const mockUpdateUser = vi.fn();
+const mockSignOut = vi.fn();
+
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: () => ({
+    auth: {
+      updateUser: mockUpdateUser,
+      signOut: mockSignOut,
+      getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+    },
+  }),
+}));
+
+beforeAll(() => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost:54321";
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "test-key";
+});
 
 describe("Auth: Password Reset Flow", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    mockUpdateUser.mockReset();
+    mockSignOut.mockReset();
+    mockUpdateUser.mockResolvedValue({ error: null, data: { user: { id: "u1" } } });
+    mockSignOut.mockResolvedValue({ error: null });
   });
 
-  describe("AC #5: Password reset via recovery link", () => {
-    it("should export updatePassword function", async () => {
+  describe("AC #5: Password reset updates the password", () => {
+    it("calls updateUser with the new password", async () => {
       const { updatePassword } = await import("@/lib/supabase/client");
-      expect(typeof updatePassword).toBe("function");
+      await updatePassword("newpassword123");
+      expect(mockUpdateUser).toHaveBeenCalledWith({ password: "newpassword123" });
     });
 
-    it("updatePassword should take exactly 1 parameter (newPassword)", async () => {
+    it("returns success: true when both updateUser and signOut succeed", async () => {
       const { updatePassword } = await import("@/lib/supabase/client");
-      expect(updatePassword.length).toBe(1);
+      const result = await updatePassword("newpassword123");
+      expect(result.success).toBe(true);
+    });
+
+    it("returns success: false when updateUser fails", async () => {
+      mockUpdateUser.mockResolvedValue({ error: { message: "weak password" }, data: null });
+      const { updatePassword } = await import("@/lib/supabase/client");
+      const result = await updatePassword("weak");
+      expect(result.success).toBe(false);
     });
   });
 
   describe("Session invalidation (NFR18)", () => {
-    it("should invalidate existing sessions after password reset", async () => {
+    it("calls signOut with scope global to invalidate all sessions", async () => {
       const { updatePassword } = await import("@/lib/supabase/client");
-      // Implementation calls signOut({ scope: 'global' }) to invalidate all sessions
-      expect(typeof updatePassword).toBe("function");
+      await updatePassword("newpassword123");
+      expect(mockSignOut).toHaveBeenCalledWith({ scope: "global" });
     });
-  });
 
-  describe("Password validation", () => {
-    it("should validate password length on reset page", () => {
-      // Password must be at least 6 characters (Supabase default)
-      const minPasswordLength = 6;
-      expect(minPasswordLength).toBeGreaterThanOrEqual(6);
+    it("returns success: false when signOut fails — NFR18 unmet", async () => {
+      mockSignOut.mockResolvedValue({ error: { message: "signout failed" } });
+      const { updatePassword } = await import("@/lib/supabase/client");
+      const result = await updatePassword("newpassword123");
+      expect(result.success).toBe(false);
+      expect(result.error?.message).toContain("invalidar");
     });
   });
 });

@@ -20,9 +20,9 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Basic client-side validation
+      // Basic client-side validation — use same generic message to avoid leaking field hints
       if (!email || !password) {
-        setError("Email ou password são obrigatórios");
+        setError("Email ou password incorretos");
         setIsLoading(false);
         return;
       }
@@ -40,6 +40,12 @@ export default function LoginPage() {
       const { user, role } = await getCurrentUserWithRole();
       if (!user) {
         setError("Email ou password incorretos");
+        setIsLoading(false);
+        return;
+      }
+
+      if (!role) {
+        setError("Perfil não configurado. Contacte o administrador.");
         setIsLoading(false);
         return;
       }

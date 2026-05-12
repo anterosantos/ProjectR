@@ -54,6 +54,7 @@ last_updated: 2026-05-12
 # 2026-05-11: 1-5 → ready-for-dev (bmad-create-story analysis completed; comprehensive story file created with 7 tasks, 6 ACs, full auth flow specs)
 # 2026-05-11: 1-5 → in-progress (dev-story iniciada; implemented /login, /recuperar-password, /reset-password; 27 tests passing; middleware, useProtectedSession hook)
 # 2026-05-11: 1-5 → review (all 7 tasks complete; build ✅ (5.3s); lint ✅ (0 errors, 13 warnings); all 6 ACs verified; security checklist passed; ready for code-review)
+# 2026-05-12: 1-5 → done (adversarial code review complete; 2 decisions resolved; 15 patches applied: middleware rewritten with @supabase/ssr, JWT claim name fixed to user_role, PKCE recovery flow, subscription leak fixed, NFR18 signOut error handling, 54/54 tests passing, build ✅)
 project: Project R
 project_key: NOKEY
 tracking_system: file-system
@@ -66,7 +67,7 @@ development_status:
   1-2-supabase-project-setup-dpa-dpia-initial-documentation: done
   1-3-migrations-foundation-core-identity-tables-uuidv7-rls-helpers: done
   1-4-supabase-auth-hook-for-jwt-custom-claims-club-id-role: done
-  1-5-email-password-authentication-password-recovery: review
+  1-5-email-password-authentication-password-recovery: done
   1-6-role-assignment-multi-tenant-access-enforcement: ready-for-dev
   1-7-optional-mfa-for-treinador-analista: backlog
   1-8-design-system-foundation-tokens-7-pattern-components-button-hierarchy: backlog

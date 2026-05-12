@@ -146,6 +146,6 @@ cp .env.example .env.local
 
 **Required variables (Story 1.2):**
 - `NEXT_PUBLIC_SUPABASE_URL` — Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase anon key
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — Supabase publishable key (renamed from `ANON_KEY` in 2025+)
 
 Public variables (prefixed `NEXT_PUBLIC_`) are exposed to the browser; never put secrets there.

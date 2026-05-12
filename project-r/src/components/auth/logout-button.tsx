@@ -13,19 +13,16 @@ export function LogoutButton() {
     setIsLoading(true);
     try {
       await logout();
-      router.push("/login");
     } catch (err) {
       console.error("Logout failed:", err);
-      setIsLoading(false);
+    } finally {
+      // Always redirect to login, even if signOut threw (AC #3)
+      router.push("/login");
     }
   };
 
   return (
-    <Button
-      onClick={handleLogout}
-      disabled={isLoading}
-      variant="ghost"
-    >
+    <Button onClick={handleLogout} disabled={isLoading} variant="ghost">
       {isLoading ? "A sair..." : "Sair"}
     </Button>
   );
