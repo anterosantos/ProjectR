@@ -1,20 +1,18 @@
-
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 const PUBLIC_ROUTES = ["/login", "/recuperar-password", "/reset-password"];
 const PROTECTED_ROUTE_PATTERNS = ["/prontidao", "/sessoes", "/hoje"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   try {
     let response = NextResponse.next();
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-    // If Supabase env vars are missing (e.g., Edge Runtime issue), allow request
     if (!supabaseUrl || !supabaseKey) {
-      console.warn("⚠️ Supabase env vars missing in middleware. Allowing request.");
+      console.warn("⚠️ Supabase env vars missing in proxy. Allowing request.");
       return response;
     }
 
@@ -23,21 +21,11 @@ export async function middleware(request: NextRequest) {
         get(name: string) {
           return request.cookies.get(name)?.value;
         },
-
         set(name: string, value: string, options) {
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          });
+          response.cookies.set({ name, value, ...options });
         },
-
         remove(name: string, options) {
-          response.cookies.set({
-            name,
-            value: "",
-            ...options,
-          });
+          response.cookies.set({ name, value: "", ...options });
         },
       },
     });
@@ -64,8 +52,7 @@ export async function middleware(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error("🔥 Middleware crash:", error);
-    // Return next response instead of crashing
+    console.error("🔥 Proxy crash:", error);
     return NextResponse.next();
   }
 }
