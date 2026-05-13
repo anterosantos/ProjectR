@@ -2,8 +2,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export const runtime = "nodejs";
-
 const PUBLIC_ROUTES = ["/login", "/recuperar-password", "/reset-password"];
 const PROTECTED_ROUTE_PATTERNS = ["/prontidao", "/sessoes", "/hoje"];
 
