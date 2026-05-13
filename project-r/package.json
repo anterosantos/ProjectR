@@ -8,7 +8,7 @@
   "scripts": {
     "predev": "node scripts/check-docker.js",
     "dev": "next dev --webpack",
-    "build": "next build --no-turbo",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
