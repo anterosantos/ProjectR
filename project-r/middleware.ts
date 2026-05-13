@@ -9,33 +9,38 @@ export async function middleware(request: NextRequest) {
   try {
     let response = NextResponse.next();
 
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return request.cookies.get(name)?.value;
-          },
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-          set(name: string, value: string, options) {
-            response.cookies.set({
-              name,
-              value,
-              ...options,
-            });
-          },
+    // If Supabase env vars are missing (e.g., Edge Runtime issue), allow request
+    if (!supabaseUrl || !supabaseKey) {
+      console.warn("⚠️ Supabase env vars missing in middleware. Allowing request.");
+      return response;
+    }
 
-          remove(name: string, options) {
-            response.cookies.set({
-              name,
-              value: "",
-              ...options,
-            });
-          },
+    const supabase = createServerClient(supabaseUrl, supabaseKey, {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
         },
-      }
-    );
+
+        set(name: string, value: string, options) {
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          });
+        },
+
+        remove(name: string, options) {
+          response.cookies.set({
+            name,
+            value: "",
+            ...options,
+          });
+        },
+      },
+    });
 
     const pathname = request.nextUrl.pathname;
 
@@ -60,7 +65,7 @@ export async function middleware(request: NextRequest) {
     return response;
   } catch (error) {
     console.error("🔥 Middleware crash:", error);
-
+    // Return next response instead of crashing
     return NextResponse.next();
   }
 }
