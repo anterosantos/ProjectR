@@ -14,22 +14,33 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse;
   }
 
-  const supabase = createServerClient(supabaseUrl, supabaseKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
+  let supabase;
+  try {
+    supabase = createServerClient(supabaseUrl, supabaseKey, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
+          supabaseResponse = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          );
+        },
       },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) =>
-          request.cookies.set(name, value)
-        );
-        supabaseResponse = NextResponse.next({ request });
-        cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, options)
-        );
-      },
-    },
-  });
+    });
+  } catch (error) {
+    // Isto vai aparecer nos Logs do Vercel!
+    console.error("🔥 ERRO NO SUPABASE MIDDLEWARE 🔥:", error);
+    console.error("URL recebido no Vercel:", supabaseUrl);
+    console.error("Key existe?", !!supabaseKey);
+    
+    // Devolvemos a resposta normal para a página não dar erro 500
+    return supabaseResponse; 
+  }
 
   const pathname = request.nextUrl.pathname;
 
