@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 const PUBLIC_ROUTES = ["/login", "/recuperar-password", "/reset-password"];
 const PROTECTED_ROUTE_PATTERNS = ["/prontidao", "/sessoes", "/hoje"];
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   try {
     let response = NextResponse.next();
 
@@ -12,7 +12,7 @@ export async function proxy(request: NextRequest) {
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-      console.warn("⚠️ Supabase env vars missing in proxy. Allowing request.");
+      console.warn("⚠️ Supabase env vars missing in middleware. Allowing request.");
       return response;
     }
 
@@ -52,7 +52,7 @@ export async function proxy(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error("🔥 Proxy crash:", error);
+    console.error("🔥 Middleware crash:", error);
     return NextResponse.next();
   }
 }
