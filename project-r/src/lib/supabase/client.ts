@@ -4,9 +4,10 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
+import { Database } from "./database.types";
 
 // Initialize Supabase client (lazy initialization to support testing)
-let supabaseClient: ReturnType<typeof createClient> | null = null;
+let supabaseClient: ReturnType<typeof createClient<Database>> | null = null;
 
 function getSupabaseInstance() {
   if (!supabaseClient) {
@@ -19,7 +20,7 @@ function getSupabaseInstance() {
       );
     }
 
-    supabaseClient = createClient(supabaseUrl, supabaseKey);
+    supabaseClient = createClient<Database>(supabaseUrl, supabaseKey);
   }
   return supabaseClient;
 }
