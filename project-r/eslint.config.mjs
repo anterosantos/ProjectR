@@ -17,6 +17,37 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  // Restrict service-role client imports to whitelisted server-only paths.
+  // The service-role client bypasses RLS — importing it in browser/page code
+  // would expose the service key and remove all multi-tenant isolation.
+  {
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["**/lib/supabase/service-role", "@/lib/supabase/service-role"],
+              message:
+                "❌ Service-role client is restricted. Use @/lib/supabase/client (browser) or @/lib/supabase/server (server) instead. Allowed only in supabase/functions/ and src/lib/actions/.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  // Allow service-role imports in whitelisted server-only locations.
+  {
+    files: [
+      "supabase/functions/**",
+      "src/lib/supabase/service-role.ts",
+      "src/lib/actions/**",
+      "scripts/**",
+    ],
+    rules: {
+      "no-restricted-imports": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

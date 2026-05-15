@@ -1,69 +1,42 @@
-/**
- * Supabase client helpers for authentication and role-based routing
- * Handles JWT interaction and role-based home page redirects
- */
+import { createBrowserClient } from "@supabase/ssr";
+import type { Database } from "./database.types";
 
-import { createClient } from "@supabase/supabase-js";
-import { Database } from "./database.types";
-
-// Initialize Supabase client (lazy initialization to support testing)
-let supabaseClient: ReturnType<typeof createClient<Database>> | null = null;
-
-function getSupabaseInstance() {
-  if (!supabaseClient) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
-
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error(
-        "Missing Supabase credentials in .env.local (NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)"
-      );
-    }
-
-    supabaseClient = createClient<Database>(supabaseUrl, supabaseKey);
-  }
-  return supabaseClient;
+/** Browser/Client Component Supabase client. Do not use in Server Actions or middleware. */
+export function createClient() {
+  return createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+  );
 }
 
-/**
- * Check if user has an active session
- */
+export const supabase = createClient();
+
 export async function isAuthenticated() {
-  const supabase = getSupabaseInstance();
   try {
     const {
       data: { session },
-    } = await supabase.auth.getSession();
+    } = await createClient().auth.getSession();
     return !!session;
-  } catch (err) {
+  } catch {
     return false;
   }
 }
 
-/**
- * Get current session
- */
 export async function getSession() {
-  const supabase = getSupabaseInstance();
   try {
     const {
       data: { session },
-    } = await supabase.auth.getSession();
+    } = await createClient().auth.getSession();
     return session;
-  } catch (err) {
+  } catch {
     return null;
   }
 }
 
-/**
- * Update user password and invalidate existing sessions
- */
 export async function updatePassword(newPassword: string) {
-  const supabase = getSupabaseInstance();
+  const client = createClient();
   try {
-    const response = await supabase.auth.updateUser({
-      password: newPassword,
-    });
+    const response = await client.auth.updateUser({ password: newPassword });
 
     if (response.error) {
       return {
@@ -75,8 +48,8 @@ export async function updatePassword(newPassword: string) {
       };
     }
 
-    // Invalidate all sessions (NFR18) — must succeed for a complete password reset
-    const signOutResponse = await supabase.auth.signOut({ scope: "global" });
+    // Invalidate all sessions (NFR18)
+    const signOutResponse = await client.auth.signOut({ scope: "global" });
 
     if (signOutResponse.error) {
       return {
@@ -89,62 +62,35 @@ export async function updatePassword(newPassword: string) {
       };
     }
 
-    return {
-      success: true,
-      error: null,
-    };
+    return { success: true, error: null };
   } catch (err) {
     return {
       success: false,
-      error: {
-        message: "Erro ao atualizar password",
-        originalError: err,
-      },
+      error: { message: "Erro ao atualizar password", originalError: err },
     };
   }
 }
 
-/**
- * Request password recovery email
- * Returns generic success to avoid account enumeration
- */
 export async function requestPasswordRecovery(email: string) {
-  const supabase = getSupabaseInstance();
+  const appUrl =
+    (typeof window !== "undefined" ? window.location.origin : null) ??
+    process.env.NEXT_PUBLIC_APP_URL ??
+    "";
   try {
-    // Supabase will send recovery email if account exists
-    // We always return success to avoid enumeration attacks
-    // Use window.location.origin in browser; fall back to env var for SSR
-    const appUrl =
-      (typeof window !== "undefined" ? window.location.origin : null) ??
-      process.env.NEXT_PUBLIC_APP_URL ??
-      "";
-
-    const response = await supabase.auth.resetPasswordForEmail(email, {
+    await createClient().auth.resetPasswordForEmail(email, {
       redirectTo: `${appUrl}/reset-password`,
     });
-
-    return {
-      success: true,
-      error: null,
-    };
+    return { success: true, error: null };
   } catch (err) {
-    // Even on error, return success message to avoid enumeration
     console.error("Password recovery request error:", err);
-    return {
-      success: true,
-      error: null,
-    };
+    return { success: true, error: null };
   }
 }
 
-/**
- * Sign out the current user
- * Revokes session tokens and clears local state
- */
 export async function logout() {
-  const supabase = getSupabaseInstance();
+  const client = createClient();
   try {
-    const response = await supabase.auth.signOut();
+    const response = await client.auth.signOut();
     return response;
   } catch (err) {
     console.error("Logout error:", err);
@@ -152,21 +98,14 @@ export async function logout() {
   }
 }
 
-/**
- * Sign in with email and password
- * Returns generic error message to avoid account enumeration
- */
 export async function signInWithPassword(email: string, password: string) {
-  const supabase = getSupabaseInstance();
   try {
-    const response = await supabase.auth.signInWithPassword({
+    const response = await createClient().auth.signInWithPassword({
       email,
       password,
     });
 
-    // Check for any auth errors
     if (response.error) {
-      // Return generic message to avoid account enumeration
       return {
         data: null,
         error: {
@@ -188,9 +127,6 @@ export async function signInWithPassword(email: string, password: string) {
   }
 }
 
-/**
- * Map role to home page route
- */
 export function getRoleHomePath(
   role: string | null | undefined
 ): "/prontidao" | "/sessoes" | "/hoje" | "/login" {
@@ -206,22 +142,15 @@ export function getRoleHomePath(
   }
 }
 
-/**
- * Get current user and their profile role
- * Queries the profiles table to fetch the role directly
- */
 export async function getCurrentUserWithRole() {
-  const supabase = getSupabaseInstance();
+  const client = createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await client.auth.getUser();
 
-  if (!user) {
-    return { user: null, role: null };
-  }
+  if (!user) return { user: null, role: null };
 
-  // Fetch profile from the profiles table to get the role
-  const { data: profile, error } = await supabase
+  const { data: profile, error } = await client
     .from("profiles")
     .select("role")
     .eq("id", user.id)
@@ -235,11 +164,9 @@ export async function getCurrentUserWithRole() {
   return { user, role: profile.role as string | null };
 }
 
-/**
- * Get the Supabase client instance
- */
+/** @deprecated Use createClient() directly */
 export function getSupabaseClient() {
-  return getSupabaseInstance();
+  return createClient();
 }
 
-export default getSupabaseInstance;
+export default createClient;

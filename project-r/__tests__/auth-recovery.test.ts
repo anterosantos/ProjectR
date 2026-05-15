@@ -2,11 +2,10 @@ import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 
 const mockResetPasswordForEmail = vi.fn();
 
-vi.mock("@supabase/supabase-js", () => ({
-  createClient: () => ({
+vi.mock("@supabase/ssr", () => ({
+  createBrowserClient: () => ({
     auth: {
       resetPasswordForEmail: mockResetPasswordForEmail,
-      getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
     },
   }),
 }));

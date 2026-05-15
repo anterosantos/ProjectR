@@ -2,10 +2,9 @@ import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 
 const mockGetSession = vi.fn();
 
-vi.mock("@supabase/supabase-js", () => ({
-  createClient: () => ({
+vi.mock("@supabase/ssr", () => ({
+  createBrowserClient: () => ({
     auth: {
-      signOut: vi.fn().mockResolvedValue({ error: null }),
       getSession: mockGetSession,
     },
   }),

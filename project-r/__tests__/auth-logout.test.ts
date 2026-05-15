@@ -2,11 +2,10 @@ import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 
 const mockSignOut = vi.fn();
 
-vi.mock("@supabase/supabase-js", () => ({
-  createClient: () => ({
+vi.mock("@supabase/ssr", () => ({
+  createBrowserClient: () => ({
     auth: {
       signOut: mockSignOut,
-      getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
     },
   }),
 }));
