@@ -52,6 +52,31 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Signal/Semáforo Colors (light/dark via prefers-color-scheme) */
+  --color-signal-ready: var(--signal-ready);
+  --color-signal-caution: var(--signal-caution);
+  --color-signal-alert: var(--signal-alert);
+  --color-signal-info: var(--signal-info);
+  --color-signal-neutral: var(--signal-neutral);
+
+  /* Typography — explicit aliases */
+  --font-display: var(--font-sans);
+  --font-body: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Animation durations (in ms as CSS values) */
+  --animation-default: 150ms;
+  --animation-modal: 200ms;
+  --animation-touchscreen: 0ms;
+
+  /* Z-index semantic tokens */
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-popover: 20;
+  --z-tooltip: 30;
+  --z-modal: 40;
+  --z-toast: 50;
 }
 
 :root {
@@ -87,6 +112,13 @@
   --sidebar-ring: oklch(0.708 0 0);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
+
+  /* Light mode semáforo colors */
+  --signal-ready: oklch(0.544 0.285 142.494);      /* green #16A34A */
+  --signal-caution: oklch(0.577 0.245 86.204);      /* yellow #CA8A04 */
+  --signal-alert: oklch(0.546 0.245 27.325);        /* red #DC2626 */
+  --signal-info: oklch(0.490 0.238 254.124);        /* blue #2563EB */
+  --signal-neutral: oklch(0.646 0 0);               /* gray */
 }
 
 .dark {
@@ -121,6 +153,13 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* Dark mode semáforo colors */
+  --signal-ready: oklch(0.708 0.245 142.494);      /* green #22C55E */
+  --signal-caution: oklch(0.707 0.245 86.204);      /* yellow #EAB308 */
+  --signal-alert: oklch(0.704 0.191 22.216);        /* red #EF4444 */
+  --signal-info: oklch(0.565 0.238 254.124);        /* blue #3B82F6 */
+  --signal-neutral: oklch(0.556 0 0);               /* gray */
 }
 
 @layer base {

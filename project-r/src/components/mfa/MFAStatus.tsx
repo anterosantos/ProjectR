@@ -105,7 +105,7 @@ export function MFAStatus({ factorId, onDisabled }: MFAStatusProps) {
             </Button>
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               disabled={isSubmitting}
               onClick={() => {
                 setView("status");
@@ -132,7 +132,7 @@ export function MFAStatus({ factorId, onDisabled }: MFAStatusProps) {
         </span>
       </div>
       <Button
-        variant="outline"
+        variant="ghost"
         onClick={() => setView("confirm")}
       >
         Desativar MFA

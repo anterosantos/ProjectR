@@ -109,7 +109,7 @@ export function MFAEnrollment({ onSuccess }: MFAEnrollmentProps) {
         <Button
           onClick={handleEnroll}
           disabled={isStarting}
-          variant="default"
+          variant="primary"
         >
           {isStarting ? "A configurar..." : "Ativar MFA"}
         </Button>
