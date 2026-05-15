@@ -30,7 +30,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next({ request: { headers: request.headers } });
   }
 
-  const { user, response } = await updateSession(request);
+  const { user, response, claims } = await updateSession(request);
 
   // Redirect unauthenticated users to /login (307 Temporary Redirect).
   if (!user) {
@@ -43,10 +43,9 @@ export async function proxy(request: NextRequest) {
     );
   }
 
-  // Get user role from JWT custom claims for role-based routing (Story 1.9)
-  const userData = user as Record<string, unknown>;
-  const metadata = userData.user_metadata as Record<string, unknown> | undefined;
-  const userRole = (metadata?.user_role || metadata?.role) as string | undefined;
+  // Get user role from JWT custom claims injected by the auth hook (Story 1.4/1.9).
+  // The auth hook adds user_role as a top-level JWT claim; it is not in user_metadata.
+  const userRole = (claims.user_role || claims.role) as string | undefined;
 
   // Validate userRole is one of the allowed roles
   if (!userRole || !(userRole in ROLE_ALLOWED_ROUTES)) {
