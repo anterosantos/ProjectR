@@ -6,7 +6,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { disableMFAAction } from "@/app/(staff)/configuracoes/seguranca/actions";
+import { disableMFAAction } from "@/app/configuracoes/seguranca/actions";
 
 const disableSchema = z.object({
   password: z.string().min(1, "Password obrigatória"),

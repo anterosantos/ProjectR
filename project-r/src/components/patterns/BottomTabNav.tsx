@@ -10,6 +10,7 @@ import {
   Calendar,
   Users,
   Settings,
+  TrendingUp,
 } from "lucide-react";
 
 type TabConfig = {
@@ -37,14 +38,18 @@ const TAB_CONFIG: Record<"player" | "coach" | "analyst", TabConfig[]> = {
   analyst: [
     { label: "Sessões", href: "/sessoes", icon: BarChart3 },
     { label: "Plantel", href: "/plantel", icon: Users },
-    { label: "Tendências", href: "/tendencias", icon: BarChart3 },
+    { label: "Tendências", href: "/tendencias", icon: TrendingUp },
     { label: "Eu", href: "/configuracoes", icon: Settings },
   ],
 };
 
 export function BottomTabNav({ role }: BottomTabNavProps) {
+  if (!(role in TAB_CONFIG)) {
+    throw new Error(`Invalid role prop: ${role}. Expected 'player', 'coach', or 'analyst'.`);
+  }
+
   const pathname = usePathname();
-  const tabs = TAB_CONFIG[role] ?? TAB_CONFIG["player"];
+  const tabs = TAB_CONFIG[role];
 
   const getCurrentTab = (href: string) => {
     // Extract the route prefix for comparison

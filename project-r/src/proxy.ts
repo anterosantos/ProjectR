@@ -34,7 +34,10 @@ export async function proxy(request: NextRequest) {
 
   // Redirect unauthenticated users to /login (307 Temporary Redirect).
   if (!user) {
-    const returnTo = encodeURIComponent(pathname + searchParams.toString());
+    // Only allow relative URLs in returnTo to prevent open redirects
+    const returnToPath = pathname.startsWith("/") ? pathname : "/";
+    const returnToQuery = searchParams.toString();
+    const returnTo = encodeURIComponent(returnToPath + (returnToQuery ? `?${returnToQuery}` : ""));
     return NextResponse.redirect(
       new URL(`/login?returnTo=${returnTo}`, request.url)
     );
@@ -42,23 +45,22 @@ export async function proxy(request: NextRequest) {
 
   // Get user role from JWT custom claims for role-based routing (Story 1.9)
   const userData = user as Record<string, unknown>;
-  const metadata = userData.user_metadata as Record<string, string> | undefined;
-  const userRole = (metadata?.user_role || metadata?.role) as
-    | "player"
-    | "coach"
-    | "analyst"
-    | undefined;
+  const metadata = userData.user_metadata as Record<string, unknown> | undefined;
+  const userRole = (metadata?.user_role || metadata?.role) as string | undefined;
 
-  if (userRole && userRole in ROLE_ALLOWED_ROUTES) {
-    const allowedRoutes = ROLE_ALLOWED_ROUTES[userRole as keyof typeof ROLE_ALLOWED_ROUTES];
-    const hasAccess = allowedRoutes?.some((route) =>
-      pathname === route || pathname.startsWith(route + "/")
-    ) ?? false;
+  // Validate userRole is one of the allowed roles
+  if (!userRole || !(userRole in ROLE_ALLOWED_ROUTES)) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
 
-    if (!hasAccess) {
-      const defaultRoute = ROLE_DEFAULT_ROUTES[userRole as keyof typeof ROLE_DEFAULT_ROUTES] || "/";
-      return NextResponse.redirect(new URL(defaultRoute, request.url));
-    }
+  const allowedRoutes = ROLE_ALLOWED_ROUTES[userRole as keyof typeof ROLE_ALLOWED_ROUTES];
+  const hasAccess = allowedRoutes?.some((route) =>
+    pathname === route || pathname.startsWith(route + "/")
+  ) ?? false;
+
+  if (!hasAccess) {
+    const defaultRoute = ROLE_DEFAULT_ROUTES[userRole as keyof typeof ROLE_DEFAULT_ROUTES] || "/login";
+    return NextResponse.redirect(new URL(defaultRoute, request.url));
   }
 
   // Growth phase (Story 1.7 AC #6): enforce mandatory MFA enrollment here.

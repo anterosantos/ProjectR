@@ -10,7 +10,9 @@ export function StaffSidebar({ role }: StaffSidebarProps) {
       aria-label="Navegação principal"
     >
       <nav className="space-y-2">
-        {/* Placeholder for future navigation items */}
+        {/* TODO: Implement navigation items (AC#3) */}
+        {/* Will show same items as BottomTabNav for current role (coach/analyst) */}
+        {/* Add drill-down capability for detail views in future stories */}
         <div className="text-sm text-gray-600">
           Navegação será adicionada em histórias futuras
         </div>

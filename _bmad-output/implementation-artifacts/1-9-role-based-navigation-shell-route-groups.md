@@ -1,6 +1,6 @@
 # Story 1.9: Role-Based Navigation Shell & Route Groups
 
-**Status:** review
+**Status:** done
 
 **Story ID:** 1.9  
 **Epic:** Epic 1 - Fundação Técnica, Identidade & Acesso Multi-Clube  
@@ -560,3 +560,47 @@ The developer will:
 8. **Build & verify** — `npm run build`, all tests green, no warnings
 
 **Estimated tasks:** 10–12 well-scoped dev tasks. Details will be in dev-story phase.
+
+---
+
+## Review Findings (Code Review: 2026-05-15)
+
+**Review Status:** 16 actionable items identified. 2 critical, 11 patches, 2 decisions needed, 1 deferred.
+
+### Decision Needed
+
+- [ ] [Review][Decision] **StaffLayout meta hardcoded (AC#2)** — StickyHeader receives hardcoded `meta="Sáb 16:00"`. Should meta be: A) computed dynamically, B) passed from pages via context, C) kept as placeholder for MVP? [line 729]
+
+- [ ] [Review][Decision] **Sidebar navigation items missing (AC#3)** — StaffSidebar empty. Should we: A) add placeholder nav items to sidebar, B) leave empty with TODO comment, C) defer implementation to next story?
+
+### Patches (Critical)
+
+- [ ] [Review][Patch] **userRole validation missing (access control bypass)** — JWT metadata access unsafe; `userRole` may be undefined, bypassing all role checks [proxy.ts:46-62]
+
+- [ ] [Review][Patch] **.single() throws without error handling** — Supabase `.single()` crashes on data corruption (multiple profiles). Needs try-catch with graceful fallback [page.tsx:16-20, staff/layout.tsx:711-715]
+
+### Patches (High)
+
+- [ ] [Review][Patch] **Duplicated role-redirect logic** — Role check in proxy.ts AND page.tsx; violates DRY, maintainability risk [proxy.ts:52-62 vs page.tsx:25-31]
+
+### Patches (Medium)
+
+- [ ] [Review][Patch] **Analyst icon duplication (UX)** — "Sessões" and "Tendências" both use BarChart3; visually identical tabs [BottomTabNav.tsx:37-40]
+
+- [ ] [Review][Patch] **Role fallback to "player" unsafe** — Invalid role prop silently downgrades to player; should throw error [BottomTabNav.tsx:47]
+
+- [ ] [Review][Patch] **Fallback route to "/" (redirect loop risk)** — Redirect fallback should be "/login" not "/" [proxy.ts:59]
+
+- [ ] [Review][Patch] **Missing /configuracoes page** — `/configuracoes` in ROLE_ALLOWED_ROUTES but no page created; users get 404
+
+- [ ] [Review][Patch] **Type casting safety (userRole)** — Metadata cast to `Record<string, string>` but userRole might not be string; cast to `unknown` [proxy.ts:45-50]
+
+- [ ] [Review][Patch] **No validation of searchParams (open redirect)** — returnTo parameter unchecked; risk of XSS/external redirect [proxy.ts:37-40]
+
+- [ ] [Review][Patch] **BottomTabNav tests incomplete** — Mock `usePathname` always returns "/hoje"; tests don't verify other routes [BottomTabNav.test.tsx:939]
+
+- [ ] [Review][Patch] **StaffLayout hardcoded title** — StickyHeader title is "Painel" for all routes; should be contextual [layout.tsx:729]
+
+### Defer
+
+- [x] [Review][Defer] **Database query in layout (performance)** — N+1 query pattern in staff layout not new to 1.9; optimize in 1.13+ — deferred, pre-existing pattern

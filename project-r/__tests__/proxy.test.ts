@@ -71,10 +71,14 @@ describe("Proxy authentication gate (AC #5)", () => {
   });
 
   describe("Authenticated requests are allowed through", () => {
-    it("passes through when user is present", async () => {
+    it("passes through when user is present with valid role", async () => {
       const passthroughResponse = makePassthroughResponse();
       mockUpdateSession.mockResolvedValue({
-        user: { id: "user-123", email: "coach@test.test" },
+        user: {
+          id: "user-123",
+          email: "coach@test.test",
+          user_metadata: { user_role: "coach" },
+        },
         response: passthroughResponse,
       });
 
@@ -83,6 +87,40 @@ describe("Proxy authentication gate (AC #5)", () => {
 
       // Should return the passthrough response (not a redirect)
       expect(response.status).not.toBe(307);
+    });
+
+    it("redirects when user is present but role is invalid", async () => {
+      const passthroughResponse = makePassthroughResponse();
+      mockUpdateSession.mockResolvedValue({
+        user: {
+          id: "user-123",
+          email: "unknown@test.test",
+          user_metadata: { user_role: "admin" },
+        },
+        response: passthroughResponse,
+      });
+
+      const { proxy } = await import("@/proxy");
+      const response = await proxy(makeRequest("/prontidao", "sb-auth=tok"));
+
+      // Should redirect to login for invalid role
+      expect(response.status).toBe(307);
+      expect(response.headers.get("location")).toContain("/login");
+    });
+
+    it("redirects when user is present but no role is set", async () => {
+      const passthroughResponse = makePassthroughResponse();
+      mockUpdateSession.mockResolvedValue({
+        user: { id: "user-123", email: "norole@test.test" },
+        response: passthroughResponse,
+      });
+
+      const { proxy } = await import("@/proxy");
+      const response = await proxy(makeRequest("/prontidao", "sb-auth=tok"));
+
+      // Should redirect to login if no role set
+      expect(response.status).toBe(307);
+      expect(response.headers.get("location")).toContain("/login");
     });
   });
 

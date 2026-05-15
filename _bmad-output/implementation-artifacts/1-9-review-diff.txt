@@ -1,0 +1,21 @@
+See full diff in git: git diff 7b26503..00d31ea
+
+DIFF SUMMARY:
+- 20 files changed, 1104 insertions(+), 70 deletions(-)
+
+KEY CHANGES:
+1. Story 1.9 spec file added (562 lines)
+2. Sprint status updated (1.9 → in-progress)
+3. New components:
+   - BottomTabNav.tsx + .test.tsx (91 + 70 lines)
+   - StickyHeader.tsx + .test.tsx (18 + 47 lines)
+   - StaffSidebar.tsx + .test.tsx (20 + 57 lines)
+4. New route groups:
+   - (player): layout.tsx, hoje/page.tsx, historico/page.tsx
+   - (staff): layout.tsx, prontidao, calendario, plantel, sessoes, tendencias pages
+5. Updated files:
+   - src/app/layout.tsx: metadata title/description
+   - src/app/page.tsx: role-based redirect logic (35 → 98 lines, 63 new)
+   - src/proxy.ts: role-based routing enforcement (8 → 48 lines, 40 new)
+
+FULL DIFF OUTPUT (1325 lines):

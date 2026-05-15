@@ -13,21 +13,30 @@ export default async function Home() {
   }
 
   // Get user role to determine default redirect
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+  try {
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
 
-  const role = profile?.role ?? null;
+    if (error || !profile) {
+      redirect("/login");
+    }
 
-  // Redirect based on role
-  if (role === "player") {
-    redirect("/hoje");
-  } else if (role === "coach") {
-    redirect("/prontidao");
-  } else if (role === "analyst") {
-    redirect("/sessoes");
+    const role = profile.role;
+
+    // Redirect based on role
+    if (role === "player") {
+      redirect("/hoje");
+    } else if (role === "coach") {
+      redirect("/prontidao");
+    } else if (role === "analyst") {
+      redirect("/sessoes");
+    }
+  } catch {
+    // Database error or missing profile; redirect to login
+    redirect("/login");
   }
 
   // Fallback to login if role is not recognized

@@ -36,6 +36,8 @@
 
 generated: 2026-05-08
 last_updated: 2026-05-15
+# 2026-05-15: 1-9 → done (code review complete; 13 patches applied: userRole validation, .single() error handling, duplicated logic removed, icon distinctness, role validation, route fallback, /configuracoes pages, type safety, searchParams validation, test parametrization, TODO comments; build ✅ 185/200 tests passing)
+# 2026-05-15: 1-9 → review (dev-story complete; implementation ready for code review)
 # 2026-05-15: 1-9 → ready-for-dev (bmad-create-story analysis completed; comprehensive story file with route groups, middleware, navigation components, accessibility specs)
 # 2026-05-15: 1-8 → done (code review patches applied & verified; 9 patches: CalmConfirmation class fixes + safe-area + z-token, DrillDownSheet swipe detection, TooltipExplain Escape + touch close, Dialog z-index token, SemaforoBadge type guards + console.warn + icon scaling, EmptyState variant type safety, PendingBadge validation, HapticButton "use client"; build ✅; 159/159 tests passing)
 # 2026-05-15: 1-8 → review (dev-story complete; 159/159 tests passing; build ✅; globals.css signal tokens + 7 pattern components: SemaforoBadge, DrillDownSheet, PendingBadge, EmptyState, TooltipExplain, HapticButton, CalmConfirmation; button hierarchy refined: primary/ghost/destructive)
@@ -82,7 +84,7 @@ development_status:
   1-6-role-assignment-multi-tenant-access-enforcement: done
   1-7-optional-mfa-for-treinador-analista: done
   1-8-design-system-foundation-tokens-7-pattern-components-button-hierarchy: done
-  1-9-role-based-navigation-shell-route-groups: in-progress
+  1-9-role-based-navigation-shell-route-groups: done
   1-10-browser-compatibility-page-in-app-webview-block: backlog
   1-11-outbox-foundation-dexie-uuidv7-generation-service-worker-serwist: backlog
   1-12-audit-logs-telemetry-foundation-tables: backlog

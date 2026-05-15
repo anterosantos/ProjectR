@@ -18,28 +18,37 @@ export default async function StaffLayout({
     redirect("/login");
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+  try {
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
 
-  const role = profile?.role ?? null;
+    if (error || !profile) {
+      redirect("/login");
+    }
 
-  if (!role || role === "player") {
-    redirect("/hoje");
-  }
+    const role = profile.role;
 
-  const staffRole = role as "coach" | "analyst";
+    if (!role || role === "player") {
+      redirect("/hoje");
+    }
 
-  return (
-    <div className="flex min-h-screen flex-col lg:flex-row">
-      <StaffSidebar role={staffRole} />
-      <div className="flex flex-1 flex-col">
-        <StickyHeader title="Painel" meta="Sáb 16:00" />
-        <main className="flex-1 pb-[60px] lg:pb-0">{children}</main>
-        <BottomTabNav role={staffRole} />
+    const staffRole = role as "coach" | "analyst";
+
+    return (
+      <div className="flex min-h-screen flex-col lg:flex-row">
+        <StaffSidebar role={staffRole} />
+        <div className="flex flex-1 flex-col">
+          <StickyHeader title="Painel" meta="Sáb 16:00" />
+          <main className="flex-1 pb-[60px] lg:pb-0">{children}</main>
+          <BottomTabNav role={staffRole} />
+        </div>
       </div>
-    </div>
-  );
+    );
+  } catch {
+    // Database error or missing profile; redirect to login
+    redirect("/login");
+  }
 }
