@@ -7,8 +7,20 @@ const PUBLIC_PATHS = new Set([
   "/reset-password",
 ]);
 
+const ROLE_DEFAULT_ROUTES: Record<string, string> = {
+  player: "/hoje",
+  coach: "/prontidao",
+  analyst: "/sessoes",
+};
+
+const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
+  player: ["/hoje", "/historico", "/configuracoes"],
+  coach: ["/prontidao", "/calendario", "/plantel", "/configuracoes"],
+  analyst: ["/sessoes", "/plantel", "/tendencias", "/configuracoes"],
+};
+
 export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
 
   // Allow public auth entry points without session check.
   if (
@@ -22,7 +34,31 @@ export async function proxy(request: NextRequest) {
 
   // Redirect unauthenticated users to /login (307 Temporary Redirect).
   if (!user) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const returnTo = encodeURIComponent(pathname + searchParams.toString());
+    return NextResponse.redirect(
+      new URL(`/login?returnTo=${returnTo}`, request.url)
+    );
+  }
+
+  // Get user role from JWT custom claims for role-based routing (Story 1.9)
+  const userData = user as Record<string, unknown>;
+  const metadata = userData.user_metadata as Record<string, string> | undefined;
+  const userRole = (metadata?.user_role || metadata?.role) as
+    | "player"
+    | "coach"
+    | "analyst"
+    | undefined;
+
+  if (userRole && userRole in ROLE_ALLOWED_ROUTES) {
+    const allowedRoutes = ROLE_ALLOWED_ROUTES[userRole as keyof typeof ROLE_ALLOWED_ROUTES];
+    const hasAccess = allowedRoutes?.some((route) =>
+      pathname === route || pathname.startsWith(route + "/")
+    ) ?? false;
+
+    if (!hasAccess) {
+      const defaultRoute = ROLE_DEFAULT_ROUTES[userRole as keyof typeof ROLE_DEFAULT_ROUTES] || "/";
+      return NextResponse.redirect(new URL(defaultRoute, request.url));
+    }
   }
 
   // Growth phase (Story 1.7 AC #6): enforce mandatory MFA enrollment here.
