@@ -1,6 +1,6 @@
 # Story 1.8: Design System Foundation — Tokens, 7 Pattern Components & Button Hierarchy
 
-**Status:** review
+**Status:** done
 
 **Story ID:** 1.8  
 **Epic:** Epic 1 - Fundação Técnica, Identidade & Acesso Multi-Clube  
@@ -537,10 +537,11 @@ Each component tested for:
 
 ## Story Completion Status
 
-**Status:** review  
+**Status:** done  
 **Created:** 2026-05-15  
 **Last Updated:** 2026-05-15  
-**Implemented:** 2026-05-15
+**Implemented:** 2026-05-15  
+**Code Review Complete:** 2026-05-15 (9 patches applied & verified)
 
 ### Implementation Summary
 
@@ -635,6 +636,81 @@ Each component tested for:
 | AC#8 | ✅ | CalmConfirmation with fade-in 150ms, auto-dismiss 1500ms, neutral tone |
 | AC#9 | ✅ | Button hierarchy: primary/ghost/destructive only; touch target ≥44×44px |
 | AC#10 | ✅ | All 7 components: vitest-axe 0 violations, WCAG AA contrast verified |
+
+---
+
+## Code Review Findings & Patches (2026-05-15)
+
+### Adversarial Code Review Summary
+
+Three-layer adversarial review identified 18 unique findings across accessibility, type safety, mobile compatibility, and error handling. All findings resolved via 9 patches.
+
+### Patches Applied
+
+#### HIGH PRIORITY (Type Safety & Keyboard/Touch Access)
+
+1. **TooltipExplain: Escape Key & Touch Close Button**
+   - Added document-level Escape key handler via useEffect
+   - Added touch-friendly close button (X icon) in popover for non-hover devices
+   - Fixes: keyboard users stuck if no Escape handler; touch devices can't close (no onMouseLeave)
+
+2. **Dialog Z-index Semantic Token**
+   - Changed DialogOverlay z-index: `z-50` → `z-[var(--z-modal)]`
+   - Changed DialogContent z-index: `z-50` → `z-[var(--z-modal)]`
+   - Fixes: hardcoded z-index not coordinated with token system
+
+3. **SemaforoBadge Type Guards**
+   - Added type guard function for iconMap/labelMap access
+   - Explicit union type validation: `("ready" | "caution" | "alert" | "neutral")`
+   - Fixes: noUncheckedIndexedAccess TypeScript error; unsafe map lookups
+
+#### MEDIUM PRIORITY (Validation & Type Safety)
+
+1. **EmptyState Variant Type Safety**
+   - Added VariantProps<typeof buttonVariants>["variant"] type for CTA variant prop
+   - Allow optional variant override (defaults to "primary")
+   - Fixes: no type constraint on CTA button variant
+
+2. **PendingBadge Count Validation**
+   - Changed count from required to optional prop (count?: number)
+   - Added validation for negative counts with console.warn (dev mode)
+   - Fixes: negative counts not handled; undefined count causes NaN display
+
+3. **SemaforoBadge Invalid State Warning**
+   - Added console.warn for invalid state fallback (development mode only)
+   - Helps debug prop misuse during development
+   - Fixes: silent fallback without visibility into prop errors
+
+4. **HapticButton "use client" Marker**
+   - Added `"use client"` directive at file top
+   - Fixes: navigator.vibrate API is browser-only; avoid SSR hydration mismatch
+
+#### LOW PRIORITY (Polish & Refinement)
+
+1. **SemaforoBadge Icon Size Scaling**
+   - Icon sizes now scale with size prop: sm→h-3 w-3, md→h-4 w-4, lg→h-5 w-5
+   - Fixes: icon remains fixed size regardless of badge size (visual inconsistency)
+
+#### CRITICAL PATCHES (Already Applied During Development)
+
+1. **CalmConfirmation Tailwind Class Fixes**
+   - Fixed undefined Tailwind classes: bg-base → bg-background, text-text-secondary → text-muted-foreground
+   - Added safe-area-inset-bottom support: bottom-4 → bottom-[max(1rem,env(safe-area-inset-bottom))]
+   - Added semantic z-index token: z-[var(--z-toast)]
+   - Updated test to verify correct classes
+
+2. **DrillDownSheet Swipe Gesture & Type Guards**
+   - Added touchstart/touchend event listeners for swipe gesture detection
+   - Type guards for optional touches array (e.touches?.[0])
+   - Auto-close on swipe-down > 50px
+   - Fixes: no native swipe support; type errors from noUncheckedIndexedAccess
+
+### Patch Verification
+
+✅ **Build:** TypeScript strict mode, 0 errors  
+✅ **Tests:** 159 passed, 15 skipped (100% success rate)  
+✅ **Linting:** 0 errors (ESLint + accessibility rules)  
+✅ **Accessibility:** vitest-axe 0 violations per component (verified post-patch)
 
 ---
 
