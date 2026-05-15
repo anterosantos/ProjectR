@@ -36,6 +36,10 @@
 
 generated: 2026-05-08
 last_updated: 2026-05-15
+# 2026-05-15: 1-7 → done (adversarial code review complete; 14 patches applied & verified: null-safety, validation, error handling, rate limiting, state reset, session timeouts, role checks; build ✅; 93/93 tests passing)
+# 2026-05-15: 1-7 → review (all 10 tasks done; 93/93 tests passing; build ✅; lint 0 errors; ACs #1-#7 verified; MFA enrollment, disable, login challenge, role visibility)
+# 2026-05-15: 1-7 → in-progress (dev-story iniciada; Supabase MFA TOTP, /configuracoes/seguranca, MFAEnrollment, MFAStatus, login MFA challenge flow)
+# 2026-05-15: 1-7 → ready-for-dev (bmad-create-story analysis completed; comprehensive story file with 10 tasks, 7 ACs, Supabase Auth MFA integration specs)
 # 2026-05-08: epic-1 → in-progress; 1-1 → ready-for-dev (story criada via bmad-create-story)
 # 2026-05-08: 1-1 → in-progress (dev-story iniciada; Node 22.22.2 LTS confirmado)
 # 2026-05-08: 1-1 → review (dev-story concluída; AC #1-#5 verificados; build/dev/lint/vitest exit 0)
@@ -57,6 +61,7 @@ last_updated: 2026-05-15
 # 2026-05-12: 1-5 → done (adversarial code review complete; 2 decisions resolved; 15 patches applied: middleware rewritten with @supabase/ssr, JWT claim name fixed to user_role, PKCE recovery flow, subscription leak fixed, NFR18 signOut error handling, 54/54 tests passing, build ✅)
 # 2026-05-15: 1-6 → in-progress (dev-story iniciada; client.ts refactored to @supabase/ssr, server.ts + middleware.ts + service-role.ts + index.ts criados, src/proxy.ts Next.js 16, ESLint service-role restriction, seed.sql, testes RLS + proxy, docs)
 # 2026-05-15: 1-6 → review (all 15 tasks done; 71/71 tests passing; build ✅; lint 0 errors; AC #1-#7 verified)
+# 2026-05-15: 1-6 → done (code review passed; merged & deployed to Vercel; multi-tenant RLS foundation live)
 project: Project R
 project_key: NOKEY
 tracking_system: file-system
@@ -70,8 +75,8 @@ development_status:
   1-3-migrations-foundation-core-identity-tables-uuidv7-rls-helpers: done
   1-4-supabase-auth-hook-for-jwt-custom-claims-club-id-role: done
   1-5-email-password-authentication-password-recovery: done
-  1-6-role-assignment-multi-tenant-access-enforcement: review
-  1-7-optional-mfa-for-treinador-analista: backlog
+  1-6-role-assignment-multi-tenant-access-enforcement: done
+  1-7-optional-mfa-for-treinador-analista: done
   1-8-design-system-foundation-tokens-7-pattern-components-button-hierarchy: backlog
   1-9-role-based-navigation-shell-route-groups: backlog
   1-10-browser-compatibility-page-in-app-webview-block: backlog

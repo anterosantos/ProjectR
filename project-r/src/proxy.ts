@@ -25,6 +25,12 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
+  // Growth phase (Story 1.7 AC #6): enforce mandatory MFA enrollment here.
+  // When MFA_REQUIRED_ROLES env var is set (e.g. "coach,analyst"), check the
+  // JWT AAL claim. If aal !== "aal2" and the user's role is in the list,
+  // redirect to /configuracoes/seguranca for enrollment.
+  // MVP: enforcement is not active. Implement in Edge Function or here in Growth phase.
+
   return response;
 }
 
