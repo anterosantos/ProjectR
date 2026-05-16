@@ -67,6 +67,86 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          id: string
+          club_id: string
+          actor_id: string | null
+          action: string
+          target_kind: string
+          target_id: string | null
+          payload: Json | null
+          occurred_at: string
+        }
+        Insert: {
+          id?: string
+          club_id: string
+          actor_id?: string | null
+          action: string
+          target_kind: string
+          target_id?: string | null
+          payload?: Json | null
+          occurred_at?: string
+        }
+        Update: {
+          id?: string
+          club_id?: string
+          actor_id?: string | null
+          action?: string
+          target_kind?: string
+          target_id?: string | null
+          payload?: Json | null
+          occurred_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      telemetry_events: {
+        Row: {
+          id: string
+          club_id: string
+          kind: string
+          payload_json: Json
+          occurred_at: string
+        }
+        Insert: {
+          id?: string
+          club_id: string
+          kind: string
+          payload_json: Json
+          occurred_at?: string
+        }
+        Update: {
+          id?: string
+          club_id?: string
+          kind?: string
+          payload_json?: Json
+          occurred_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telemetry_events_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

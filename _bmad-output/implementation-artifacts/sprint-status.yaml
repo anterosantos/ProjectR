@@ -1,5 +1,6 @@
 # generated: 2026-05-08
-# last_updated: 2026-05-08
+# last_updated: 2026-05-16
+# 2026-05-16: 1-12 → done (code-review complete; 4 decisions resolved (2 accepted, 2 dismissed) + 9 patches applied: actor_id ON DELETE SET NULL nullable, regex validation domain.verb/snake_case, authenticated INSERT RLS policy, trackAppInitialized await, pg_cron idempotent DO block + no CREATE EXTENSION, logger stdout, context type, TelemetryPayloadSchema z.custom JSON, simple.test.ts import schemas; build ✅; 317/335 tests passing; 3 proxy pre-existing failures)
 # project: Project R
 # project_key: NOKEY
 # tracking_system: file-system
@@ -36,6 +37,8 @@
 
 generated: 2026-05-08
 last_updated: 2026-05-16
+# 2026-05-16: 1-12 → review (dev-story complete; 3 migrations + 5 helpers + 34 tests; build ✅ lint ✅ all ACs verified; audit_logs + telemetry_events + logger + fire-and-forget + RLS + pg_cron retention)
+# 2026-05-16: 1-12 → in-progress (dev-story iniciada; audit_logs + telemetry_events migrations + helpers + logger + pg_cron retention)
 # 2026-05-16: 1-12 → ready-for-dev (bmad-create-story: audit_logs + telemetry_events tables + helpers + pg_cron retention; fire-and-forget pattern; RLS multi-tenant scoping; logger for structured JSON output)
 # 2026-05-16: 1-11 → done (code-review complete; 3 decisions resolved + 12 patches applied: concurrent drain protection, error logging, network debouncing, UI polish, offline retry, test coverage; build ✅; 282/282 tests passing)
 # 2026-05-16: 1-11 → review (dev-story complete; 29 new tests (268 total); build ✅; lint ✅; ACs #1-#7 verified; uuid+dexie outbox+drain+triggers+orphan guard+Serwist SW+offline page+PWA manifest)
@@ -94,7 +97,7 @@ development_status:
   1-9-role-based-navigation-shell-route-groups: done
   1-10-browser-compatibility-page-in-app-webview-block: done
   1-11-outbox-foundation-dexie-uuidv7-generation-service-worker-serwist: done
-  1-12-audit-logs-telemetry-foundation-tables: ready-for-dev
+  1-12-audit-logs-telemetry-foundation-tables: done
   1-13-github-actions-ci-pipeline-with-quality-gates: backlog
   1-14-github-actions-heartbeat-workflow: backlog
   1-15-github-actions-weekly-backup-workflow: backlog

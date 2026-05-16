@@ -10,6 +10,13 @@ Items deferred from code reviews — pre-existing issues, out-of-scope work, or 
 
 - **Migration numbering deviates from architecture**: `architecture.md` (lines 1105-1118) documents migrations as `000130_rls_policies.sql` (consolidated) and `000160_audit_triggers.sql`. Implementation uses per-table `000010-000040`. Architecture-level decision; reconcile in a future doc-pass. [Source: Edge Hunter LOW-1]
 
+## Deferred from: code review of 1-12-audit-logs-telemetry-foundation-tables (2026-05-16)
+
+- **`audit_logs_player_read` nunca matches `target_id IS NULL`**: Ações agregadas futuras (ex: `panel.viewed` sem target específico) não serão visíveis ao jogador via FR51. Sem impacto no MVP atual mas afeta Stories 3.11 e 3.12. Corrigir quando essas stories forem implementadas adicionando `OR (target_id IS NULL AND actor_id = auth.uid())`.
+- **Sem threshold de cobertura configurado em `vitest.config.ts`**: AC #8 diz "build fails if coverage drops below threshold" mas não está implementado. Configurar `coverage.thresholds` em vitest.config.ts — deferred para Story 1-13 (CI pipeline).
+- **`pg_cron` DELETE sem LIMIT em audit_logs**: O job mensal `DELETE FROM audit_logs WHERE occurred_at < NOW() - INTERVAL '12 months'` não tem LIMIT, podendo bloquear a tabela por minutos em volumes altos. Sem impacto no MVP. Usar batch delete quando o volume justificar.
+- **`occurred_at` definido no código da aplicação**: Ambos os helpers inserem `occurred_at: new Date().toISOString()` explicitamente, mas a BD já tem `DEFAULT now()`. Omitir o campo do insert para deixar a BD atribuir o timestamp (mais trustworthy). Baixo impacto, melhoria futura.
+
 ## Deferred from: code review of story-1.5 (2026-05-12)
 
 - **Rota `/` pública sem redirect para utilizadores autenticados** (`project-r/src/app/page.tsx`): TODO já documentado no código; homepage mostra scaffold Next.js em vez de redirecionar para a home do role. Abordado em story futura de navegação/shell.
