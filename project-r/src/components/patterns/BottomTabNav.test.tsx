@@ -77,7 +77,7 @@ describe("BottomTabNav", () => {
       mockPathname = route;
       const { unmount } = render(<BottomTabNav role="player" />);
 
-      const activeLink = screen.getByRole("link", { name: new RegExp(tabLabels[index], "i") });
+      const activeLink = screen.getByRole("link", { name: new RegExp(tabLabels[index] ?? "", "i") });
       expect(activeLink).toHaveAttribute("aria-current", "page");
 
       unmount();
@@ -92,7 +92,7 @@ describe("BottomTabNav", () => {
       mockPathname = route;
       const { unmount } = render(<BottomTabNav role="coach" />);
 
-      const activeLink = screen.getByRole("link", { name: new RegExp(tabLabels[index], "i") });
+      const activeLink = screen.getByRole("link", { name: new RegExp(tabLabels[index] ?? "", "i") });
       expect(activeLink).toHaveAttribute("aria-current", "page");
 
       unmount();

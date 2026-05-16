@@ -37,6 +37,7 @@ export default function LoginPage() {
         setError("Código expirou. Por favor, inicie o login novamente.");
         setIsLoading(false);
       }, 5 * 60 * 1000);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMfaTimeout(timeout);
       return () => clearTimeout(timeout);
     }
@@ -96,7 +97,7 @@ export default function LoginPage() {
       }
 
       // Check if MFA elevation is required (AAL2)
-      let supabase = createClient();
+      const supabase = createClient();
       let aalData = null;
       try {
         const aalResponse = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();

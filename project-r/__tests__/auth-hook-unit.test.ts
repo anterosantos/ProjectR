@@ -18,8 +18,11 @@ function createMockJwt(payload: Record<string, unknown>): string {
 
 // Helper: Decode JWT payload for assertion
 function decodeJwtPayload(jwt: string): Record<string, unknown> {
-  const [, payload] = jwt.split(".");
-  const decoded = Buffer.from(payload, "base64url").toString("utf-8");
+  const parts = jwt.split(".");
+  if (parts.length !== 3) {
+    throw new Error("Invalid JWT structure");
+  }
+  const decoded = Buffer.from(parts[1], "base64url").toString("utf-8");
   return JSON.parse(decoded);
 }
 
@@ -35,8 +38,10 @@ function mergeClaimsIntoJwt(
       return jwt;
     }
 
-    const payload = parts[1];
-    const decoded = Buffer.from(payload, "base64url").toString("utf-8");
+    if (parts.length !== 3) {
+      return jwt;
+    }
+    const decoded = Buffer.from(parts[1], "base64url").toString("utf-8");
     const claims = JSON.parse(decoded);
 
     // Merge claims (AC #2)
@@ -266,7 +271,7 @@ describe("Auth Hook — Unit Tests for Claim Merging Logic", () => {
 
       expect(result).toBeDefined();
       const payload = decodeJwtPayload(result);
-      expect(payload.nested?.deep?.value).toBe("test");
+      expect((payload.nested as Record<string, Record<string, unknown>>)?.deep?.value).toBe("test");
     });
   });
 });

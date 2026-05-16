@@ -102,7 +102,7 @@ describe("AC #2 — TOTP verification activates MFA", () => {
     });
 
     expect(error).toBeNull();
-    expect(data?.session).toBeTruthy();
+    expect((data as Record<string, unknown>)?.session).toBeTruthy();
   });
 
   it("challengeAndVerify returns error on wrong code", async () => {
@@ -138,13 +138,13 @@ describe("AC #2 — TOTP verification activates MFA", () => {
 
 describe("AC #3 — MFA section visibility by role", () => {
   it("coach should see MFA section", () => {
-    const role = "coach";
+    const role: string = "coach";
     const shouldShow = role !== "player";
     expect(shouldShow).toBe(true);
   });
 
   it("analyst should see MFA section", () => {
-    const role = "analyst";
+    const role: string = "analyst";
     const shouldShow = role !== "player";
     expect(shouldShow).toBe(true);
   });
@@ -307,8 +307,8 @@ describe("AC #6 — mfa_required_roles configuration", () => {
   });
 
   it("empty MFA_REQUIRED_ROLES means MFA is optional for all", () => {
-    const raw = "";
-    const roles = raw ? raw.split(",").map((r) => r.trim()) : [];
+    const raw: string = "";
+    const roles = raw ? raw.split(",").map((r: string) => r.trim()) : [];
     expect(roles).toHaveLength(0);
   });
 });

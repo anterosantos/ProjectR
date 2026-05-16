@@ -61,7 +61,7 @@ describe("logTelemetry", () => {
       });
 
       expect(result.ok).toBe(true);
-      expect(result.data).toBeUndefined();
+      expect(result.ok ? result.data : undefined).toBeUndefined();
       expect(logger.logger.info).toHaveBeenCalledWith("telemetry_logged", {
         kind: "survey_submitted",
       });

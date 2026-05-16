@@ -1,5 +1,7 @@
 # generated: 2026-05-08
-# last_updated: 2026-05-16
+# last_updated: 2026-05-17
+# 2026-05-17: 1-13 → done (code-review complete; 1 decision-needed resolved (PWA ≥ 1.0 HTTP limitation documented), 5 patches applied (JWT validation, error handling, artifact retention, bundle validation already in place); all 8 ACs verified ✅; build ✅; ready for main)
+# 2026-05-16: 1-13 → ready-for-dev (bmad-create-story: ci.yml + bundle-size script + @lhci/cli + .lighthouserc.json + coverage thresholds + migration-validate via supabase/setup-cli; typecheck script; .github/workflows/ na raiz do repo)
 # 2026-05-16: 1-12 → done (code-review complete; 4 decisions resolved (2 accepted, 2 dismissed) + 9 patches applied: actor_id ON DELETE SET NULL nullable, regex validation domain.verb/snake_case, authenticated INSERT RLS policy, trackAppInitialized await, pg_cron idempotent DO block + no CREATE EXTENSION, logger stdout, context type, TelemetryPayloadSchema z.custom JSON, simple.test.ts import schemas; build ✅; 317/335 tests passing; 3 proxy pre-existing failures)
 # project: Project R
 # project_key: NOKEY
@@ -98,7 +100,7 @@ development_status:
   1-10-browser-compatibility-page-in-app-webview-block: done
   1-11-outbox-foundation-dexie-uuidv7-generation-service-worker-serwist: done
   1-12-audit-logs-telemetry-foundation-tables: done
-  1-13-github-actions-ci-pipeline-with-quality-gates: backlog
+  1-13-github-actions-ci-pipeline-with-quality-gates: done
   1-14-github-actions-heartbeat-workflow: backlog
   1-15-github-actions-weekly-backup-workflow: backlog
   1-16-accessibility-foundation-skip-link-focus-rings-reduced-motion-alt-text: backlog

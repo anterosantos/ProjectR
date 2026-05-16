@@ -110,7 +110,8 @@ describe("Button Hierarchy (AC #9)", () => {
   describe("No unsupported variants", () => {
     it("does not accept warning variant", () => {
       const { container } = render(
-        <Button variant="warning" as any>
+        // @ts-expect-error testing intentionally invalid variant
+        <Button variant="warning">
           Warning
         </Button>
       )
@@ -120,7 +121,8 @@ describe("Button Hierarchy (AC #9)", () => {
 
     it("does not accept info variant", () => {
       const { container } = render(
-        <Button variant="info" as any>
+        // @ts-expect-error testing intentionally invalid variant
+        <Button variant="info">
           Info
         </Button>
       )

@@ -18,6 +18,7 @@ export default async function StaffLayout({
     redirect("/login");
   }
 
+  let staffRole!: "coach" | "analyst";
   try {
     const { data: profile, error } = await supabase
       .from("profiles")
@@ -35,20 +36,20 @@ export default async function StaffLayout({
       redirect("/hoje");
     }
 
-    const staffRole = role as "coach" | "analyst";
-
-    return (
-      <div className="flex min-h-screen flex-col lg:flex-row">
-        <StaffSidebar role={staffRole} />
-        <div className="flex flex-1 flex-col">
-          <StickyHeader title="Painel" meta="Sáb 16:00" />
-          <main className="flex-1 pb-[60px] lg:pb-0">{children}</main>
-          <BottomTabNav role={staffRole} />
-        </div>
-      </div>
-    );
+    staffRole = role as "coach" | "analyst";
   } catch {
     // Database error or missing profile; redirect to login
     redirect("/login");
   }
+
+  return (
+    <div className="flex min-h-screen flex-col lg:flex-row">
+      <StaffSidebar role={staffRole} />
+      <div className="flex flex-1 flex-col">
+        <StickyHeader title="Painel" meta="Sáb 16:00" />
+        <main className="flex-1 pb-[60px] lg:pb-0">{children}</main>
+        <BottomTabNav role={staffRole} />
+      </div>
+    </div>
+  );
 }

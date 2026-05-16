@@ -31,7 +31,7 @@ describe("HapticButton", () => {
   it("handles missing vibrate API gracefully", () => {
     const handleClick = vi.fn()
     const originalVibrate = navigator.vibrate
-    // @ts-ignore
+    // @ts-expect-error deleting read-only property for test isolation
     delete navigator.vibrate
     render(<HapticButton onClick={handleClick}>Click me</HapticButton>)
     const button = screen.getByRole("button")

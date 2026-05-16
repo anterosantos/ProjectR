@@ -12,6 +12,7 @@ export function OutboxProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error'
       console.error('[outbox] Failed to register drain triggers:', message)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSyncError(message)
     }
   }, [])

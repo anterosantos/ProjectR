@@ -21,11 +21,11 @@ vi.mock("@/lib/supabase/middleware", () => ({
 
 function makeRequest(path: string, cookie?: string): NextRequest {
   const url = `http://localhost:3000${path}`;
-  const init: RequestInit = {};
+  const init: Record<string, unknown> = {};
   if (cookie) {
     init.headers = { cookie };
   }
-  return new NextRequest(url, init);
+  return new NextRequest(url, init as ConstructorParameters<typeof NextRequest>[1]);
 }
 
 function makePassthroughResponse() {
@@ -79,6 +79,7 @@ describe("Proxy authentication gate (AC #5)", () => {
           email: "coach@test.test",
           user_metadata: { user_role: "coach" },
         },
+        claims: { user_role: "coach" },
         response: passthroughResponse,
       });
 
@@ -97,6 +98,7 @@ describe("Proxy authentication gate (AC #5)", () => {
           email: "unknown@test.test",
           user_metadata: { user_role: "admin" },
         },
+        claims: { user_role: "admin" },
         response: passthroughResponse,
       });
 
@@ -112,6 +114,7 @@ describe("Proxy authentication gate (AC #5)", () => {
       const passthroughResponse = makePassthroughResponse();
       mockUpdateSession.mockResolvedValue({
         user: { id: "user-123", email: "norole@test.test" },
+        claims: {},
         response: passthroughResponse,
       });
 

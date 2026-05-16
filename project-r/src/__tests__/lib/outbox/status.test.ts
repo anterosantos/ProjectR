@@ -1,7 +1,9 @@
 import 'fake-indexeddb/auto'
 import { describe, it, expect, beforeEach } from 'vitest'
+import { renderHook, waitFor } from '@testing-library/react'
 import { db } from '@/lib/outbox/db'
 import { enqueueMutation } from '@/lib/outbox/enqueue'
+import { useOutboxStatus } from '@/lib/outbox/status'
 
 beforeEach(async () => {
   await db.outbox.clear()
@@ -44,5 +46,26 @@ describe('outbox pending count logic', () => {
 
     const count = await db.outbox.where('status').equals('pending').count()
     expect(count).toBe(1)
+  })
+})
+
+describe('useOutboxStatus()', () => {
+  it('returns pendingCount 0 when outbox is empty', async () => {
+    const { result } = renderHook(() => useOutboxStatus())
+    await waitFor(() => expect(result.current.pendingCount).toBe(0))
+  })
+
+  it('returns pendingCount matching pending entries', async () => {
+    await enqueueMutation('kind_a', {})
+    await enqueueMutation('kind_b', {})
+
+    const { result } = renderHook(() => useOutboxStatus())
+    await waitFor(() => expect(result.current.pendingCount).toBe(2))
+  })
+
+  it('unsubscribes without throwing on unmount', async () => {
+    const { result, unmount } = renderHook(() => useOutboxStatus())
+    await waitFor(() => expect(result.current.pendingCount).toBeDefined())
+    expect(() => unmount()).not.toThrow()
   })
 })

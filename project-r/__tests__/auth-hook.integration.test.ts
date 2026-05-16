@@ -29,7 +29,7 @@ interface TestClub {
 }
 
 let supabaseAdmin: SupabaseClient | null = null; // Service-role client (unrestricted)
-const clubs: TestClub[] = [];
+let clubs: TestClub[] = [];
 const testUsers: TestUser[] = [];
 
 beforeAll(async () => {
@@ -82,13 +82,13 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
   // ===== Test 4.1: Happy Path — Profile Exists =====
   skipIf("Test 4.1: Happy Path — Profile Exists", () => {
     it("should inject club_id and role into JWT when profile exists (AC #2, AC #4)", async () => {
-      const clubId = clubs[0].id;
+      const clubId = clubs[0]!.id;
 
       // Create auth user with email + password
       const email = `coach-${Date.now()}@test.club`;
       const password = "TestPassword123!";
 
-      const { data: authData, error: signUpError } = await supabaseAdmin.auth.admin
+      const { data: authData, error: signUpError } = await supabaseAdmin!.auth.admin
         .createUser({
           email,
           password,
@@ -102,7 +102,7 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
       const userId = authData.user.id;
 
       // Create corresponding profile
-      const { data: profile, error: profileError } = await supabaseAdmin
+      const { error: profileError } = await supabaseAdmin!
         .from("profiles")
         .insert({
           id: userId,
@@ -118,7 +118,8 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
       }
 
       // Now sign in and verify JWT contains custom claims
-      const { data: signInData, error: signInError } = await supabaseAdmin.auth.admin
+      // @ts-expect-error createSession exists at runtime but is not typed in this SDK version
+      const { data: signInData, error: signInError } = await supabaseAdmin!.auth.admin
         .createSession(userId);
 
       if (signInError || !signInData.session?.access_token) {
@@ -134,15 +135,15 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
       expect(jwt.split(".")).toHaveLength(3); // Valid JWT structure
 
       // Cleanup
-      await supabaseAdmin.auth.admin.deleteUser(userId);
+      await supabaseAdmin!.auth.admin.deleteUser(userId);
     });
 
     it("should allow querying profiles with RLS when claims are valid", async () => {
-      const clubId = clubs[0].id;
+      const clubId = clubs[0]!.id;
 
       // Create coach user
       const coachEmail = `coach-profile-${Date.now()}@test.club`;
-      const { data: coachAuth } = await supabaseAdmin.auth.admin.createUser({
+      const { data: coachAuth } = await supabaseAdmin!.auth.admin.createUser({
         email: coachEmail,
         password: "TestPassword123!",
         email_confirm: true,
@@ -151,15 +152,20 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
       const coachId = coachAuth.user!.id;
 
       // Create coach profile
-      await supabaseAdmin.from("profiles").insert({
+      const { error: profileError2 } = await supabaseAdmin!.from("profiles").insert({
         id: coachId,
         club_id: clubId,
         role: "coach",
         full_name: "Test Coach",
       });
 
+      if (profileError2) {
+        throw new Error(`Failed to create profile: ${profileError2.message}`);
+      }
+
       // Create authenticated client with coach's session
-      const { data: session } = await supabaseAdmin.auth.admin.createSession(coachId);
+      // @ts-expect-error createSession exists at runtime but is not typed in this SDK version
+      const { data: session } = await supabaseAdmin!.auth.admin.createSession(coachId);
       const supabaseCoach = createClient(
         process.env.SUPABASE_URL || "http://localhost:54321",
         process.env.SUPABASE_ANON_KEY || "eyJ...",
@@ -190,7 +196,7 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
       );
 
       // Cleanup
-      await supabaseAdmin.auth.admin.deleteUser(coachId);
+      await supabaseAdmin!.auth.admin.deleteUser(coachId);
     });
   });
 
@@ -199,7 +205,7 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
     it("should handle auth user without profile gracefully (AC #3)", async () => {
       // Create auth user but DO NOT create a profile
       const email = `no-profile-${Date.now()}@test.club`;
-      const { data: authData } = await supabaseAdmin.auth.admin.createUser({
+      const { data: authData } = await supabaseAdmin!.auth.admin.createUser({
         email,
         password: "TestPassword123!",
         email_confirm: true,
@@ -209,7 +215,8 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
 
       // Attempt to create session
       // The auth hook will try to fetch profile, find none, and return original JWT
-      const { data: session, error } = await supabaseAdmin.auth.admin.createSession(
+      // @ts-expect-error createSession exists at runtime but is not typed in this SDK version
+      const { data: session, error } = await supabaseAdmin!.auth.admin.createSession(
         userId
       );
 
@@ -221,18 +228,18 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
       // RLS queries will fail (as expected — no valid profile)
 
       // Cleanup
-      await supabaseAdmin.auth.admin.deleteUser(userId);
+      await supabaseAdmin!.auth.admin.deleteUser(userId);
     });
   });
 
   // ===== Test 4.3: RLS Enforcement — Same Club Access =====
   skipIf("Test 4.3: RLS Enforcement — Same Club Access", () => {
     it("should allow coach to query own club profiles (AC #4)", async () => {
-      const clubId = clubs[0].id;
+      const clubId = clubs[0]!.id;
 
       // Create coach
       const coachEmail = `coach-same-${Date.now()}@test.club`;
-      const { data: coachAuth } = await supabaseAdmin.auth.admin.createUser({
+      const { data: coachAuth } = await supabaseAdmin!.auth.admin.createUser({
         email: coachEmail,
         password: "TestPassword123!",
         email_confirm: true,
@@ -240,7 +247,7 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
 
       const coachId = coachAuth.user!.id;
 
-      await supabaseAdmin.from("profiles").insert({
+      await supabaseAdmin!.from("profiles").insert({
         id: coachId,
         club_id: clubId,
         role: "coach",
@@ -249,7 +256,7 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
 
       // Create analyst in same club
       const analystEmail = `analyst-same-${Date.now()}@test.club`;
-      const { data: analystAuth } = await supabaseAdmin.auth.admin.createUser({
+      const { data: analystAuth } = await supabaseAdmin!.auth.admin.createUser({
         email: analystEmail,
         password: "TestPassword123!",
         email_confirm: true,
@@ -257,7 +264,7 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
 
       const analystId = analystAuth.user!.id;
 
-      await supabaseAdmin.from("profiles").insert({
+      await supabaseAdmin!.from("profiles").insert({
         id: analystId,
         club_id: clubId,
         role: "analyst",
@@ -265,7 +272,8 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
       });
 
       // Coach queries profiles - should see both (same club)
-      const { data: session } = await supabaseAdmin.auth.admin.createSession(coachId);
+      // @ts-expect-error createSession exists at runtime but is not typed in this SDK version
+      const { data: session } = await supabaseAdmin!.auth.admin.createSession(coachId);
       const supabaseCoach = createClient(
         process.env.SUPABASE_URL || "http://localhost:54321",
         process.env.SUPABASE_ANON_KEY || "eyJ...",
@@ -287,8 +295,8 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
       expect(coachProfiles?.length).toBeGreaterThanOrEqual(2);
 
       // Cleanup
-      await supabaseAdmin.auth.admin.deleteUser(coachId);
-      await supabaseAdmin.auth.admin.deleteUser(analystId);
+      await supabaseAdmin!.auth.admin.deleteUser(coachId);
+      await supabaseAdmin!.auth.admin.deleteUser(analystId);
     });
   });
 
@@ -300,12 +308,12 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
         return;
       }
 
-      const clubA = clubs[0].id;
-      const clubB = clubs[1].id;
+      const clubA = clubs[0]!.id;
+      const clubB = clubs[1]!.id;
 
       // Create coach in Club A
       const coachAEmail = `coach-a-${Date.now()}@test.club`;
-      const { data: coachAAuth } = await supabaseAdmin.auth.admin.createUser({
+      const { data: coachAAuth } = await supabaseAdmin!.auth.admin.createUser({
         email: coachAEmail,
         password: "TestPassword123!",
         email_confirm: true,
@@ -313,7 +321,7 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
 
       const coachAId = coachAAuth.user!.id;
 
-      await supabaseAdmin.from("profiles").insert({
+      await supabaseAdmin!.from("profiles").insert({
         id: coachAId,
         club_id: clubA,
         role: "coach",
@@ -322,7 +330,7 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
 
       // Create coach in Club B
       const coachBEmail = `coach-b-${Date.now()}@test.club`;
-      const { data: coachBAuth } = await supabaseAdmin.auth.admin.createUser({
+      const { data: coachBAuth } = await supabaseAdmin!.auth.admin.createUser({
         email: coachBEmail,
         password: "TestPassword123!",
         email_confirm: true,
@@ -330,7 +338,7 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
 
       const coachBId = coachBAuth.user!.id;
 
-      await supabaseAdmin.from("profiles").insert({
+      await supabaseAdmin!.from("profiles").insert({
         id: coachBId,
         club_id: clubB,
         role: "coach",
@@ -338,7 +346,8 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
       });
 
       // Coach A tries to query profiles from Club B
-      const { data: sessionA } = await supabaseAdmin.auth.admin.createSession(
+      // @ts-expect-error createSession exists at runtime but is not typed in this SDK version
+      const { data: sessionA } = await supabaseAdmin!.auth.admin.createSession(
         coachAId
       );
       const supabaseCoachA = createClient(
@@ -362,19 +371,19 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
       expect(crossClubData?.length || 0).toBe(0);
 
       // Cleanup
-      await supabaseAdmin.auth.admin.deleteUser(coachAId);
-      await supabaseAdmin.auth.admin.deleteUser(coachBId);
+      await supabaseAdmin!.auth.admin.deleteUser(coachAId);
+      await supabaseAdmin!.auth.admin.deleteUser(coachBId);
     });
   });
 
   // ===== Test 4.5: Player Self-Read Allowed =====
   skipIf("Test 4.5: Player Self-Read Allowed", () => {
     it("should allow player to read own profile", async () => {
-      const clubId = clubs[0].id;
+      const clubId = clubs[0]!.id;
 
       // Create player 1
       const playerEmail = `player-${Date.now()}@test.club`;
-      const { data: playerAuth } = await supabaseAdmin.auth.admin.createUser({
+      const { data: playerAuth } = await supabaseAdmin!.auth.admin.createUser({
         email: playerEmail,
         password: "TestPassword123!",
         email_confirm: true,
@@ -382,7 +391,7 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
 
       const playerId = playerAuth.user!.id;
 
-      await supabaseAdmin.from("profiles").insert({
+      await supabaseAdmin!.from("profiles").insert({
         id: playerId,
         club_id: clubId,
         role: "player",
@@ -391,7 +400,7 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
 
       // Create player 2 in same club
       const player2Email = `player2-${Date.now()}@test.club`;
-      const { data: player2Auth } = await supabaseAdmin.auth.admin.createUser({
+      const { data: player2Auth } = await supabaseAdmin!.auth.admin.createUser({
         email: player2Email,
         password: "TestPassword123!",
         email_confirm: true,
@@ -399,7 +408,7 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
 
       const player2Id = player2Auth.user!.id;
 
-      await supabaseAdmin.from("profiles").insert({
+      await supabaseAdmin!.from("profiles").insert({
         id: player2Id,
         club_id: clubId,
         role: "player",
@@ -407,7 +416,8 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
       });
 
       // Player 1 queries own profile
-      const { data: session } = await supabaseAdmin.auth.admin.createSession(
+      // @ts-expect-error createSession exists at runtime but is not typed in this SDK version
+      const { data: session } = await supabaseAdmin!.auth.admin.createSession(
         playerId
       );
       const supabasePlayer = createClient(
@@ -436,8 +446,8 @@ describe("Auth Hook — Integration Tests with RLS Policies", () => {
       // If the RLS allows read by club_id, this will fail — may need RLS adjustment
 
       // Cleanup
-      await supabaseAdmin.auth.admin.deleteUser(playerId);
-      await supabaseAdmin.auth.admin.deleteUser(player2Id);
+      await supabaseAdmin!.auth.admin.deleteUser(playerId);
+      await supabaseAdmin!.auth.admin.deleteUser(player2Id);
     });
   });
 });
