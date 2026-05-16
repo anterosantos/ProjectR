@@ -36,6 +36,10 @@
 
 generated: 2026-05-08
 last_updated: 2026-05-16
+# 2026-05-16: 1-12 → ready-for-dev (bmad-create-story: audit_logs + telemetry_events tables + helpers + pg_cron retention; fire-and-forget pattern; RLS multi-tenant scoping; logger for structured JSON output)
+# 2026-05-16: 1-11 → done (code-review complete; 3 decisions resolved + 12 patches applied: concurrent drain protection, error logging, network debouncing, UI polish, offline retry, test coverage; build ✅; 282/282 tests passing)
+# 2026-05-16: 1-11 → review (dev-story complete; 29 new tests (268 total); build ✅; lint ✅; ACs #1-#7 verified; uuid+dexie outbox+drain+triggers+orphan guard+Serwist SW+offline page+PWA manifest)
+# 2026-05-16: 1-11 → ready-for-dev (bmad-create-story: uuid+dexie outbox+Serwist SW+offline page+orphan guard; fake-indexeddb required for tests; dexie-react-hooks NOT needed — use liveQuery from dexie directly)
 # 2026-05-16: 1-10 → done (merged to main; PWA browser detection + in-app WebView block + error boundaries complete; 239/257 tests passing; production-ready)
 # 2026-05-16: 1-10 → review → in-progress (bmad-code-review complete; 11 patches applied: CopyLinkButton error handling + tests, webview-detection validation, BrowserGate refactoring, ErrorBoundary, pattern documentation; 2 decisions resolved; 4 deferred to backlog)
 # 2026-05-16: 1-10 → ready-for-dev (bmad-create-story analysis completed; BrowserGate client component, webview-detection.ts pure detection, WebViewBlockPage + UnsupportedBrowserPage, root layout integration, vitest-axe accessibility tests)
@@ -89,8 +93,8 @@ development_status:
   1-8-design-system-foundation-tokens-7-pattern-components-button-hierarchy: done
   1-9-role-based-navigation-shell-route-groups: done
   1-10-browser-compatibility-page-in-app-webview-block: done
-  1-11-outbox-foundation-dexie-uuidv7-generation-service-worker-serwist: backlog
-  1-12-audit-logs-telemetry-foundation-tables: backlog
+  1-11-outbox-foundation-dexie-uuidv7-generation-service-worker-serwist: done
+  1-12-audit-logs-telemetry-foundation-tables: ready-for-dev
   1-13-github-actions-ci-pipeline-with-quality-gates: backlog
   1-14-github-actions-heartbeat-workflow: backlog
   1-15-github-actions-weekly-backup-workflow: backlog

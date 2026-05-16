@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Serwist compiled service worker output — generated file, not source
+    "public/sw.js",
   ]),
   // Restrict service-role client imports to whitelisted server-only paths.
   // The service-role client bypasses RLS — importing it in browser/page code

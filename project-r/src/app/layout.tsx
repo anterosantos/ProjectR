@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { BrowserGate } from "@/components/patterns/BrowserGate";
 import { ErrorBoundary } from "@/components/patterns/ErrorBoundary";
+import { OutboxProvider } from "@/components/providers/OutboxProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,6 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Project R",
   description: "Plataforma de gestão de treino e desempenho",
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({
@@ -31,7 +33,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ErrorBoundary>
-          <BrowserGate>{children}</BrowserGate>
+          <BrowserGate>
+            <OutboxProvider>{children}</OutboxProvider>
+          </BrowserGate>
         </ErrorBoundary>
       </body>
     </html>
