@@ -36,6 +36,7 @@
 
 generated: 2026-05-08
 last_updated: 2026-05-16
+# 2026-05-16: 1-10 → review → in-progress (bmad-code-review complete; 11 patches applied: CopyLinkButton error handling + tests, webview-detection validation, BrowserGate refactoring, ErrorBoundary, pattern documentation; 2 decisions resolved; 4 deferred to backlog)
 # 2026-05-16: 1-10 → ready-for-dev (bmad-create-story analysis completed; BrowserGate client component, webview-detection.ts pure detection, WebViewBlockPage + UnsupportedBrowserPage, root layout integration, vitest-axe accessibility tests)
 # 2026-05-15: 1-9 → done (code review complete; 13 patches applied: userRole validation, .single() error handling, duplicated logic removed, icon distinctness, role validation, route fallback, /configuracoes pages, type safety, searchParams validation, test parametrization, TODO comments; build ✅ 185/200 tests passing)
 # 2026-05-15: 1-9 → review (dev-story complete; implementation ready for code review)
@@ -86,7 +87,7 @@ development_status:
   1-7-optional-mfa-for-treinador-analista: done
   1-8-design-system-foundation-tokens-7-pattern-components-button-hierarchy: done
   1-9-role-based-navigation-shell-route-groups: done
-  1-10-browser-compatibility-page-in-app-webview-block: ready-for-dev
+  1-10-browser-compatibility-page-in-app-webview-block: in-progress
   1-11-outbox-foundation-dexie-uuidv7-generation-service-worker-serwist: backlog
   1-12-audit-logs-telemetry-foundation-tables: backlog
   1-13-github-actions-ci-pipeline-with-quality-gates: backlog
