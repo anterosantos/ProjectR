@@ -17,6 +17,11 @@ Items deferred from code reviews — pre-existing issues, out-of-scope work, or 
 - **`pg_cron` DELETE sem LIMIT em audit_logs**: O job mensal `DELETE FROM audit_logs WHERE occurred_at < NOW() - INTERVAL '12 months'` não tem LIMIT, podendo bloquear a tabela por minutos em volumes altos. Sem impacto no MVP. Usar batch delete quando o volume justificar.
 - **`occurred_at` definido no código da aplicação**: Ambos os helpers inserem `occurred_at: new Date().toISOString()` explicitamente, mas a BD já tem `DEFAULT now()`. Omitir o campo do insert para deixar a BD atribuir o timestamp (mais trustworthy). Baixo impacto, melhoria futura.
 
+## Deferred from: code review of 1-14-github-actions-heartbeat-workflow (2026-05-17)
+
+- **`actions/checkout@v4` usa floating major version tag** [.github/workflows/heartbeat.yml:14]: Supply chain concern — tag pointer pode mover silenciosamente. Aplica-se a todos os workflows (ci.yml, heartbeat.yml). Endereçar numa passagem dedicada de security hardening com SHA pinning.
+- **`postgresql-client` sem version pin** [.github/workflows/heartbeat.yml:18-20]: `apt-get install postgresql-client` instala a versão padrão do runner, não determinística entre image updates. Padrão comum em Actions; fixar versão quando estabilidade do psql se tornar crítica.
+
 ## Deferred from: code review of story-1.5 (2026-05-12)
 
 - **Rota `/` pública sem redirect para utilizadores autenticados** (`project-r/src/app/page.tsx`): TODO já documentado no código; homepage mostra scaffold Next.js em vez de redirecionar para a home do role. Abordado em story futura de navegação/shell.

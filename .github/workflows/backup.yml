@@ -1,0 +1,130 @@
+name: Backup
+
+on:
+  schedule:
+    # Every Sunday at 03:00 UTC — weekly database backup (FR56, NFR51)
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Install PostgreSQL Client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+
+      - name: Validate Secrets
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+          BACKUP_REPO_DEPLOY_KEY: ${{ secrets.BACKUP_REPO_DEPLOY_KEY }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then echo "❌ SUPABASE_DB_URL not set"; exit 1; fi
+          if [ -z "$BACKUP_ENCRYPTION_KEY" ]; then echo "❌ BACKUP_ENCRYPTION_KEY not set"; exit 1; fi
+          if [ -z "$BACKUP_REPO_DEPLOY_KEY" ]; then echo "❌ BACKUP_REPO_DEPLOY_KEY not set"; exit 1; fi
+          echo "✅ All secrets present"
+
+      - name: Dump Database
+        id: dump
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          BACKUP_FILE="$(date +%Y-%m-%d)-backup.sql.enc"
+          echo "backup_file=$BACKUP_FILE" >> "$GITHUB_OUTPUT"
+          pg_dump "$DATABASE_URL" > /tmp/backup.sql
+          echo "✅ pg_dump OK ($(wc -c < /tmp/backup.sql) bytes)"
+
+      - name: Encrypt Backup
+        env:
+          BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+        run: |
+          BACKUP_FILE="${{ steps.dump.outputs.backup_file }}"
+          openssl enc -aes-256-cbc -pbkdf2 -iter 100000 \
+            -in /tmp/backup.sql \
+            -out "/tmp/$BACKUP_FILE" \
+            -pass env:BACKUP_ENCRYPTION_KEY
+          rm /tmp/backup.sql
+          if [ ! -s "/tmp/$BACKUP_FILE" ]; then
+            echo "❌ Encrypted file is empty"
+            exit 1
+          fi
+          echo "✅ Encrypted: $BACKUP_FILE ($(wc -c < "/tmp/$BACKUP_FILE") bytes)"
+
+      - name: Configure SSH for Backup Repo
+        env:
+          BACKUP_REPO_DEPLOY_KEY: ${{ secrets.BACKUP_REPO_DEPLOY_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$BACKUP_REPO_DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Push Backup to Private Repo
+        run: |
+          BACKUP_FILE="${{ steps.dump.outputs.backup_file }}"
+          git clone git@github.com:anterosantos/project-r-backups.git /tmp/backups
+          cp "/tmp/$BACKUP_FILE" /tmp/backups/
+          cd /tmp/backups
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add "$BACKUP_FILE"
+          git commit -m "backup: $(date +%Y-%m-%d)"
+          git push origin main
+          echo "✅ Backup pushed: $BACKUP_FILE"
+
+      - name: Enforce 12-Week Retention
+        run: |
+          cd /tmp/backups
+          CUTOFF=$(date -d "84 days ago" +%Y-%m-%d)
+          REMOVED=0
+          for f in *-backup.sql.enc; do
+            [ -f "$f" ] || continue
+            file_date="${f%-backup.sql.enc}"
+            if [[ "$file_date" < "$CUTOFF" ]]; then
+              git rm "$f"
+              echo "🗑️ Removed old backup: $f"
+              REMOVED=$((REMOVED + 1))
+            fi
+          done
+          if [ "$REMOVED" -gt 0 ]; then
+            git commit -m "retention: remove ${REMOVED} backup(s) older than 12 weeks"
+            git push origin main
+          fi
+          echo "✅ Retention cleanup: $REMOVED file(s) removed"
+
+      - name: Create Failure Issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create "backup-failure" \
+            --color "FF4500" \
+            --description "Backup workflow failure alert" \
+            2>/dev/null || true
+          BODY="## Backup Workflow Alert
+
+          The weekly database backup has failed.
+
+          **Timestamp:** $(date -u)
+          **Run:** ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          **Run Number:** #${GITHUB_RUN_NUMBER}
+
+          Please check:
+          1. \`SUPABASE_DB_URL\` secret is valid and database is accessible
+          2. \`BACKUP_ENCRYPTION_KEY\` secret is set
+          3. \`BACKUP_REPO_DEPLOY_KEY\` has write access to \`project-r-backups\`"
+          gh issue create \
+            --title "[ALERT] Backup: Failed (Run #${GITHUB_RUN_NUMBER})" \
+            --label "backup-failure" \
+            --body "$BODY"
+        continue-on-error: true
