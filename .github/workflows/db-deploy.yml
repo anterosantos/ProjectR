@@ -18,15 +18,17 @@ jobs:
         with:
           version: latest
 
-      - name: Create .supabase directory
+      - name: Create .supabase config
         working-directory: project-r
-        run: mkdir -p .supabase
-
-      - name: Link to Supabase project
-        working-directory: project-r
-        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --no-prompt
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          mkdir -p .supabase
+          cat > .supabase/config.toml << EOF
+          [project]
+          supabase_url = "https://${{ secrets.SUPABASE_PROJECT_ID }}.supabase.co"
+          supabase_key = "${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}"
+          project_id = "${{ secrets.SUPABASE_PROJECT_ID }}"
+          EOF
+          cat .supabase/config.toml
 
       - name: Push migrations to remote
         working-directory: project-r
