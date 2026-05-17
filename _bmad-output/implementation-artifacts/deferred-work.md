@@ -27,3 +27,9 @@ Items deferred from code reviews — pre-existing issues, out-of-scope work, or 
 - **Rota `/` pública sem redirect para utilizadores autenticados** (`project-r/src/app/page.tsx`): TODO já documentado no código; homepage mostra scaffold Next.js em vez de redirecionar para a home do role. Abordado em story futura de navegação/shell.
 - **NFR17/NFR14 (1h token expiry e HTTPS) não configurados em código**: Dependem de configuração no dashboard Supabase e plataforma de deploy (Vercel/Cloudflare). Não são responsabilidade desta story; verificar antes do go-live.
 - **Alert `success` variant não é standard shadcn/ui** (`project-r/src/components/ui/alert.tsx:847`): Variant custom adicionada. Se `npx shadcn@latest add alert` for executado, será sobrescrita silenciosamente. Extrair para design token ou documentar como override quando o Design System for formalizado (Story 1.8).
+
+## Deferred from: code review of 1-16-accessibility-foundation-skip-link-focus-rings-reduced-motion-alt-text (2026-05-17)
+
+- **`text-3rd` typo em `recuperar-password/page.tsx`**: Provavelmente `text-3xl` — bug pre-existente no bloco `submitted` da página de recuperação de password. Corrigir na próxima edição deste ficheiro. [src/app/recuperar-password/page.tsx]
+- **`meta="Sáb 16:00"` hardcoded em `StaffLayout`**: Stub de desenvolvimento pre-existente — staff vê sempre "Sáb 16:00" independente do dia/hora real. Substituir por data dinâmica quando o StickyHeader for evoluído. [src/app/(staff)/layout.tsx]
+- **`ErrorBoundary` fallback sem `main#main-content`**: Quando o ErrorBoundary captura um erro, o fallback renderiza um `<div>` simples sem id — o skip link aponta para o nada nesse estado. Estado de erro extremo e pre-existente; endereçar se o ErrorBoundary for revisto para incluir layout semântico.

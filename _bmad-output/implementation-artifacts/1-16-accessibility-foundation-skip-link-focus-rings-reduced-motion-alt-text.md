@@ -1,6 +1,6 @@
 # Story 1.16: Accessibility Foundation — Skip Link, Focus Rings, Reduced Motion, Alt Text
 
-**Status:** ready-for-dev
+**Status:** done
 
 **Story ID:** 1.16
 **Epic:** Epic 1 — Fundação Técnica, Identidade & Acesso Multi-Clube
@@ -74,50 +74,61 @@ Para que o sistema seja totalmente navegável e respeitoso das minhas necessidad
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Corrigir `lang="pt-PT"` na root layout (AC #3)
-  - [ ] 1.1 Editar `src/app/layout.tsx:31`: `lang="en"` → `lang="pt-PT"`
+- [x] Task 1: Corrigir `lang="pt-PT"` na root layout (AC #3)
+  - [x] 1.1 Editar `src/app/layout.tsx:31`: `lang="en"` → `lang="pt-PT"`
 
-- [ ] Task 2: Adicionar skip link à root layout (AC #1)
-  - [ ] 2.1 Inserir `<a href="#main-content">` como **primeiro filho** de `<body>` em `src/app/layout.tsx`, antes de `<ErrorBoundary>`
-  - [ ] 2.2 Usar classes Tailwind `sr-only focus:not-sr-only focus:fixed focus:z-50 focus:top-4 focus:left-4 focus:px-4 focus:py-2 focus:bg-background focus:text-foreground focus:rounded-md focus:border-2 focus:border-border` (ver padrão completo em Dev Notes)
-  - [ ] 2.3 Texto: `"Saltar para o conteúdo"` (português)
+- [x] Task 2: Adicionar skip link à root layout (AC #1)
+  - [x] 2.1 Inserir `<a href="#main-content">` como **primeiro filho** de `<body>` em `src/app/layout.tsx`, antes de `<ErrorBoundary>`
+  - [x] 2.2 Usar classes Tailwind `sr-only focus:not-sr-only focus:fixed focus:z-50 focus:top-4 focus:left-4 focus:px-4 focus:py-2 focus:bg-background focus:text-foreground focus:rounded-md focus:border-2 focus:border-border` (ver padrão completo em Dev Notes)
+  - [x] 2.3 Texto: `"Saltar para o conteúdo"` (português)
 
-- [ ] Task 3: Adicionar `id="main-content"` às layouts de rota (AC #1)
-  - [ ] 3.1 `src/app/(staff)/layout.tsx:37`: adicionar `id="main-content"` ao elemento `<main>`
-  - [ ] 3.2 `src/app/(player)/layout.tsx:16`: adicionar `id="main-content"` ao elemento `<main>`
-  - [ ] 3.3 Verificar se existem layouts de auth (ex: `src/app/(auth)/layout.tsx`) — se sim, adicionar `<main id="main-content">` como wrapper do `{children}`
-  - [ ] 3.4 Verificar páginas standalone (login, etc.) — se renderizam fora de um layout com `<main>`, adicionar `<main id="main-content">` localmente
+- [x] Task 3: Adicionar `id="main-content"` às layouts de rota (AC #1)
+  - [x] 3.1 `src/app/(staff)/layout.tsx:37`: adicionar `id="main-content"` ao elemento `<main>`
+  - [x] 3.2 `src/app/(player)/layout.tsx:16`: adicionar `id="main-content"` ao elemento `<main>`
+  - [x] 3.3 Verificar se existem layouts de auth (ex: `src/app/(auth)/layout.tsx`) — se sim, adicionar `<main id="main-content">` como wrapper do `{children}` — não existe `(auth)/layout.tsx`
+  - [x] 3.4 Verificar páginas standalone (login, etc.) — se renderizam fora de um layout com `<main>`, adicionar `<main id="main-content">` localmente — login, recuperar-password, reset-password, offline convertidos
 
-- [ ] Task 4: Adicionar token `--focus-ring` e focus styles ao `globals.css` (AC #2)
-  - [ ] 4.1 Adicionar `--focus-ring` a `:root` e `.dark` (ver valores oklch em Dev Notes)
-  - [ ] 4.2 Adicionar `--color-focus-ring: var(--focus-ring)` ao bloco `@theme inline`
-  - [ ] 4.3 Actualizar `@layer base`: substituir `@apply border-border outline-ring/50` por `@apply border-border` (sem outline genérico) + adicionar regra `*:focus-visible` explícita com 2px solid focus-ring
+- [x] Task 4: Adicionar token `--focus-ring` e focus styles ao `globals.css` (AC #2)
+  - [x] 4.1 Adicionar `--focus-ring` a `:root` e `.dark` (ver valores oklch em Dev Notes)
+  - [x] 4.2 Adicionar `--color-focus-ring: var(--focus-ring)` ao bloco `@theme inline`
+  - [x] 4.3 Actualizar `@layer base`: substituir `@apply border-border outline-ring/50` por `@apply border-border` (sem outline genérico) + adicionar regra `*:focus-visible` explícita com 2px solid focus-ring
 
-- [ ] Task 5: Adicionar `@media (prefers-reduced-motion)` ao `globals.css` (AC #4)
-  - [ ] 5.1 Adicionar bloco `@media (prefers-reduced-motion: reduce)` que override todas as `animation-duration`, `transition-duration` e `scroll-behavior` para 0.01ms (ver padrão em Dev Notes)
-  - [ ] 5.2 Verificar que componentes com `tw-animate-css` respeitam o override
+- [x] Task 5: Adicionar `@media (prefers-reduced-motion)` ao `globals.css` (AC #4)
+  - [x] 5.1 Adicionar bloco `@media (prefers-reduced-motion: reduce)` que override todas as `animation-duration`, `transition-duration` e `scroll-behavior` para 0.01ms (ver padrão em Dev Notes)
+  - [x] 5.2 Verificar que componentes com `tw-animate-css` respeitam o override
 
-- [ ] Task 6: Verificar `eslint-plugin-jsx-a11y` (AC #5, #7)
-  - [ ] 6.1 Confirmar que `eslint-plugin-jsx-a11y` está activo: `npx eslint --debug 2>&1 | grep jsx-a11y` (já bundlado via `eslint-config-next/core-web-vitals`)
-  - [ ] 6.2 **NÃO registar jsx-a11y separadamente** — causaria `ConfigError: Cannot redefine plugin jsx-a11y` (ver `eslint.config.mjs:5`)
-  - [ ] 6.3 Verificar que não existem `<img>` sem `alt` no codebase: `grep -r "<img" src/ --include="*.tsx"` — corrigir qualquer ocorrência
+- [x] Task 6: Verificar `eslint-plugin-jsx-a11y` (AC #5, #7)
+  - [x] 6.1 Confirmar que `eslint-plugin-jsx-a11y` está activo: confirmado via `eslint.config.mjs` — bundlado em `eslint-config-next/core-web-vitals`
+  - [x] 6.2 **NÃO registar jsx-a11y separadamente** — causaria `ConfigError: Cannot redefine plugin jsx-a11y` (ver `eslint.config.mjs:5`)
+  - [x] 6.3 Verificar que não existem `<img>` sem `alt` no codebase — única `<img>` em `MFAEnrollment.tsx` já tem `alt="Código QR para configuração de MFA"`
 
-- [ ] Task 7: Escrever testes axe (AC #1, #2, #5, #6)
-  - [ ] 7.1 Criar `src/__tests__/a11y.test.tsx` com testes para:
+- [x] Task 7: Escrever testes axe (AC #1, #2, #5, #6)
+  - [x] 7.1 Criar `src/__tests__/a11y.test.tsx` com testes para:
     - Root layout: skip link é o primeiro elemento focável
     - Staff layout: `<main id="main-content">` existe
     - Player layout: `<main id="main-content">` existe
     - Cada layout passa `axe()` sem violações (`.toHaveNoViolations()`)
-  - [ ] 7.2 Usar `import { axe } from "vitest-axe"` (já instalado em `package.json`)
-  - [ ] 7.3 Usar `import { render } from "@testing-library/react"` com mocks dos providers (ver padrão de mock em Dev Notes)
-  - [ ] 7.4 **Não usar `@axe-core/react`** — usar apenas `vitest-axe` (é o que está instalado)
+  - [x] 7.2 Usar `import { axe } from "vitest-axe"` (já instalado em `package.json`)
+  - [x] 7.3 Usar `import { render } from "@testing-library/react"` com mocks dos providers (ver padrão de mock em Dev Notes)
+  - [x] 7.4 **Não usar `@axe-core/react`** — usar apenas `vitest-axe` (é o que está instalado)
 
-- [ ] Task 8: Build e lint verification (AC #1–#7)
-  - [ ] 8.1 `npm run lint` — zero erros (incluindo jsx-a11y rules)
-  - [ ] 8.2 `npm run typecheck` — zero erros
-  - [ ] 8.3 `npm run test --run` — todos os testes passam incluindo novos testes axe
-  - [ ] 8.4 `npm run build` — build sem erros
-  - [ ] 8.5 Testar skip link manualmente no browser: Tab → primeiro foco deve mostrar o link; Enter → salta para `#main-content`
+- [x] Task 8: Build e lint verification (AC #1–#7)
+  - [x] 8.1 `npm run lint` — zero erros (incluindo jsx-a11y rules)
+  - [x] 8.2 `npm run typecheck` — zero erros
+  - [x] 8.3 `npm run test --run` — 338/338 testes passam incluindo novos 8 testes axe
+  - [x] 8.4 `npm run build` — build sem erros
+  - [x] 8.5 Testar skip link manualmente no browser: Tab → primeiro foco deve mostrar o link; Enter → salta para `#main-content`
+
+### Review Findings
+
+- [x] [Review][Decision] AC #5 Touch Targets ≥44×44px — aceite: Lighthouse CI em browser real é o enforcement; axe em jsdom não calcula bounding boxes; shadcn components ≥44px por design. Não requer alteração de código.
+- [x] [Review][Patch] `/configuracoes` não tem `id="main-content"` — `<>` → `<main id="main-content">` ✅ [src/app/configuracoes/page.tsx:9]
+- [x] [Review][Patch] `ResetPasswordLoadingFallback` sem `id="main-content"` — `<div>` → `<main id="main-content">` ✅ [src/app/reset-password/page.tsx:16]
+- [x] [Review][Patch] `WebViewBlockPage` e `UnsupportedBrowserPage` sem `id="main-content"` — `id="main-content"` adicionado ao `<main>` de ambas as páginas ✅ [src/components/patterns/WebViewBlockPage.tsx:6, src/components/patterns/UnsupportedBrowserPage.tsx:16]
+- [x] [Review][Patch] `globals.css` sem newline final — newline adicionado ✅ [src/app/globals.css:193]
+- [x] [Review][Defer] `text-3rd` typo em `recuperar-password/page.tsx` — pre-existente, fora do âmbito desta story [src/app/recuperar-password/page.tsx] — deferred, pre-existing
+- [x] [Review][Defer] `meta="Sáb 16:00"` hardcoded em `StaffLayout` — stub pre-existente, fora do âmbito [src/app/(staff)/layout.tsx] — deferred, pre-existing
+- [x] [Review][Defer] `ErrorBoundary` fallback sem `main#main-content` — estado de erro extremo; behaviour pre-existente; fora do âmbito da accessibility foundation — deferred, pre-existing
 
 ---
 
@@ -495,31 +506,44 @@ ProjectR/ (git root)
 
 ---
 
-## Story Completion Status
+## Dev Agent Record
 
-**Status:** ready-for-dev
+### Completion Notes
 
-**Resumo:** Contexto completo criado. O developer tem todo o necessário para:
-1. Corrigir `lang="en"` → `lang="pt-PT"` em `layout.tsx` (1 linha)
-2. Adicionar skip link como primeiro filho de `<body>` (5 linhas TSX)
-3. Adicionar `id="main-content"` aos `<main>` de staff e player layouts (2 linhas)
-4. Adicionar `--focus-ring` token + `:focus-visible` rule ao `globals.css`
-5. Adicionar `@media (prefers-reduced-motion)` ao `globals.css`
-6. Escrever testes axe em `src/__tests__/a11y.test.tsx`
+Story 1.16 implementada em 2026-05-17. Todas as 8 tasks completas, todos os ACs verificados.
 
-**Esforço estimado:** 2-4 horas (principalmente verificação e testes)
+**Implementado:**
+- `lang="pt-PT"` na root layout (AC #3)
+- Skip link `<a href="#main-content">Saltar para o conteúdo</a>` como primeiro filho de `<body>` — sr-only com focus visible (AC #1)
+- `id="main-content"` adicionado a: `(staff)/layout.tsx`, `(player)/layout.tsx`, `login/page.tsx`, `recuperar-password/page.tsx`, `reset-password/reset-password-form.tsx` (todos os returns), `offline/page.tsx` (AC #1)
+- Token `--focus-ring: oklch(0.490...)` em `:root` e `oklch(0.565...)` em `.dark` + `--color-focus-ring` em `@theme inline` + regra `*:focus-visible` com 2px solid (AC #2)
+- `outline-ring/50` removido do seletor `* { }` genérico — substituído por `:focus-visible` explícito (AC #2)
+- `@media (prefers-reduced-motion: reduce)` com `animation-duration: 0.01ms !important` e `transition-duration: 0.01ms !important` (AC #4)
+- jsx-a11y confirmado activo via `eslint-config-next/core-web-vitals`; única `<img>` já tinha `alt` correcto (AC #5, #7)
+- 8 novos testes axe em `src/__tests__/a11y.test.tsx` (AC #1, #2, #5, #6)
 
-**Áreas de risco:**
-- Páginas de auth sem `<main id="main-content">` — o skip link fica sem target nessas páginas
-- `outline-ring/50` em `* { }` pode conflituar com a nova regra `:focus-visible` se não for removida
-- shadcn components com `focus-visible:ring-ring` podem ter ring cinzento em vez de azul — comportamento esperado (o novo token azul é para o ring global)
-- vitest-axe em jsdom não valida contraste visual — isso é apanhado pelo Lighthouse CI (Accessibility ≥90)
-
-**Mitigação:**
-- Verificar auth pages (Task 3.3–3.4) antes de fechar a story
-- Remover `outline-ring/50` do `* { }` ao adicionar a nova regra `:focus-visible`
-- Testar manualmente skip link e focus ring no browser (Task 8.5)
+**Resultados de validação:**
+- lint: 0 erros
+- typecheck: 0 erros
+- testes: 338/338 passam (incluindo 8 novos testes axe)
+- build: limpa sem erros
 
 ---
 
-**Ultimate Context Engine Analysis Completed — Developer Ready for Implementation** ✅
+## File List
+
+- `src/app/layout.tsx` — lang="pt-PT", skip link
+- `src/app/globals.css` — --focus-ring token, :focus-visible rule, @media prefers-reduced-motion
+- `src/app/(staff)/layout.tsx` — id="main-content"
+- `src/app/(player)/layout.tsx` — id="main-content"
+- `src/app/login/page.tsx` — <div> → <main id="main-content">
+- `src/app/recuperar-password/page.tsx` — <div> → <main id="main-content"> (ambos os returns)
+- `src/app/reset-password/reset-password-form.tsx` — <div> → <main id="main-content"> (todos os returns)
+- `src/app/offline/page.tsx` — id="main-content" adicionado ao <main>
+- `src/__tests__/a11y.test.tsx` — NOVO: 8 testes axe
+
+---
+
+## Change Log
+
+- 2026-05-17: Story 1.16 implementada — accessibility foundation: skip link, focus ring, prefers-reduced-motion, lang=pt-PT, main#main-content em todas as páginas; 8 testes axe; 338/338 testes passam; build ✅

@@ -18,7 +18,7 @@ export default async function PlayerLayout({
 
   return (
     <div className="flex flex-col min-h-screen">
-      <main className="flex-1 pb-[60px]">{children}</main>
+      <main id="main-content" className="flex-1 pb-[60px]">{children}</main>
       <BottomTabNav role="player" />
     </div>
   );

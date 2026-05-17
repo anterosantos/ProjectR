@@ -4,6 +4,7 @@ import { CopyLinkButton } from "./CopyLinkButton";
 export function WebViewBlockPage() {
   return (
     <main
+      id="main-content"
       className="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-background text-foreground"
       role="main"
     >

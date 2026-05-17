@@ -13,11 +13,11 @@ export default function ResetPasswordPage() {
 
 function ResetPasswordLoadingFallback() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+    <main id="main-content" className="flex min-h-screen items-center justify-center bg-gray-50">
       <div className="text-center">
         <p className="text-gray-600">A validar link...</p>
       </div>
-    </div>
+    </main>
   );
 }
 

@@ -47,7 +47,7 @@ export default async function StaffLayout({
       <StaffSidebar role={staffRole} />
       <div className="flex flex-1 flex-col">
         <StickyHeader title="Painel" meta="Sáb 16:00" />
-        <main className="flex-1 pb-[60px] lg:pb-0">{children}</main>
+        <main id="main-content" className="flex-1 pb-[60px] lg:pb-0">{children}</main>
         <BottomTabNav role={staffRole} />
       </div>
     </div>

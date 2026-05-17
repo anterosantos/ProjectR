@@ -77,6 +77,7 @@
   --z-tooltip: 30;
   --z-modal: 40;
   --z-toast: 50;
+  --color-focus-ring: var(--focus-ring);
 }
 
 :root {
@@ -119,6 +120,7 @@
   --signal-alert: oklch(0.546 0.245 27.325);        /* red #DC2626 */
   --signal-info: oklch(0.490 0.238 254.124);        /* blue #2563EB */
   --signal-neutral: oklch(0.646 0 0);               /* gray */
+  --focus-ring: oklch(0.490 0.238 254.124);         /* #2563EB — azul universal para focus */
 }
 
 .dark {
@@ -160,16 +162,32 @@
   --signal-alert: oklch(0.704 0.191 22.216);        /* red #EF4444 */
   --signal-info: oklch(0.565 0.238 254.124);        /* blue #3B82F6 */
   --signal-neutral: oklch(0.556 0 0);               /* gray */
+  --focus-ring: oklch(0.565 0.238 254.124);         /* #3B82F6 — azul dark para focus */
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
+  }
+  *:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
   }
   body {
     @apply bg-background text-foreground;
   }
   html {
     @apply font-sans;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
