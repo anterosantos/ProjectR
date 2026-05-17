@@ -87,7 +87,6 @@ jobs:
         with:
           name: next-build
           path: project-r/.next/
-          if-no-files-found: error
       - run: npm run check-bundle-size
 
   lighthouse-ci:
@@ -109,7 +108,6 @@ jobs:
         with:
           name: next-build
           path: project-r/.next/
-          if-no-files-found: error
       - run: npx lhci autorun
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
