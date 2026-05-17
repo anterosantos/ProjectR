@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { AuditLogInputSchema } from "@/lib/actions/audit";
+import { AuditLogInputSchema } from "@/lib/schemas/audit";
 
 /**
  * Simple validation tests for audit logging

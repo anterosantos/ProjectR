@@ -147,6 +147,92 @@ export type Database = {
           },
         ]
       }
+      players: {
+        Row: {
+          id: string
+          club_id: string
+          profile_id: string | null
+          jersey_num: number
+          full_name: string
+          birthdate: string
+          age_group: string
+          is_archived: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          club_id: string
+          profile_id?: string | null
+          jersey_num: number
+          full_name: string
+          birthdate: string
+          age_group: string
+          is_archived?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          club_id?: string
+          profile_id?: string | null
+          jersey_num?: number
+          full_name?: string
+          birthdate?: string
+          age_group?: string
+          is_archived?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "players_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "players_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      positions: {
+        Row: {
+          id: string
+          player_id: string
+          position: string
+          is_primary: boolean
+          sort_order: number
+        }
+        Insert: {
+          id?: string
+          player_id: string
+          position: string
+          is_primary?: boolean
+          sort_order?: number
+        }
+        Update: {
+          id?: string
+          player_id?: string
+          position?: string
+          is_primary?: boolean
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "positions_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -156,6 +242,10 @@ export type Database = {
       is_staff_of_club: { Args: { target_club_id: string }; Returns: boolean }
       user_role: { Args: never; Returns: string }
       uuidv7: { Args: never; Returns: string }
+      upsert_player_positions: {
+        Args: { p_player_id: string; p_positions: Json }
+        Returns: void
+      }
     }
     Enums: {
       [_ in never]: never
