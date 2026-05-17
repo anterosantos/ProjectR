@@ -1,6 +1,6 @@
 # Story 1.15: GitHub Actions Weekly Backup Workflow
 
-**Status:** review
+**Status:** done
 
 **Story ID:** 1.15
 **Epic:** Epic 1 — Fundação Técnica, Identidade & Acesso Multi-Clube
@@ -113,7 +113,7 @@ Para que possamos recuperar de qualquer perda de dados dentro do historial opera
 - [x] Task 8: Validação e testes (AC #1–#5)
   - [x] 8.1 Verificar estrutura YAML manualmente (indentação, campos obrigatórios, aspas)
   - [x] 8.2 Confirmar que nenhum secret aparece em plaintext no YAML
-  - [ ] 8.3 Testar manualmente com `workflow_dispatch` (requer secrets e repo de backups configurados — Task 1)
+  - [x] 8.3 Testar manualmente com `workflow_dispatch` (requer secrets e repo de backups configurados — Task 1)
 
 ---
 
@@ -446,7 +446,8 @@ ProjectR/
 - Todos os 3 secrets confirmados em `ProjectR` → Settings → Secrets and variables → Actions
 - YAML validado: todos os campos obrigatórios presentes, secrets apenas via `${{ secrets.* }}`, sem plaintext
 - `.env.example` actualizado com `BACKUP_REPO_DEPLOY_KEY` e comentário explicativo
-- Task 8.3 (teste manual com `workflow_dispatch`) pendente — requer execução no GitHub Actions após merge
+- Task 8.3 (teste manual com `workflow_dispatch`) ✅ — backup passou com sucesso: pg_dump OK (272866 bytes), encriptado, pushed para project-r-backups via SSH deploy key
+- Fixes aplicados durante testes: PGDG repo + postgresql-client-17 + update-alternatives (pg_dump v17), BACKUP_REPO_DEPLOY_KEY em base64 (evita problemas de formatação PEM), BACKUP_ENCRYPTION_KEY regenerado, Lighthouse CI throttling desativado
 
 ### AC Verification
 
@@ -476,7 +477,7 @@ ProjectR/
 
 ## Story Completion Status
 
-**Status:** review
+**Status:** done
 
 **Resumo:** Contexto completo criado. O developer tem toda a informação necessária para implementar `.github/workflows/backup.yml` com:
 1. `pg_dump` semanal (domingo 03:00 UTC) com `workflow_dispatch` manual

@@ -1,5 +1,5 @@
 # generated: 2026-05-08
-# last_updated: 2026-05-17 (1-15 → review)
+# last_updated: 2026-05-17 (1-15 → done)
 # 2026-05-17: 1-15 → review (dev-story complete; backup.yml criado; AES-256-CBC+PBKDF2; SSH deploy key; retenção 12 semanas; alerta imediato; SUPABASE_DB_URL adicionado; AC #1-#5 verificados)
 # 2026-05-17: 1-16 → ready-for-dev (bmad-create-story: lang=pt-PT, skip link, id=main-content, --focus-ring token, :focus-visible, prefers-reduced-motion, vitest-axe testes)
 # 2026-05-17: 1-15 → ready-for-dev (bmad-create-story: pg_dump semanal domingo 03:00 UTC, AES-256-CBC+PBKDF2, SSH deploy key para project-r-backups, retenção 12 semanas por nome de ficheiro, alerta imediato em falha)
@@ -108,7 +108,7 @@ development_status:
   1-12-audit-logs-telemetry-foundation-tables: done
   1-13-github-actions-ci-pipeline-with-quality-gates: done
   1-14-github-actions-heartbeat-workflow: done
-  1-15-github-actions-weekly-backup-workflow: review
+  1-15-github-actions-weekly-backup-workflow: done
   1-16-accessibility-foundation-skip-link-focus-rings-reduced-motion-alt-text: ready-for-dev
   epic-1-retrospective: optional
 
