@@ -118,7 +118,7 @@ development_status:
 
   # Epic 2: Plantel, Calendário & Sessões (gestão operacional do staff)
   epic-2: in-progress
-  2-1-player-records-plantel-list: in-progress
+  2-1-player-records-plantel-list: done
   2-2-player-photo-upload: backlog
   2-3-player-metrics-time-series-weight-height: backlog
   2-4-mark-player-as-inactive-soft-status: backlog

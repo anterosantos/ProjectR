@@ -1,6 +1,6 @@
 # Story 2.1: Player Records & Plantel List
 
-**Status:** in-progress
+**Status:** done
 
 **Story ID:** 2.1
 **Epic:** Epic 2 — Plantel, Calendário & Sessões (gestão operacional do staff)
