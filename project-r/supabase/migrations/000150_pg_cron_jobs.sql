@@ -13,8 +13,13 @@
 -- Job: DELETE audit_logs entries older than 12 months
 -- Idempotence: Wrapped in DO block — re-running this migration skips silently if job exists
 
-DO $$
+-- Use $do$ to avoid collision with $$ inside cron.schedule's SQL argument.
+DO $do$
 BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+    RAISE NOTICE 'pg_cron not available — skipping cron job registration (local/CI env)';
+    RETURN;
+  END IF;
   PERFORM cron.schedule(
     'purge_audit_logs_older_than_12_months',
     '0 2 1 * *',
@@ -25,7 +30,7 @@ EXCEPTION
     -- Job already registered (e.g., migration re-applied). Skip silently.
     NULL;
 END;
-$$;
+$do$;
 
 -- =============================================================================
 -- FUTURE: CRON JOBS (Deferred)
