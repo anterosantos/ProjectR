@@ -119,5 +119,13 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
-      - run: supabase db reset --no-seed
+      - name: Start local Supabase stack
+        run: supabase start -x edge-runtime,vector,imgproxy,logflare,studio,mailpit
+        working-directory: project-r
+      - name: Validate migrations
+        run: supabase db reset --no-seed
+        working-directory: project-r
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup
         working-directory: project-r
