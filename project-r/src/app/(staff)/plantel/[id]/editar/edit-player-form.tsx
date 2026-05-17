@@ -1,15 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import Image from "next/image";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { AlertCircle, Plus, Trash2, ChevronLeft } from "lucide-react";
+import { AlertCircle, Plus, Trash2, ChevronLeft, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CalmConfirmation } from "@/components/ui/calm-confirmation";
 import { PlayerUpdateSchema, POSITIONS, AGE_GROUPS } from "@/lib/schemas/players";
 import type { PlayerUpdate } from "@/lib/schemas/players";
 import type { PlayerWithPositions } from "@/lib/actions/players";
-import { updatePlayer } from "@/lib/actions/players";
+import { updatePlayer, uploadPlayerPhoto } from "@/lib/actions/players";
 
 const AGE_GROUP_LABELS: Record<string, string> = {
   u14: "Sub-14",
@@ -26,6 +28,11 @@ interface EditPlayerFormProps {
 export function EditPlayerForm({ player }: EditPlayerFormProps) {
   const [serverError, setServerError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [photoSuccess, setPhotoSuccess] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sortedPositions = [...player.positions].sort(
     (a, b) => a.sort_order - b.sort_order
@@ -57,6 +64,44 @@ export function EditPlayerForm({ player }: EditPlayerFormProps) {
   });
 
   const errors = form.formState.errors;
+
+  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.currentTarget.files?.[0];
+    if (!file) return;
+
+    setPhotoError(null);
+    setPhotoSuccess(false);
+
+    const validTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!validTypes.includes(file.type)) {
+      setPhotoError("Tipo de ficheiro inválido. Use JPG, PNG ou WebP.");
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setPhotoError("Ficheiro demasiado grande (máximo 2MB).");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (evt) => setPhotoPreview(evt.target?.result as string);
+    reader.readAsDataURL(file);
+
+    setUploadingPhoto(true);
+    const result = await uploadPlayerPhoto(player.id, file);
+    setUploadingPhoto(false);
+
+    if (result.ok) {
+      setPhotoSuccess(true);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      setPhotoPreview(null);
+      setTimeout(() => setPhotoSuccess(false), 3000);
+    } else {
+      setPhotoError(result.error.message);
+    }
+  }
 
   async function onSubmit(data: PlayerUpdate) {
     setServerError(null);
@@ -271,6 +316,60 @@ export function EditPlayerForm({ player }: EditPlayerFormProps) {
               {errors.positions.message ?? errors.positions.root?.message}
             </p>
           )}
+        </div>
+
+        {/* Foto do Jogador */}
+        <div className="border-t border-border pt-5">
+          <label htmlFor="playerPhoto" className="block text-sm font-medium text-foreground mb-2">
+            Foto do Jogador
+          </label>
+
+          {photoPreview && (
+            <div className="mb-3">
+              <Image
+                src={photoPreview}
+                alt="Preview"
+                width={128}
+                height={128}
+                className="h-32 w-32 rounded-lg object-cover border border-border"
+              />
+            </div>
+          )}
+
+          <div className="relative">
+            <input
+              ref={fileInputRef}
+              id="playerPhoto"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handlePhotoChange}
+              disabled={uploadingPhoto}
+              className="hidden"
+              aria-describedby={photoError ? "photo-error" : undefined}
+              aria-invalid={!!photoError}
+            />
+            <label
+              htmlFor="playerPhoto"
+              className="flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-muted px-4 py-6 cursor-pointer hover:border-primary/50 transition-colors"
+            >
+              <Upload className="h-5 w-5 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
+                {uploadingPhoto ? "A enviar..." : "Seleccionar foto (JPG, PNG, WebP, máx 2MB)"}
+              </span>
+            </label>
+          </div>
+
+          {photoError && (
+            <p
+              id="photo-error"
+              className="mt-2 flex items-center gap-1 text-sm text-signal-alert"
+            >
+              <AlertCircle className="h-4 w-4" />
+              {photoError}
+            </p>
+          )}
+
+          {photoSuccess && <CalmConfirmation message="Foto actualizada" />}
         </div>
 
         <div className="flex gap-3 pt-2">

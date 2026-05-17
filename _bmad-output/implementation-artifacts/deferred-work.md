@@ -28,6 +28,15 @@ Items deferred from code reviews — pre-existing issues, out-of-scope work, or 
 - **NFR17/NFR14 (1h token expiry e HTTPS) não configurados em código**: Dependem de configuração no dashboard Supabase e plataforma de deploy (Vercel/Cloudflare). Não são responsabilidade desta story; verificar antes do go-live.
 - **Alert `success` variant não é standard shadcn/ui** (`project-r/src/components/ui/alert.tsx:847`): Variant custom adicionada. Se `npx shadcn@latest add alert` for executado, será sobrescrita silenciosamente. Extrair para design token ou documentar como override quando o Design System for formalizado (Story 1.8).
 
+## Deferred from: code review of 2-2-player-photo-upload (2026-05-17)
+
+- **Rate limiting no server action `uploadPlayerPhoto`**: Utilizador autenticado pode chamar a action em loop, consumindo quota de Storage. Cross-cutting concern — endereçar numa story de hardening de infra.
+- **Race condition leve: preview FileReader pode aparecer após reset de estado no upload muito rápido**: `reader.onload` e `setPhotoPreview(null)` no sucesso correm de forma assíncrona. Impacto UX mínimo — irrelevante para volumes reais.
+- **Race condition de uploads concorrentes para o mesmo jogador**: Dois calls simultâneos de `uploadPlayerPhoto` podem sobrescrever-se no Storage (upsert) com resultado inconsistente no DB. Baixa probabilidade num app de staff desportivo; endereçar com locking otimista se necessário.
+- **URL assinada gerada com sucesso para objeto já eliminado do bucket**: `createSignedUrl` não valida existência do objeto; a URL é válida mas o browser recebe 404. Comportamento esperado do Supabase; documentar se necessário.
+- **Mock de teste devolve `Uint8Array` em vez de `Buffer` do Node.js**: Discrepância baixo impacto — não quebra testes atuais mas não valida tipos de buffer reais. Corrigir numa passagem de hardening de testes.
+- **Padrão N+1 em `getPlayerPhotoUrl`**: Lista de 30 jogadores faz 30 chamadas RPC separadas para gerar URLs assinadas. Otimizar com batch signing quando o volume justificar.
+
 ## Deferred from: code review of 1-16-accessibility-foundation-skip-link-focus-rings-reduced-motion-alt-text (2026-05-17)
 
 - **`text-3rd` typo em `recuperar-password/page.tsx`**: Provavelmente `text-3xl` — bug pre-existente no bloco `submitted` da página de recuperação de password. Corrigir na próxima edição deste ficheiro. [src/app/recuperar-password/page.tsx]

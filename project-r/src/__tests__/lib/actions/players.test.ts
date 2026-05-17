@@ -21,10 +21,16 @@ vi.mock("@/lib/actions/audit", () => ({
   logAccess: vi.fn().mockResolvedValue({ ok: true, data: undefined }),
 }));
 
+vi.mock("@/lib/storage", () => ({
+  uploadPlayerPhotoFile: vi.fn(),
+  getPlayerPhotoUrl: vi.fn(),
+}));
+
 import { createServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { createPlayer, updatePlayer, archivePlayer } from "@/lib/actions/players";
+import { createPlayer, updatePlayer, archivePlayer, uploadPlayerPhoto } from "@/lib/actions/players";
 import { logAccess } from "@/lib/actions/audit";
+import { uploadPlayerPhotoFile } from "@/lib/storage";
 
 // ─── Zod Schema Tests ────────────────────────────────────────────────────────
 
@@ -483,5 +489,166 @@ describe("archivePlayer", () => {
     if (!result.ok) {
       expect(result.error.code).toBe("unauthorized");
     }
+  });
+
+  it("does not modify photo_path when archiving (AC #5)", async () => {
+    let updateArg: Record<string, unknown> | undefined;
+    const mockSupabase = {
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: "user-111" } } }),
+      },
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === "profiles") {
+          return {
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                single: vi.fn().mockResolvedValue({ data: { club_id: "club-222" }, error: null }),
+              }),
+            }),
+          };
+        }
+        if (table === "players") {
+          return {
+            update: vi.fn().mockImplementation((data: Record<string, unknown>) => {
+              updateArg = data;
+              return {
+                eq: vi.fn().mockReturnValue({
+                  eq: vi.fn().mockResolvedValue({ error: null }),
+                }),
+              };
+            }),
+          };
+        }
+        return {};
+      }),
+    };
+    (createServerClient as ReturnType<typeof vi.fn>).mockResolvedValue(mockSupabase);
+
+    await archivePlayer(validInput).catch(() => {});
+    expect(updateArg).toEqual({ is_archived: true });
+    expect(updateArg).not.toHaveProperty("photo_path");
+  });
+});
+
+// ─── uploadPlayerPhoto ────────────────────────────────────────────────────────
+
+describe("uploadPlayerPhoto", () => {
+  const playerId = "550e8400-e29b-41d4-a716-446655440001";
+  const clubId = "club-222";
+  const newPhotoPath = `${clubId}/${playerId}.jpg`;
+
+  function buildMockSupabase(options: {
+    playerData?: { club_id: string; photo_path: string | null } | null;
+    updateError?: { message: string } | null;
+  } = {}) {
+    const { playerData = { club_id: clubId, photo_path: null }, updateError = null } = options;
+    const removeMock = vi.fn().mockResolvedValue({ error: null });
+
+    const supabase = {
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: "user-111" } } }),
+      },
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === "profiles") {
+          return {
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                single: vi.fn().mockResolvedValue({ data: { club_id: clubId }, error: null }),
+              }),
+            }),
+          };
+        }
+        if (table === "players") {
+          return {
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                eq: vi.fn().mockReturnValue({
+                  single: vi.fn().mockResolvedValue({ data: playerData, error: null }),
+                }),
+              }),
+            }),
+            update: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                eq: vi.fn().mockResolvedValue({ error: updateError }),
+              }),
+            }),
+          };
+        }
+        return {};
+      }),
+      storage: {
+        from: vi.fn().mockReturnValue({ remove: removeMock }),
+      },
+    };
+    return { supabase, removeMock };
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    const { supabase } = buildMockSupabase();
+    (createServerClient as ReturnType<typeof vi.fn>).mockResolvedValue(supabase);
+    (uploadPlayerPhotoFile as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      data: { photoPath: newPhotoPath },
+    });
+  });
+
+  it("returns unauthorized when not logged in", async () => {
+    (createServerClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: null } }) },
+      from: vi.fn(),
+    });
+
+    const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
+    const result = await uploadPlayerPhoto(playerId, file);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe("unauthorized");
+  });
+
+  it("returns forbidden when player does not belong to user club", async () => {
+    const { supabase } = buildMockSupabase({ playerData: null });
+    (createServerClient as ReturnType<typeof vi.fn>).mockResolvedValue(supabase);
+
+    const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
+    const result = await uploadPlayerPhoto(playerId, file);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe("forbidden");
+  });
+
+  it("returns ok with photoPath on successful upload", async () => {
+    const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
+    const result = await uploadPlayerPhoto(playerId, file);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.photoPath).toBe(newPhotoPath);
+  });
+
+  it("calls logAccess on successful upload", async () => {
+    const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
+    await uploadPlayerPhoto(playerId, file);
+    expect(logAccess).toHaveBeenCalledWith("player.photo_updated", "player", playerId);
+  });
+
+  it("rolls back storage on DB update failure", async () => {
+    const { supabase, removeMock } = buildMockSupabase({
+      updateError: { message: "db error" },
+    });
+    (createServerClient as ReturnType<typeof vi.fn>).mockResolvedValue(supabase);
+
+    const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
+    const result = await uploadPlayerPhoto(playerId, file);
+    expect(result.ok).toBe(false);
+    expect(removeMock).toHaveBeenCalledWith([newPhotoPath]);
+  });
+
+  it("removes old photo when extension changes", async () => {
+    const oldPhotoPath = `${clubId}/${playerId}.png`;
+    const { supabase, removeMock } = buildMockSupabase({
+      playerData: { club_id: clubId, photo_path: oldPhotoPath },
+    });
+    (createServerClient as ReturnType<typeof vi.fn>).mockResolvedValue(supabase);
+
+    const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
+    await uploadPlayerPhoto(playerId, file);
+    expect(removeMock).toHaveBeenCalledWith([oldPhotoPath]);
   });
 });

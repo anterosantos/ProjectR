@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { newId } from "@/lib/uuid";
 import { logAccess } from "@/lib/actions/audit";
+import { uploadPlayerPhotoFile } from "@/lib/storage";
 import {
   PlayerCreateSchema,
   PlayerUpdateSchema,
@@ -31,6 +32,7 @@ export interface PlayerWithPositions {
   birthdate: string;
   age_group: string;
   is_archived: boolean;
+  photo_path: string | null;
   created_at: string;
   updated_at: string;
   positions: PlayerPosition[];
@@ -104,7 +106,7 @@ export async function getPlayer(
 
   const { data, error } = await supabase
     .from("players")
-    .select("id, club_id, profile_id, jersey_num, full_name, birthdate, age_group, is_archived, created_at, updated_at, positions(id, position, is_primary, sort_order)")
+    .select("id, club_id, profile_id, jersey_num, full_name, birthdate, age_group, is_archived, photo_path, created_at, updated_at, positions(id, position, is_primary, sort_order)")
     .eq("id", playerId)
     .single();
 
@@ -302,5 +304,59 @@ export async function archivePlayer(
   await logAccess("player.archived", "player", validated.data.playerId);
 
   redirect("/plantel");
+}
+
+export async function uploadPlayerPhoto(
+  playerId: string,
+  file: File
+): Promise<Result<{ photoPath: string }, AppError>> {
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return err({ code: "unauthorized", message: "Não autenticado" });
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("club_id")
+    .eq("id", user.id)
+    .single();
+  if (!profile) return err({ code: "forbidden", message: "Perfil não encontrado" });
+
+  const { data: player } = await supabase
+    .from("players")
+    .select("club_id, photo_path")
+    .eq("id", playerId)
+    .eq("club_id", profile.club_id)
+    .single();
+  if (!player) return err({ code: "forbidden", message: "Jogador não encontrado" });
+
+  const uploadResult = await uploadPlayerPhotoFile(profile.club_id, playerId, file);
+  if (!uploadResult.ok) return uploadResult;
+
+  const { error: updateError } = await supabase
+    .from("players")
+    .update({ photo_path: uploadResult.data.photoPath })
+    .eq("id", playerId)
+    .eq("club_id", profile.club_id);
+
+  if (updateError) {
+    const { error: removeError } = await supabase.storage
+      .from("player-photos")
+      .remove([uploadResult.data.photoPath]);
+    if (removeError) {
+      console.error("[uploadPlayerPhoto] Rollback failed — orphaned file:", removeError.message);
+    }
+    return err({ code: "unknown", message: updateError.message });
+  }
+
+  // Remove old photo if extension changed (prevents orphaned files in Storage)
+  if (player.photo_path && player.photo_path !== uploadResult.data.photoPath) {
+    await supabase.storage.from("player-photos").remove([player.photo_path]);
+  }
+
+  await logAccess("player.photo_updated", "player", playerId);
+
+  return ok({ photoPath: uploadResult.data.photoPath });
 }
 

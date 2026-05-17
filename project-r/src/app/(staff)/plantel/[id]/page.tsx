@@ -1,11 +1,13 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { Suspense } from "react";
 import { format, differenceInYears } from "date-fns";
 import { pt } from "date-fns/locale";
 import { ChevronLeft, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CalmConfirmation } from "@/components/ui/calm-confirmation";
 import { SemaforoBadge } from "@/components/ui/semaforo-badge";
+import { PlayerPhoto } from "@/components/ui/player-photo";
 import { getPlayer } from "@/lib/actions/players";
 import { ArchivePlayerDialog } from "./archive-player-dialog";
 
@@ -73,11 +75,24 @@ export default async function PlayerDetailPage({
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-semibold text-foreground">{player.full_name}</h1>
-            <p className="text-sm text-muted-foreground">
-              #{player.jersey_num} · {AGE_GROUP_LABELS[player.age_group] ?? player.age_group}
-            </p>
+          <div className="flex items-start gap-4">
+            <Suspense
+              fallback={<div className="h-24 w-24 rounded-lg bg-neutral-100" />}
+            >
+              <div className="rounded-lg overflow-hidden">
+                <PlayerPhoto
+                  photoPath={player.photo_path}
+                  fullName={player.full_name}
+                  size="lg"
+                />
+              </div>
+            </Suspense>
+            <div>
+              <h1 className="text-xl font-semibold text-foreground">{player.full_name}</h1>
+              <p className="text-sm text-muted-foreground">
+                #{player.jersey_num} · {AGE_GROUP_LABELS[player.age_group] ?? player.age_group}
+              </p>
+            </div>
           </div>
           <SemaforoBadge state="neutral" />
         </div>

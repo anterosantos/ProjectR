@@ -157,6 +157,7 @@ export type Database = {
           birthdate: string
           age_group: string
           is_archived: boolean
+          photo_path: string | null
           created_at: string
           updated_at: string
         }
@@ -169,6 +170,7 @@ export type Database = {
           birthdate: string
           age_group: string
           is_archived?: boolean
+          photo_path?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -181,6 +183,7 @@ export type Database = {
           birthdate?: string
           age_group?: string
           is_archived?: boolean
+          photo_path?: string | null
           created_at?: string
           updated_at?: string
         }

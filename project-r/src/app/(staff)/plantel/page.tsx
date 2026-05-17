@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SemaforoBadge } from "@/components/ui/semaforo-badge";
+import { PlayerPhoto } from "@/components/ui/player-photo";
 import { getPlayers } from "@/lib/actions/players";
 import { AGE_GROUPS } from "@/lib/schemas/players";
 import { PlantelEmptyState } from "./plantel-empty-state";
@@ -69,6 +71,15 @@ export default async function PlantelPage() {
                           href={`/plantel/${player.id}`}
                           className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 transition-colors"
                         >
+                          <Suspense
+                            fallback={<div className="h-8 w-8 rounded-full bg-neutral-100" />}
+                          >
+                            <PlayerPhoto
+                              photoPath={player.photo_path}
+                              fullName={player.full_name}
+                              size="sm"
+                            />
+                          </Suspense>
                           <span className="w-8 text-center text-sm font-mono font-medium text-muted-foreground">
                             {player.jersey_num}
                           </span>
