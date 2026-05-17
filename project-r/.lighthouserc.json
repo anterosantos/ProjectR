@@ -7,7 +7,11 @@
       "startServerReadyPattern": "ready",
       "startServerReadyTimeout": 30000,
       "settings": {
-        "categories": ["performance", "accessibility", "best-practices"]
+        "categories": ["performance", "accessibility", "best-practices"],
+        "throttlingMethod": "provided",
+        "throttling": {
+          "cpuSlowdownMultiplier": 1
+        }
       }
     },
     "assert": {
