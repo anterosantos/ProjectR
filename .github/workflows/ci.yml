@@ -66,31 +66,9 @@ jobs:
           cache-dependency-path: project-r/package-lock.json
       - run: npm ci
       - run: npm run build
-      - uses: actions/upload-artifact@v4
-        with:
-          name: next-build
-          path: project-r/.next/
-          retention-days: 1
-
-  bundle-size:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: project-r/package-lock.json
-      - run: npm ci
-      - uses: actions/download-artifact@v4
-        with:
-          name: next-build
-          path: project-r/.next/
       - run: npm run check-bundle-size
 
   lighthouse-ci:
-    needs: build
     runs-on: ubuntu-latest
     env:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
@@ -104,10 +82,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: project-r/package-lock.json
       - run: npm ci
-      - uses: actions/download-artifact@v4
-        with:
-          name: next-build
-          path: project-r/.next/
+      - run: npm run build
       - run: npx lhci autorun
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
