@@ -47,6 +47,8 @@
 
 generated: 2026-05-08
 last_updated: 2026-05-17
+# 2026-05-17: 2-1 → review (dev-story complete; 000070+000075 migrations; createPlayer/updatePlayer/archivePlayer actions; react-hook-form+Zod; SemaforoBadge neutral; ArchivePlayerDialog; 366/366 testes ✅; lint ✅; typecheck ✅; build ✅; AC #1-#7 verificados)
+# 2026-05-17: 2-1 → ready-for-dev (bmad-create-story: players+positions migration, createPlayer/updatePlayer/archivePlayer actions, react-hook-form+Zod, SemaforoBadge neutral placeholder, atomic RPC upsert_player_positions)
 # 2026-05-16: 1-12 → review (dev-story complete; 3 migrations + 5 helpers + 34 tests; build ✅ lint ✅ all ACs verified; audit_logs + telemetry_events + logger + fire-and-forget + RLS + pg_cron retention)
 # 2026-05-16: 1-12 → in-progress (dev-story iniciada; audit_logs + telemetry_events migrations + helpers + logger + pg_cron retention)
 # 2026-05-16: 1-12 → ready-for-dev (bmad-create-story: audit_logs + telemetry_events tables + helpers + pg_cron retention; fire-and-forget pattern; RLS multi-tenant scoping; logger for structured JSON output)
@@ -115,8 +117,8 @@ development_status:
   epic-1-retrospective: optional
 
   # Epic 2: Plantel, Calendário & Sessões (gestão operacional do staff)
-  epic-2: backlog
-  2-1-player-records-plantel-list: backlog
+  epic-2: in-progress
+  2-1-player-records-plantel-list: in-progress
   2-2-player-photo-upload: backlog
   2-3-player-metrics-time-series-weight-height: backlog
   2-4-mark-player-as-inactive-soft-status: backlog
