@@ -1,5 +1,5 @@
 # generated: 2026-05-08
-# last_updated: 2026-05-17 (1-16 → done)
+# last_updated: 2026-05-17 (2-2 → ready-for-dev)
 # 2026-05-17: 1-16 → done (code-review complete; 1 decision resolved (AC#5 Lighthouse CI); 4 patches: id=main-content em configuracoes/page.tsx, ResetPasswordLoadingFallback, WebViewBlockPage, UnsupportedBrowserPage; globals.css newline; 3 deferred; 10 dismissed; todos os ACs verificados ✅)
 # 2026-05-17: 1-15 → review (dev-story complete; backup.yml criado; AES-256-CBC+PBKDF2; SSH deploy key; retenção 12 semanas; alerta imediato; SUPABASE_DB_URL adicionado; AC #1-#5 verificados)
 # 2026-05-17: 1-16 → review (dev-story complete; lang=pt-PT; skip link; id=main-content em staff/player/login/recuperar-password/reset-password/offline; --focus-ring token; :focus-visible 2px; prefers-reduced-motion; 8 testes axe; 338/338 testes ✅; lint 0 erros; build ✅; AC #1-#7 verificados)
@@ -47,6 +47,7 @@
 
 generated: 2026-05-08
 last_updated: 2026-05-17
+# 2026-05-17: 2-2 → ready-for-dev (bmad-create-story: bucket RLS, migration 000080, uploadPlayerPhoto server action, getPlayerPhotoUrl signed URL, <PlayerPhoto> component, cross-club isolation, sharp redimensionamento)
 # 2026-05-17: 2-1 → review (dev-story complete; 000070+000075 migrations; createPlayer/updatePlayer/archivePlayer actions; react-hook-form+Zod; SemaforoBadge neutral; ArchivePlayerDialog; 366/366 testes ✅; lint ✅; typecheck ✅; build ✅; AC #1-#7 verificados)
 # 2026-05-17: 2-1 → ready-for-dev (bmad-create-story: players+positions migration, createPlayer/updatePlayer/archivePlayer actions, react-hook-form+Zod, SemaforoBadge neutral placeholder, atomic RPC upsert_player_positions)
 # 2026-05-16: 1-12 → review (dev-story complete; 3 migrations + 5 helpers + 34 tests; build ✅ lint ✅ all ACs verified; audit_logs + telemetry_events + logger + fire-and-forget + RLS + pg_cron retention)
@@ -119,7 +120,7 @@ development_status:
   # Epic 2: Plantel, Calendário & Sessões (gestão operacional do staff)
   epic-2: in-progress
   2-1-player-records-plantel-list: done
-  2-2-player-photo-upload: backlog
+  2-2-player-photo-upload: ready-for-dev
   2-3-player-metrics-time-series-weight-height: backlog
   2-4-mark-player-as-inactive-soft-status: backlog
   2-5-season-management-epocas: backlog
