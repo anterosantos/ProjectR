@@ -15,7 +15,7 @@ psql "$SUPABASE_DB_URL" -c "
     name text NOT NULL,
     executed_at timestamptz DEFAULT now()
   );
-"
+" 2>&1 | grep -v "already exists" || true
 
 echo "✅ Connected"
 echo ""
@@ -29,7 +29,7 @@ for file in $(ls -1 "$MIGRATIONS_DIR"/*.sql 2>/dev/null | sort); do
   version=$(echo "$filename" | cut -d_ -f1)
 
   # Check if already executed
-  RESULT=$(psql "$SUPABASE_DB_URL" -tAc "SELECT 1 FROM _schema_migrations WHERE version = $version LIMIT 1;")
+  RESULT=$(psql "$SUPABASE_DB_URL" -tAc "SELECT 1 FROM _schema_migrations WHERE version = $version LIMIT 1;" 2>/dev/null || echo "")
 
   if [ "$RESULT" = "1" ]; then
     echo "  ⏭️  $filename (already applied)"
@@ -39,15 +39,21 @@ for file in $(ls -1 "$MIGRATIONS_DIR"/*.sql 2>/dev/null | sort); do
   echo "  ⏳ Executing $filename..."
 
   # Execute migration with transaction
+  SQL_CONTENT=$(cat "$file")
   psql "$SUPABASE_DB_URL" << EOF
 BEGIN;
-\i $file
+$SQL_CONTENT
 INSERT INTO _schema_migrations (version, name) VALUES ($version, '$filename');
 COMMIT;
 EOF
 
-  echo "  ✅ $filename"
-  ((EXECUTED++))
+  if [ $? -eq 0 ]; then
+    echo "  ✅ $filename"
+    ((EXECUTED++))
+  else
+    echo "  ❌ $filename failed"
+    exit 1
+  fi
 done
 
 echo ""
