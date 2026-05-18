@@ -9,7 +9,6 @@ import {
   getRoleHomePath,
   createClient,
 } from "@/lib/supabase/client";
-import { getCurrentUserRole } from "@/lib/actions/auth";
 import Link from "next/link";
 
 type Stage = "password" | "mfa";
@@ -52,8 +51,18 @@ export default function LoginPage() {
   const redirectToHome = async () => {
     try {
       console.log("[Login] redirectToHome called");
-      const { user, role, error } = await getCurrentUserRole();
-      console.log("[Login] getCurrentUserRole returned:", { user: user?.id, role, error });
+      const response = await fetch("/api/auth/user-role");
+      console.log("[Login] API response status:", response.status);
+
+      if (!response.ok) {
+        console.error("[Login] API error:", response.status);
+        setError("Email ou password incorretos");
+        setIsLoading(false);
+        return;
+      }
+
+      const { user, role, error } = await response.json();
+      console.log("[Login] API returned:", { user: user?.id, role, error });
 
       if (error || !user) {
         console.error("[Login] Error: no user or error returned");
@@ -73,7 +82,7 @@ export default function LoginPage() {
         router.push(homePath);
       } catch (navError) {
         console.error("Navigation error:", navError);
-        setError("Erro ao redirecionar. Por favor, tenta novamente.");
+        setError("Erro ao redirecionar. Por favour, tenta novamente.");
         setIsLoading(false);
       }
     } catch (err) {
