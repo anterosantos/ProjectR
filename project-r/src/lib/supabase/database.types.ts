@@ -355,7 +355,7 @@ export type Database = {
         Returns: void
       }
       set_current_season: {
-        Args: { p_season_id: string; p_club_id: string }
+        Args: { p_season_id: string }
         Returns: void
       }
     }
