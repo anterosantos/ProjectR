@@ -51,26 +51,33 @@ export default function LoginPage() {
 
   const redirectToHome = async () => {
     try {
+      console.log("[Login] redirectToHome called");
       const { user, role, error } = await getCurrentUserRole();
+      console.log("[Login] getCurrentUserRole returned:", { user: user?.id, role, error });
+
       if (error || !user) {
+        console.error("[Login] Error: no user or error returned");
         setError("Email ou password incorretos");
         setIsLoading(false);
         return;
       }
       if (!role) {
+        console.warn("[Login] Warning: no role found");
         setError("Perfil não configurado. Contacta o administrador.");
         setIsLoading(false);
         return;
       }
       try {
-        router.push(getRoleHomePath(role));
+        const homePath = getRoleHomePath(role);
+        console.log("[Login] Redirecting to:", homePath);
+        router.push(homePath);
       } catch (navError) {
         console.error("Navigation error:", navError);
         setError("Erro ao redirecionar. Por favor, tenta novamente.");
         setIsLoading(false);
       }
     } catch (err) {
-      console.error("Session check error:", err);
+      console.error("[Login] Session check error:", err);
       setError("Erro ao recuperar dados de sessão. Por favor, tenta novamente.");
       setIsLoading(false);
     }
