@@ -148,8 +148,10 @@ describe("RLS Policies", () => {
     }
 
     // Delete auth users
-    for (const user of Object.values(users)) {
-      await adminClient.auth.admin.deleteUser(user.id);
+    if (users) {
+      for (const user of Object.values(users)) {
+        await adminClient.auth.admin.deleteUser(user.id);
+      }
     }
   });
 

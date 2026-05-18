@@ -57,10 +57,21 @@ jobs:
       - name: Export Supabase credentials for tests
         working-directory: project-r
         run: |
-          STATUS=$(supabase status)
-          echo "NEXT_PUBLIC_SUPABASE_URL=$(echo "$STATUS" | grep 'API URL' | awk '{print $NF}')" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$(echo "$STATUS" | grep 'anon key' | awk '{print $NF}')" >> $GITHUB_ENV
-          echo "SUPABASE_SERVICE_ROLE_KEY=$(echo "$STATUS" | grep 'service_role key' | awk '{print $NF}')" >> $GITHUB_ENV
+          # URL is fixed per config.toml [api] port = 54321
+          echo "NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321" >> $GITHUB_ENV
+          # Strip ANSI codes then extract JWT tokens by their invariant eyJ prefix
+          # (base64url of {"...}) — robust against format/color changes across CLI versions
+          STATUS=$(supabase status 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
+          ANON_KEY=$(echo "$STATUS" | grep -i 'anon' | grep -oE 'eyJ[A-Za-z0-9._-]+' | head -1)
+          SERVICE_KEY=$(echo "$STATUS" | grep -i 'service' | grep -oE 'eyJ[A-Za-z0-9._-]+' | head -1)
+          if [ -z "$ANON_KEY" ] || [ -z "$SERVICE_KEY" ]; then
+            echo "ERROR: Failed to extract Supabase credentials. Raw status output:"
+            echo "$STATUS"
+            exit 1
+          fi
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${ANON_KEY}" >> $GITHUB_ENV
+          echo "SUPABASE_SERVICE_ROLE_KEY=${SERVICE_KEY}" >> $GITHUB_ENV
+          echo "Credentials extracted (anon: ${ANON_KEY:0:20}..., service: ${SERVICE_KEY:0:20}...)"
       - run: npm run test:coverage
       - name: Stop Supabase
         if: always()
