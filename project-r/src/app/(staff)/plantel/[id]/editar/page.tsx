@@ -9,10 +9,9 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-  const result = await getPlayer(id);
-  if (!result.ok) return { title: "Editar Jogador" };
-  return { title: `Editar — ${result.data.full_name}` };
+  // Skip database call during build - use default title
+  // Full name will be shown by the page component once loaded
+  return { title: "Editar Jogador" };
 }
 
 export default async function EditarJogadorPage({
