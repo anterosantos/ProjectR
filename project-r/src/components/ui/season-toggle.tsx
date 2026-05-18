@@ -31,7 +31,7 @@ export function SeasonToggle({ currentSeason }: SeasonToggleProps) {
         }`}
         onClick={() => setView("current")}
       >
-        {currentSeason.name}
+        {currentSeason.name || "S/N"}
       </button>
       <button
         className={`rounded-full px-3 py-1 transition-colors ${

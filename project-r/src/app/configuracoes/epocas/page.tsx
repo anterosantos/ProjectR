@@ -28,8 +28,15 @@ export default async function EpocasPage({
     redirect("/");
   }
 
+  if (!profile?.club_id) {
+    redirect("/");
+  }
+
   const result = await getSeasonsForClub();
-  const seasons = result.ok ? result.data : [];
+  if (!result.ok) {
+    throw new Error(`Falha ao carregar épocas: ${result.error.message}`);
+  }
+  const seasons = result.data;
 
   const { criada, actualizada } = await searchParams;
 

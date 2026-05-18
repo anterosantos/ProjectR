@@ -63,10 +63,12 @@ export async function createSeason(
 ): Promise<Result<Season, AppError>> {
   const validated = SeasonCreateSchema.safeParse(input);
   if (!validated.success) {
+    const messages = validated.error.issues
+      .map((issue) => issue.message)
+      .join("; ");
     return err({
       code: "validation",
-      message:
-        validated.error.issues[0]?.message ?? "Dados inválidos",
+      message: messages || "Dados inválidos",
     });
   }
 
@@ -93,9 +95,14 @@ export async function createSeason(
   if (validated.data.setAsCurrent) {
     const { error: rpcError } = await supabase.rpc("set_current_season", {
       p_season_id: season.id,
-      p_club_id: profile.club_id,
     });
-    if (rpcError) return err({ code: "unknown", message: rpcError.message });
+    if (rpcError) {
+      await supabase.from("seasons").delete().eq("id", season.id);
+      return err({
+        code: "unknown",
+        message: `RPC falhou: ${rpcError.message}`,
+      });
+    }
   }
 
   try {
@@ -112,10 +119,12 @@ export async function updateSeason(
 ): Promise<Result<Season, AppError>> {
   const validated = SeasonUpdateSchema.safeParse(input);
   if (!validated.success) {
+    const messages = validated.error.issues
+      .map((issue) => issue.message)
+      .join("; ");
     return err({
       code: "validation",
-      message:
-        validated.error.issues[0]?.message ?? "Dados inválidos",
+      message: messages || "Dados inválidos",
     });
   }
 
@@ -130,19 +139,24 @@ export async function updateSeason(
       name: validated.data.name,
       start_date: validated.data.startDate,
       end_date: validated.data.endDate,
+      is_current: validated.data.setAsCurrent ? true : false,
     })
     .eq("id", validated.data.id)
     .eq("club_id", profile.club_id)
     .select("*")
     .single();
 
-  if (error) return err({ code: "unknown", message: error.message });
+  if (error) {
+    if (error.message.includes("No rows found")) {
+      return err({ code: "not_found", message: "Época não encontrada" });
+    }
+    return err({ code: "unknown", message: error.message });
+  }
   const season = data as Season;
 
-  if (validated.data.setAsCurrent) {
+  if (validated.data.setAsCurrent && !season.is_current) {
     const { error: rpcError } = await supabase.rpc("set_current_season", {
       p_season_id: season.id,
-      p_club_id: profile.club_id,
     });
     if (rpcError) return err({ code: "unknown", message: rpcError.message });
   }

@@ -43,14 +43,24 @@ CREATE POLICY "seasons_update" ON seasons
 
 -- Atomic swap: unsets all current seasons for club, then sets the given one
 -- SECURITY DEFINER bypasses RLS for the swap operation
-CREATE OR REPLACE FUNCTION public.set_current_season(p_season_id uuid, p_club_id uuid)
+-- Derives club_id from authenticated user context (no parameter footgun)
+CREATE OR REPLACE FUNCTION public.set_current_season(p_season_id uuid)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  v_club_id uuid;
 BEGIN
-  UPDATE seasons SET is_current = false WHERE club_id = p_club_id;
-  UPDATE seasons SET is_current = true WHERE id = p_season_id AND club_id = p_club_id;
+  v_club_id := auth.club_id();
+  IF auth.user_role() NOT IN ('coach', 'analyst') THEN
+    RAISE EXCEPTION 'Insufficient privileges: only coach/analyst can set current season';
+  END IF;
+
+  UPDATE seasons SET is_current = false WHERE club_id = v_club_id;
+  UPDATE seasons SET is_current = true WHERE id = p_season_id AND club_id = v_club_id;
 END;
 $$;
+
+GRANT EXECUTE ON FUNCTION public.set_current_season TO authenticated;

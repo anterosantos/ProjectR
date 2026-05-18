@@ -1,6 +1,6 @@
 # Story 2.5: Season Management (Épocas)
 
-**Status:** review
+**Status:** done
 
 **Story ID:** 2.5
 **Epic:** Epic 2 — Plantel, Calendário & Sessões (gestão operacional do staff)
@@ -1065,11 +1065,50 @@ ProjectR/ (git root)
 
 ---
 
+## Review Findings
+
+### Decisões Necessárias (Resolvidas)
+
+- [x] [Review][Decision→Patch] RPC design: derive `club_id` from `auth.club_id()` — **Resolvida:** Removido parâmetro `p_club_id`, função deriva de auth context. ✅ Aplicada.
+
+### Patches (Aplicados)
+
+- [x] [Review][Patch] Missing GRANT EXECUTE on RPC function [migrations/000110_seasons.sql] — ✅ Adicionado `GRANT EXECUTE ON FUNCTION public.set_current_season TO authenticated;`
+
+- [x] [Review][Patch] RPC `set_current_season` missing authorization check [migrations/000110_seasons.sql:46-54] — ✅ Adicionado `IF auth.user_role() NOT IN ('coach', 'analyst') THEN RAISE EXCEPTION;`
+
+- [x] [Review][Patch] RPC parameter redesigned (resolve decision+patch) [migrations/000110_seasons.sql] — ✅ Assinatura alterada de `(p_season_id uuid, p_club_id uuid)` para `(p_season_id uuid)`; derivar club_id internamente.
+
+- [x] [Review][Patch] Validation errors: show all, not just first [src/lib/actions/seasons.ts:createSeason, updateSeason] — ✅ Recolher todas as `issues` e concatenar mensagens.
+
+- [x] [Review][Patch] Edit form: unchecking "set as current" doesn't unset is_current [src/lib/actions/seasons.ts:updateSeason] — ✅ Campo `is_current` adicionado ao update com `validated.data.setAsCurrent ? true : false`.
+
+- [x] [Review][Patch] RPC partial failure: season orphaned after creation [src/lib/actions/seasons.ts:createSeason] — ✅ Se RPC falha, DELETE season órfã antes de retornar erro.
+
+- [x] [Review][Patch] Update season: "not found" error not differentiated [src/lib/actions/seasons.ts:updateSeason] — ✅ Verificar `error.message.includes("No rows found")` e retornar `{code: "not_found"}`.
+
+- [x] [Review][Patch] Update RPC calls to only pass p_season_id [src/lib/actions/seasons.ts] — ✅ `p_club_id` removido de ambas as chamadas RPC (createSeason, updateSeason).
+
+- [x] [Review][Patch] Page component: missing explicit profile.club_id check [src/app/configuracoes/epocas/page.tsx] — ✅ Adicionado `if (!profile?.club_id) redirect("/");`
+
+- [x] [Review][Patch] Page component: getSeasonsForClub() error falls silently [src/app/configuracoes/epocas/page.tsx] — ✅ Verificar `!result.ok` e lançar erro em vez de fallback silencioso.
+
+- [x] [Review][Patch] useSeasonView: localStorage.setItem() throws [src/hooks/useSeasonView.ts] — ✅ Envolver em try-catch com console.warn fallback.
+
+- [x] [Review][Patch] SeasonToggle: empty season name fallback [src/components/ui/season-toggle.tsx] — ✅ Usar `currentSeason.name || "S/N"`.
+
+### Deferred
+
+- [x] [Review][Defer] Overlapping seasons not validated [schema/business logic] — deferred, pre-existing (functional requirement, not code defect; would need new DB constraint or business logic for date conflict detection, out of scope for this review)
+
+---
+
 ## Change Log
 
 | Data | Alteração |
 |------|-----------|
 | 2026-05-18 | Implementação completa da Story 2.5: migração 000110_seasons, schemas Zod, server actions CRUD, hook useSeasonView, SeasonToggle, SeasonForm, página /configuracoes/epocas, link em /configuracoes, 27 testes novos (543 total). StickyHeader actualizado com backHref. |
+| 2026-05-18 | Code review completa: 1 decisão necessária (RPC design: derive club_id?), 11 patches identificados (RPC grants, auth checks, error handling, edge cases, localStorage, UI fallbacks), 1 item deferido. Acceptance criteria 100% conformes; spec-compliant. |
 
 ---
 

@@ -48,7 +48,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-08
-last_updated: "2026-05-18 (2-5 → review: dev-story complete; migration 000110_seasons; seasons CRUD; set_current_season RPC; useSeasonView hook localStorage; SeasonToggle; SeasonForm create+edit; /configuracoes/epocas; 543/569 testes ✅; lint 0 erros; typecheck ✅; build ✅; AC #1-#7 verificados)"
+last_updated: "2026-05-18 (2-5 → done: code-review complete; 12 patches aplicados: RPC redesign (derive club_id), auth check, GRANT EXECUTE, error differentiation, validation messages, orphan cleanup, localStorage fallback, UI fallbacks, profile check; all findings resolved; spec 100% compliant)"
 # 2026-05-18: 2-3 → ready-for-dev (bmad-create-story: migração 000090_player_metrics, recharts dual-axis, DrillDownSheet form, janela 24h edição, Zod refine "pelo menos um campo")
 # 2026-05-17: 2-2 → ready-for-dev (bmad-create-story: bucket RLS, migration 000080, uploadPlayerPhoto server action, getPlayerPhotoUrl signed URL, <PlayerPhoto> component, cross-club isolation, sharp redimensionamento)
 # 2026-05-17: 2-1 → review (dev-story complete; 000070+000075 migrations; createPlayer/updatePlayer/archivePlayer actions; react-hook-form+Zod; SemaforoBadge neutral; ArchivePlayerDialog; 366/366 testes ✅; lint ✅; typecheck ✅; build ✅; AC #1-#7 verificados)
@@ -126,7 +126,7 @@ development_status:
   2-2-player-photo-upload: done
   2-3-player-metrics-time-series-weight-height: done
   2-4-mark-player-as-inactive-soft-status: done
-  2-5-season-management-epocas: review
+  2-5-season-management-epocas: done
   2-6-session-management-create-edit-cancel-treino-jogo-amigavel: backlog
   2-7-calendar-view-per-role: backlog
   2-8-match-squad-selection-convocados-starting-xi: backlog

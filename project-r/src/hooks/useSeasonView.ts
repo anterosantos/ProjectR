@@ -19,7 +19,11 @@ export function useSeasonView(): [SeasonView, (view: SeasonView) => void] {
 
   function setAndPersist(v: SeasonView) {
     setView(v);
-    localStorage.setItem(STORAGE_KEY, v);
+    try {
+      localStorage.setItem(STORAGE_KEY, v);
+    } catch (e) {
+      console.warn("localStorage unavailable, view preference not persisted", e);
+    }
   }
 
   return [view, setAndPersist];
