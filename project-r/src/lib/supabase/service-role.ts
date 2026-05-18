@@ -13,13 +13,24 @@ import type { Database } from "./database.types";
  * NEVER use in browser code or for user-initiated mutations without an RLS
  * layer above. ESLint rule blocks imports outside whitelisted paths.
  */
-export const serviceRoleClient = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+export function getServiceRoleClient() {
+  return createClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    }
+  );
+}
+
+export const serviceRoleClient = new Proxy(
+  {},
   {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
+    get(target, prop) {
+      return (getServiceRoleClient() as any)[prop];
     },
   }
-);
+) as ReturnType<typeof getServiceRoleClient>;

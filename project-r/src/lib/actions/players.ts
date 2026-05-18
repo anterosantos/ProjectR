@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
-import { serviceRoleClient } from "@/lib/supabase/service-role";
+import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { newId } from "@/lib/uuid";
 import { logAccess } from "@/lib/actions/audit";
 import { uploadPlayerPhotoFile } from "@/lib/storage";
@@ -569,8 +569,9 @@ export async function invitePlayer(
   }
 
   // Enviar convite via Admin API
+  const serviceRole = getServiceRoleClient();
   const { data: inviteData, error: inviteError } =
-    await serviceRoleClient.auth.admin.inviteUserByEmail(
+    await serviceRole.auth.admin.inviteUserByEmail(
       validated.data.email,
       {
         data: {
@@ -604,7 +605,7 @@ export async function invitePlayer(
   }
 
   // Criar perfil (ANTES da aceitação — garante que o Auth Hook injeta claims na primeira sessão)
-  const { error: profileError } = await serviceRoleClient
+  const { error: profileError } = await serviceRole
     .from("profiles")
     .insert({
       id: inviteData.user.id,
@@ -615,7 +616,7 @@ export async function invitePlayer(
 
   if (profileError) {
     // Compensação: eliminar o utilizador criado para manter estado consistente
-    const deleteResult = await serviceRoleClient.auth.admin.deleteUser(inviteData.user.id);
+    const deleteResult = await serviceRole.auth.admin.deleteUser(inviteData.user.id);
     if (deleteResult.error) {
       // Falha crítica: auth user criado mas não conseguimos deleter e perfil não criou
       console.error("[invitePlayer] Critical: orphaned auth user", {
@@ -711,8 +712,9 @@ export async function resendPlayerInvite(
   }
 
   // Reenviar convite via Admin API
+  const serviceRole = getServiceRoleClient();
   const { error: resendError } =
-    await serviceRoleClient.auth.admin.inviteUserByEmail(player.email, {
+    await serviceRole.auth.admin.inviteUserByEmail(player.email, {
       data: {
         club_id: staffProfile.club_id,
         role: "player",

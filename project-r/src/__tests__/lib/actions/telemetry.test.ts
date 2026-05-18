@@ -8,6 +8,9 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 vi.mock("@/lib/supabase/service-role", () => ({
+  getServiceRoleClient: vi.fn(() => ({
+    from: vi.fn(),
+  })),
   serviceRoleClient: {
     from: vi.fn(),
   },
@@ -22,18 +25,23 @@ vi.mock("@/lib/logger", () => ({
 }));
 
 import { createServerClient } from "@/lib/supabase/server";
-import { serviceRoleClient } from "@/lib/supabase/service-role";
+import { getServiceRoleClient, serviceRoleClient } from "@/lib/supabase/service-role";
 
 describe("logTelemetry", () => {
+  let mockInsert: ReturnType<typeof vi.fn>;
+  let mockServiceRoleClient: any;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockInsert = vi.fn().mockResolvedValue({ error: null });
+    mockServiceRoleClient = {
+      from: vi.fn().mockReturnValue({ insert: mockInsert }),
+    };
+    (getServiceRoleClient as any).mockReturnValue(mockServiceRoleClient);
   });
 
   describe("Success path", () => {
     it("should insert valid telemetry event successfully", async () => {
-      const mockInsert = vi.fn().mockResolvedValue({ error: null });
-      const mockFrom = vi.fn().mockReturnValue({ insert: mockInsert });
-
       (createServerClient as any).mockResolvedValue({
         auth: {
           getUser: vi.fn().mockResolvedValue({
@@ -52,8 +60,6 @@ describe("logTelemetry", () => {
           }),
         }),
       });
-
-      (serviceRoleClient.from as any) = mockFrom;
 
       const result = await logTelemetry("survey_submitted", {
         playerId: "player-789",
@@ -68,9 +74,6 @@ describe("logTelemetry", () => {
     });
 
     it("should use service-role client to bypass RLS", async () => {
-      const mockInsert = vi.fn().mockResolvedValue({ error: null });
-      const mockFrom = vi.fn().mockReturnValue({ insert: mockInsert });
-
       (createServerClient as any).mockResolvedValue({
         auth: {
           getUser: vi.fn().mockResolvedValue({
@@ -90,21 +93,20 @@ describe("logTelemetry", () => {
         }),
       });
 
-      (serviceRoleClient.from as any) = mockFrom;
-
       await logTelemetry("app_started", {});
 
       // Verify service-role client was used (not authenticated client)
-      expect(mockFrom).toHaveBeenCalledWith("telemetry_events");
+      expect(mockServiceRoleClient.from).toHaveBeenCalledWith("telemetry_events");
     });
   });
 
   describe("Failure handling (fire-and-forget)", () => {
     it("should log error but return success if insert fails", async () => {
-      const mockInsert = vi.fn().mockResolvedValue({
+      const mockInsertError = vi.fn().mockResolvedValue({
         error: { message: "Database error", code: "DB_ERROR" },
       });
-      const mockFrom = vi.fn().mockReturnValue({ insert: mockInsert });
+      mockServiceRoleClient.from = vi.fn().mockReturnValue({ insert: mockInsertError });
+      (getServiceRoleClient as any).mockReturnValue(mockServiceRoleClient);
 
       (createServerClient as any).mockResolvedValue({
         auth: {
@@ -124,8 +126,6 @@ describe("logTelemetry", () => {
           }),
         }),
       });
-
-      (serviceRoleClient.from as any) = mockFrom;
 
       const result = await logTelemetry("event", {});
 
@@ -169,9 +169,6 @@ describe("logTelemetry", () => {
     });
 
     it("should accept any JSON-serializable payload", async () => {
-      const mockInsert = vi.fn().mockResolvedValue({ error: null });
-      const mockFrom = vi.fn().mockReturnValue({ insert: mockInsert });
-
       (createServerClient as any).mockResolvedValue({
         auth: {
           getUser: vi.fn().mockResolvedValue({
@@ -191,8 +188,6 @@ describe("logTelemetry", () => {
         }),
       });
 
-      (serviceRoleClient.from as any) = mockFrom;
-
       const payload = {
         nested: { data: [1, 2, 3] },
         boolean: true,
@@ -207,8 +202,9 @@ describe("logTelemetry", () => {
 
   describe("Context extraction", () => {
     it("should extract club_id from user profile", async () => {
-      const mockInsert = vi.fn().mockResolvedValue({ error: null });
-      const mockFrom = vi.fn().mockReturnValue({ insert: mockInsert });
+      const mockInsertWithClubId = vi.fn().mockResolvedValue({ error: null });
+      mockServiceRoleClient.from = vi.fn().mockReturnValue({ insert: mockInsertWithClubId });
+      (getServiceRoleClient as any).mockReturnValue(mockServiceRoleClient);
 
       const expectedClubId = "club-789";
 
@@ -231,12 +227,10 @@ describe("logTelemetry", () => {
         }),
       });
 
-      (serviceRoleClient.from as any) = mockFrom;
-
       await logTelemetry("event", {});
 
       // Verify club_id was included in the insert call
-      const insertCall = mockInsert.mock.calls[0];
+      const insertCall = mockInsertWithClubId.mock.calls[0];
       expect(insertCall?.[0]).toMatchObject({
         club_id: expectedClubId,
       });

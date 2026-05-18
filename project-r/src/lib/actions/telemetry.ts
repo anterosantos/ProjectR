@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { serviceRoleClient } from "@/lib/supabase/service-role";
+import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { logger } from "@/lib/logger";
 import { createServerClient } from "@/lib/supabase/server";
 import type { Result, AppError } from "@/lib/types";
@@ -81,7 +81,8 @@ export async function logTelemetry(
 
     // Insert into telemetry_events using service-role client
     // Service-role bypasses RLS; telemetry is system-internal
-    const { error: insertError } = await serviceRoleClient
+    const serviceRole = getServiceRoleClient();
+    const { error: insertError } = await serviceRole
       .from("telemetry_events")
       .insert({
         club_id: profile.club_id,
