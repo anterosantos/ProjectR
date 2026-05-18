@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
+import { serviceRoleClient } from "@/lib/supabase/service-role";
 import { newId } from "@/lib/uuid";
 import { logAccess } from "@/lib/actions/audit";
 import { uploadPlayerPhotoFile } from "@/lib/storage";
@@ -11,9 +12,11 @@ import {
   ArchivePlayerSchema,
   MarkInactiveSchema,
   ReactivatePlayerSchema,
+  InvitePlayerSchema,
+  ResendInviteSchema,
   AGE_GROUPS,
 } from "@/lib/schemas/players";
-import type { PlayerCreate, PlayerUpdate, ArchivePlayer, MarkInactive, ReactivatePlayer, AgeGroup } from "@/lib/schemas/players";
+import type { PlayerCreate, PlayerUpdate, ArchivePlayer, MarkInactive, ReactivatePlayer, InvitePlayer, ResendInvite, AgeGroup } from "@/lib/schemas/players";
 import type { Result, AppError } from "@/lib/types";
 import { ok, err } from "@/lib/types";
 import type { Json } from "@/lib/supabase/database.types";
@@ -37,6 +40,8 @@ export interface PlayerWithPositions {
   is_active: boolean;
   inactive_reason: string | null;
   photo_path: string | null;
+  email: string | null;
+  invite_sent_at: string | null;
   created_at: string;
   updated_at: string;
   positions: PlayerPosition[];
@@ -126,7 +131,7 @@ export async function getPlayer(
 
   const { data, error } = await supabase
     .from("players")
-    .select("id, club_id, profile_id, jersey_num, full_name, birthdate, age_group, is_archived, is_active, inactive_reason, photo_path, created_at, updated_at, positions(id, position, is_primary, sort_order)")
+    .select("id, club_id, profile_id, jersey_num, full_name, birthdate, age_group, is_archived, is_active, inactive_reason, photo_path, email, invite_sent_at, created_at, updated_at, positions(id, position, is_primary, sort_order)")
     .eq("id", playerId)
     .eq("club_id", profile.club_id)
     .single();
@@ -499,5 +504,243 @@ export async function uploadPlayerPhoto(
   await logAccess("player.photo_updated", "player", playerId);
 
   return ok({ photoPath: uploadResult.data.photoPath });
+}
+
+export async function invitePlayer(
+  input: InvitePlayer
+): Promise<Result<void, AppError>> {
+  const validated = InvitePlayerSchema.safeParse(input);
+  if (!validated.success) {
+    return err({
+      code: "validation",
+      message: "Dados inválidos",
+      details: { issues: validated.error.issues },
+    });
+  }
+
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return err({ code: "unauthorized", message: "Não autenticado" });
+
+  const { data: staffProfile } = await supabase
+    .from("profiles")
+    .select("club_id, role")
+    .eq("id", user.id)
+    .single();
+  if (!staffProfile) return err({ code: "forbidden", message: "Perfil não encontrado" });
+  if (!["coach", "analyst"].includes(staffProfile.role)) {
+    return err({
+      code: "forbidden",
+      message: "Sem permissão para convidar jogadores",
+    });
+  }
+
+  // Verificar jogador pertence ao clube e não está arquivado
+  const { data: player } = await supabase
+    .from("players")
+    .select("id, full_name, age_group, email, is_archived, club_id")
+    .eq("id", validated.data.playerId)
+    .eq("club_id", staffProfile.club_id)
+    .single();
+  if (!player) return err({ code: "not_found", message: "Jogador não encontrado" });
+  if (player.is_archived) {
+    return err({
+      code: "forbidden",
+      message: "Não é possível convidar jogador arquivado",
+    });
+  }
+
+  // Verificar unicidade de email no clube
+  const { data: existingByEmail } = await supabase
+    .from("players")
+    .select("id")
+    .eq("club_id", staffProfile.club_id)
+    .eq("email", validated.data.email)
+    .neq("id", validated.data.playerId)
+    .maybeSingle();
+  if (existingByEmail) {
+    return err({
+      code: "email_in_use",
+      message: "Este email já está associado a outro jogador neste clube",
+      details: { field: "email" },
+    });
+  }
+
+  // Enviar convite via Admin API
+  const { data: inviteData, error: inviteError } =
+    await serviceRoleClient.auth.admin.inviteUserByEmail(
+      validated.data.email,
+      {
+        data: {
+          club_id: staffProfile.club_id,
+          role: "player",
+          player_id: validated.data.playerId,
+        },
+      }
+    );
+
+  if (inviteError) {
+    // Supabase retorna erro se email já existe em auth.users
+    const isConflict =
+      inviteError.message.toLowerCase().includes("already registered") ||
+      inviteError.message.toLowerCase().includes("already been registered");
+    if (isConflict) {
+      return err({
+        code: "email_conflict",
+        message: "Este email já tem uma conta no sistema",
+        details: { field: "email" },
+      });
+    }
+    return err({ code: "unknown", message: inviteError.message });
+  }
+
+  if (!inviteData.user) {
+    return err({
+      code: "unknown",
+      message: "Falha ao criar utilizador no Supabase",
+    });
+  }
+
+  // Criar perfil (ANTES da aceitação — garante que o Auth Hook injeta claims na primeira sessão)
+  const { error: profileError } = await serviceRoleClient
+    .from("profiles")
+    .insert({
+      id: inviteData.user.id,
+      club_id: staffProfile.club_id,
+      role: "player",
+      full_name: player.full_name,
+    });
+
+  if (profileError) {
+    // Compensação: eliminar o utilizador criado para manter estado consistente
+    const deleteResult = await serviceRoleClient.auth.admin.deleteUser(inviteData.user.id);
+    if (deleteResult.error) {
+      // Falha crítica: auth user criado mas não conseguimos deleter e perfil não criou
+      console.error("[invitePlayer] Critical: orphaned auth user", {
+        userId: inviteData.user.id,
+        playerId: validated.data.playerId,
+        deleteError: deleteResult.error.message,
+      });
+    }
+    return err({
+      code: "profile_creation_failed",
+      message:
+        "Erro ao criar perfil do jogador. Por favor tenta novamente.",
+    });
+  }
+
+  // Ligar profile_id ao registo do jogador (usar now() para timestamp consistente)
+  const { error: updateError } = await supabase
+    .from("players")
+    .update({
+      profile_id: inviteData.user.id,
+      email: validated.data.email,
+      invite_sent_at: new Date().toISOString(),
+    })
+    .eq("id", validated.data.playerId)
+    .eq("club_id", staffProfile.club_id)
+    .is("profile_id", null);
+
+  if (updateError) {
+    return err({
+      code: "link_failed",
+      message:
+        "Convite enviado mas não foi possível ligar o jogador. Contacta o suporte.",
+    });
+  }
+
+  await logAccess("player.invited", "player", validated.data.playerId);
+
+  redirect(`/plantel/${validated.data.playerId}?invited=1`);
+}
+
+export async function resendPlayerInvite(
+  input: ResendInvite
+): Promise<Result<void, AppError>> {
+  const validated = ResendInviteSchema.safeParse(input);
+  if (!validated.success) {
+    return err({
+      code: "validation",
+      message: "Dados inválidos",
+      details: { issues: validated.error.issues },
+    });
+  }
+
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return err({ code: "unauthorized", message: "Não autenticado" });
+
+  const { data: staffProfile } = await supabase
+    .from("profiles")
+    .select("club_id, role")
+    .eq("id", user.id)
+    .single();
+  if (!staffProfile) return err({ code: "forbidden", message: "Perfil não encontrado" });
+  if (!["coach", "analyst"].includes(staffProfile.role)) {
+    return err({
+      code: "forbidden",
+      message: "Sem permissão para reenviar convites",
+    });
+  }
+
+  // Verificar jogador pertence ao clube e não está arquivado
+  const { data: player } = await supabase
+    .from("players")
+    .select("id, email, club_id, is_archived")
+    .eq("id", validated.data.playerId)
+    .eq("club_id", staffProfile.club_id)
+    .single();
+  if (!player) return err({ code: "not_found", message: "Jogador não encontrado" });
+  if (player.is_archived) {
+    return err({
+      code: "forbidden",
+      message: "Não é possível reenviar convite para jogador arquivado",
+    });
+  }
+
+  // Verificar que jogador tem email registado (pré-condição)
+  if (!player.email) {
+    return err({
+      code: "no_email",
+      message: "Jogador não tem email registado. Enviar convite primeiro.",
+    });
+  }
+
+  // Reenviar convite via Admin API
+  const { error: resendError } =
+    await serviceRoleClient.auth.admin.inviteUserByEmail(player.email, {
+      data: {
+        club_id: staffProfile.club_id,
+        role: "player",
+        player_id: validated.data.playerId,
+      },
+    });
+
+  if (resendError) {
+    return err({ code: "unknown", message: resendError.message });
+  }
+
+  // Atualizar invite_sent_at
+  const { error: updateError } = await supabase
+    .from("players")
+    .update({ invite_sent_at: new Date().toISOString() })
+    .eq("id", validated.data.playerId)
+    .eq("club_id", staffProfile.club_id)
+    .not("email", "is", null);
+
+  if (updateError) {
+    return err({
+      code: "update_failed",
+      message: "Convite reenviado mas não foi possível registar. Tenta novamente.",
+    });
+  }
+
+  await logAccess("player.invite_resent", "player", validated.data.playerId);
+
+  redirect(`/plantel/${validated.data.playerId}?resent=1`);
 }
 

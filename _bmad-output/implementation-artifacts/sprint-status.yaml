@@ -48,7 +48,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-08
-last_updated: "2026-05-18 (2-4 → done: code-review complete; 12 patches applied: null checks, state validation, archive check, tenant isolation, race condition fix, form UX, error handling, schema validation; 442/442 testes ✅; lint ✅; typecheck ✅; build ✅)"
+last_updated: "2026-05-18 (2-10 → done: code-review complete; 15 patches applied: email case sensitivity, error handling, role/archived checks, test expansion, UNIQUE constraint, AlertCircle icon, timestamp logic, race condition protection; 469/469 tests ✅; lint ✅; typecheck ✅; build ✅)"
 # 2026-05-18: 2-3 → ready-for-dev (bmad-create-story: migração 000090_player_metrics, recharts dual-axis, DrillDownSheet form, janela 24h edição, Zod refine "pelo menos um campo")
 # 2026-05-17: 2-2 → ready-for-dev (bmad-create-story: bucket RLS, migration 000080, uploadPlayerPhoto server action, getPlayerPhotoUrl signed URL, <PlayerPhoto> component, cross-club isolation, sharp redimensionamento)
 # 2026-05-17: 2-1 → review (dev-story complete; 000070+000075 migrations; createPlayer/updatePlayer/archivePlayer actions; react-hook-form+Zod; SemaforoBadge neutral; ArchivePlayerDialog; 366/366 testes ✅; lint ✅; typecheck ✅; build ✅; AC #1-#7 verificados)
@@ -131,7 +131,7 @@ development_status:
   2-7-calendar-view-per-role: backlog
   2-8-match-squad-selection-convocados-starting-xi: backlog
   2-9-retention-policy-preserve-history-5-seasons-anonymization-hook: backlog
-  2-10-player-invite-email-account-linking: ready-for-dev
+  2-10-player-invite-email-account-linking: done
   epic-2-retrospective: optional
 
   # Epic 3: Consentimento Parental & Direitos GDPR

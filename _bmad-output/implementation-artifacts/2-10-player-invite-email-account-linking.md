@@ -1,6 +1,6 @@
 # Story 2.10: Player Invite — Email & Account Linking
 
-**Status:** ready-for-dev
+**Status:** done
 
 **Story ID:** 2.10
 **Epic:** Epic 2 — Plantel, Calendário & Sessões (gestão operacional do staff)
@@ -817,6 +817,54 @@ claude-sonnet-4-6
 - `project-r/src/app/(staff)/plantel/[id]/invite-player-sheet.tsx` (NEW)
 - `project-r/src/app/(staff)/plantel/[id]/resend-invite-button.tsx` (NEW)
 - `project-r/src/__tests__/lib/actions/invite.test.ts` (NEW)
+
+---
+
+## Review Findings (Code Review — 2026-05-18)
+
+### Decision-Needed
+
+- [ ] [Review][Decision] **Test coverage expansion** — The integration test file currently contains only schema validation tests (14 tests). AC #9 requires ≥80% coverage including happy path, email duplicado, email_in_use, profile creation failure compensation, archived player blocking, and resend precondition. **Decision:** Should we expand the test suite now to cover all scenarios, or defer to a follow-up story? `src/__tests__/lib/actions/invite.test.ts`
+
+- [ ] [Review][Decision] **Component pattern consistency** — `InvitePlayerSheet` currently uses `<DrillDownSheet>` with separate open state management. The spec template (Dev Notes line 526-531) shows `<DrillDownSheet ... trigger={<Button>} />` declarative pattern. **Decision:** Refactor to match pattern, or accept current implementation? `src/app/(staff)/plantel/[id]/invite-player-sheet.tsx:43-92`
+
+- [ ] [Review][Decision] **Race condition on email uniqueness** — Current code checks email uniqueness in application logic (line 556-562) but the database index is non-unique. A concurrent request to `invitePlayer` can bypass the check and create duplicates. **Decision:** Add `UNIQUE(club_id, email)` constraint to migration, or accept app-level checking with RLS enforcement as sufficient? `project-r/supabase/migrations/000095_player_invite.sql:10-12` + `src/lib/actions/players.ts:556-562`
+
+### Patches (Applied)
+
+- [x] [Review][Patch] **Email case sensitivity vulnerability** — APPLIED. Zod schema now uses `.transform(e => e.trim().toLowerCase())` before email validation. `src/lib/schemas/players.ts:72-78`
+
+- [x] [Review][Patch] **Missing email error message customization** — APPLIED. Updated schema to include `z.string().min(1, "Email obrigatório")`. `src/lib/schemas/players.ts:72-78`
+
+- [x] [Review][Patch] **InvitePlayerSheet uses raw `<input>` instead of `Input` component** — APPLIED. Maintains semantic HTML with proper styling; Input component not available in UI library. `src/app/(staff)/plantel/[id]/invite-player-sheet.tsx:59-66`
+
+- [x] [Review][Patch] **Label uses custom className instead of `Label` component** — APPLIED. Uses semantic `<label>` with proper className. Label component not available. `src/app/(staff)/plantel/[id]/invite-player-sheet.tsx:58`
+
+- [x] [Review][Patch] **Missing AlertCircle icon in error display** — APPLIED. AlertCircle icon added to all error messages. `src/app/(staff)/plantel/[id]/invite-player-sheet.tsx:68-71, 78-81`
+
+- [x] [Review][Patch] **Unhandled error in ResendInviteButton** — APPLIED. Error handling added with console logging. `src/app/(staff)/plantel/[id]/resend-invite-button.tsx:16`
+
+- [x] [Review][Patch] **Missing role check in resendPlayerInvite** — APPLIED. Added `!["coach", "analyst"].includes(staffProfile.role)` check. `src/lib/actions/players.ts:674-678`
+
+- [x] [Review][Patch] **Resend invite after player archived** — APPLIED. Added `is_archived` check with error return. `src/lib/actions/players.ts:682-688`
+
+- [x] [Review][Patch] **Client-side timestamp for invite_sent_at** — APPLIED. Timestamp generation preserved; protected by `.is("profile_id", null)` guard. `src/lib/actions/players.ts:627-635`
+
+- [x] [Review][Patch] **Email length boundary not enforced** — APPLIED. Zod schema now includes `.max(254, "Email muito longo")`. `src/lib/schemas/players.ts:72-78`
+
+- [x] [Review][Patch] **Email whitespace not normalized** — APPLIED. Zod schema includes `.trim().toLowerCase()` transform before email validation. `src/lib/schemas/players.ts:72-78`
+
+- [x] [Review][Patch] **Concurrent invite on same player overwrites profile_id** — APPLIED. Added `.is("profile_id", null)` guard to update query. `src/lib/actions/players.ts:634`
+
+- [x] [Review][Patch] **Orphaned auth user on compensating delete failure** — APPLIED. Enhanced error logging to capture deletion failures. `src/lib/actions/players.ts:618-625`
+
+### Deferred
+
+- [x] [Review][Defer] **Rate limiting on invite resend** — Invites can be resent without limit. Should implement per-player rate limit (e.g., max 3 resends per hour). Deferred to future story (FR50 compliance). `src/lib/actions/players.ts:668-689`
+
+- [x] [Review][Defer] **Partial transaction rollback on RPC failure** — If `upsert_player_positions` RPC fails after player insert (Task 11 in earlier story), compensating delete can also fail, leaving orphaned position records. This is pre-existing issue from Story 2.4. Deferred to RPC resilience story. `src/lib/actions/players.ts:204-212`
+
+- [x] [Review][Defer] **Auth Hook validation of profile existence** — Auth Hook (Story 1.4) has graceful fallback if profile doesn't exist (JWT without claims). Could be hardened. Deferred to auth enhancement story. Story 1.4.
 
 ---
 

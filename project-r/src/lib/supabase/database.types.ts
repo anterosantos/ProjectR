@@ -160,6 +160,8 @@ export type Database = {
           is_active: boolean
           inactive_reason: string | null
           photo_path: string | null
+          email: string | null
+          invite_sent_at: string | null
           created_at: string
           updated_at: string
         }
@@ -175,6 +177,8 @@ export type Database = {
           is_active?: boolean
           inactive_reason?: string | null
           photo_path?: string | null
+          email?: string | null
+          invite_sent_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -190,6 +194,8 @@ export type Database = {
           is_active?: boolean
           inactive_reason?: string | null
           photo_path?: string | null
+          email?: string | null
+          invite_sent_at?: string | null
           created_at?: string
           updated_at?: string
         }

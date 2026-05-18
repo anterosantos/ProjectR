@@ -67,8 +67,23 @@ export const ReactivatePlayerSchema = z.object({
   playerId: z.string().uuid("ID de jogador inválido"),
 });
 
+export const InvitePlayerSchema = z.object({
+  playerId: z.string().uuid("ID de jogador inválido"),
+  email: z
+    .string()
+    .min(1, "Email obrigatório")
+    .transform(e => e.trim().toLowerCase())
+    .pipe(z.string().email("Email inválido").max(254, "Email muito longo")),
+});
+
+export const ResendInviteSchema = z.object({
+  playerId: z.string().uuid("ID de jogador inválido"),
+});
+
 export type PlayerCreate = z.infer<typeof PlayerCreateSchema>;
 export type PlayerUpdate = z.infer<typeof PlayerUpdateSchema>;
 export type ArchivePlayer = z.infer<typeof ArchivePlayerSchema>;
 export type MarkInactive = z.infer<typeof MarkInactiveSchema>;
 export type ReactivatePlayer = z.infer<typeof ReactivatePlayerSchema>;
+export type InvitePlayer = z.infer<typeof InvitePlayerSchema>;
+export type ResendInvite = z.infer<typeof ResendInviteSchema>;

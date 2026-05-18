@@ -15,6 +15,8 @@ import { getPlayer } from "@/lib/actions/players";
 import { getPlayerMetrics } from "@/lib/actions/metrics";
 import { ArchivePlayerDialog } from "./archive-player-dialog";
 import { ReactivatePlayerDialog } from "./reactivate-player-dialog";
+import { InvitePlayerSheet } from "./invite-player-sheet";
+import { ResendInviteButton } from "./resend-invite-button";
 
 const AGE_GROUP_LABELS: Record<string, string> = {
   u14: "Sub-14",
@@ -40,10 +42,10 @@ export default async function PlayerDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ created?: string; updated?: string; reativado?: string }>;
+  searchParams: Promise<{ created?: string; updated?: string; reativado?: string; invited?: string; resent?: string }>;
 }) {
   const { id } = await params;
-  const { created, updated, reativado } = await searchParams;
+  const { created, updated, reativado, invited, resent } = await searchParams;
 
   const result = await getPlayer(id);
   if (!result.ok) notFound();
@@ -78,6 +80,8 @@ export default async function PlayerDetailPage({
       {showCreated && <CalmConfirmation message="Jogador adicionado" />}
       {showUpdated && <CalmConfirmation message="Jogador actualizado" />}
       {showReativado && <CalmConfirmation message="Jogador reactivado" />}
+      {invited === "1" && <CalmConfirmation message="Convite enviado" />}
+      {resent === "1" && <CalmConfirmation message="Convite reenviado" />}
 
       <div className="mb-6 flex items-center gap-3">
         <Button asChild variant="ghost" size="sm">
@@ -170,6 +174,24 @@ export default async function PlayerDetailPage({
             <AddMetricSheet playerId={player.id} />
           </div>
           <PlayerMetricsChart metrics={metrics} />
+        </section>
+
+        {/* Acesso à app */}
+        <section className="space-y-3">
+          <h2 className="text-base font-semibold">Acesso à app</h2>
+          {player.invite_sent_at ? (
+            <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+              <div>
+                <p className="text-sm text-muted-foreground">Convite enviado em</p>
+                <p className="text-sm font-medium">
+                  {format(new Date(player.invite_sent_at), "d 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: pt })}
+                </p>
+              </div>
+              <ResendInviteButton playerId={player.id} />
+            </div>
+          ) : (
+            <InvitePlayerSheet playerId={player.id} ageGroup={player.age_group} />
+          )}
         </section>
       </div>
     </div>
