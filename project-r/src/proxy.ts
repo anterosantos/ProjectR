@@ -47,20 +47,20 @@ export async function proxy(request: NextRequest) {
   // The auth hook adds user_role as a top-level JWT claim; it is not in user_metadata.
   const userRole = (claims.user_role || claims.role) as string | undefined;
 
-  // Validate userRole is one of the allowed roles
-  if (!userRole || !(userRole in ROLE_ALLOWED_ROUTES)) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
+  // If userRole is available from JWT claims, validate access
+  if (userRole && userRole in ROLE_ALLOWED_ROUTES) {
+    const allowedRoutes = ROLE_ALLOWED_ROUTES[userRole as keyof typeof ROLE_ALLOWED_ROUTES];
+    const hasAccess = allowedRoutes?.some((route) =>
+      pathname === route || pathname.startsWith(route + "/")
+    ) ?? false;
 
-  const allowedRoutes = ROLE_ALLOWED_ROUTES[userRole as keyof typeof ROLE_ALLOWED_ROUTES];
-  const hasAccess = allowedRoutes?.some((route) =>
-    pathname === route || pathname.startsWith(route + "/")
-  ) ?? false;
-
-  if (!hasAccess) {
-    const defaultRoute = ROLE_DEFAULT_ROUTES[userRole as keyof typeof ROLE_DEFAULT_ROUTES] || "/login";
-    return NextResponse.redirect(new URL(defaultRoute, request.url));
+    if (!hasAccess) {
+      const defaultRoute = ROLE_DEFAULT_ROUTES[userRole as keyof typeof ROLE_DEFAULT_ROUTES] || "/login";
+      return NextResponse.redirect(new URL(defaultRoute, request.url));
+    }
   }
+  // If no userRole in JWT claims, allow page to load - RLS policies will enforce access control
+  // Pages will fetch role from /api/auth/user-role endpoint if needed
 
   // Growth phase (Story 1.7 AC #6): enforce mandatory MFA enrollment here.
   // When MFA_REQUIRED_ROLES env var is set (e.g. "coach,analyst"), check the
