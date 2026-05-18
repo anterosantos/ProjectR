@@ -232,6 +232,55 @@ Supabase: Execute 000095_players_inactive.sql migration
 
 ---
 
+### Issue 4: RLS Policy Blocking Data Insertion (Post-Fix)
+
+**Symptom**  
+After adding a player, HTTP 403 Forbidden error:
+```
+POST | 403 | /rest/v1/players
+proxy_status: "PostgREST; error=42501" (insufficient_privilege)
+```
+
+**Root Cause**  
+The RLS policy requires checking `public.user_role() IN ('coach','analyst')`, but:
+- Auth Hook injects role as JWT claim: `claims.user_role = profile.role`
+- Function `public.user_role()` was querying wrong claim: `auth.jwt() ->> 'role'`
+
+Mismatch caused `public.user_role()` to return NULL, failing the RLS policy check.
+
+**Solution**  
+Update function to use correct claim name:
+
+**File Changed**:
+- `supabase/migrations/000030_auth_helpers.sql`: Line 62
+
+```diff
+- RETURN auth.jwt() ->> 'role';
++ RETURN auth.jwt() ->> 'user_role';
+```
+
+**Commit**:
+- `6998d8d` - fix: correct user_role() function to use correct JWT claim name
+
+**Result**: ✅ Users with role 'coach' or 'analyst' can now insert players
+
+**Manual Action Required**:
+Execute in Supabase SQL Editor:
+```sql
+CREATE OR REPLACE FUNCTION public.user_role()
+RETURNS text
+LANGUAGE plpgsql
+STABLE
+SET search_path = pg_catalog, public, pg_temp
+AS $$
+BEGIN
+  RETURN auth.jwt() ->> 'user_role';
+END;
+$$;
+```
+
+---
+
 ## Lessons Learned
 
 1. **Build vs Runtime**: Environment variables available at build time vs runtime are different
