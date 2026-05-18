@@ -3,16 +3,6 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 serve(async (req: Request) => {
   try {
-    // Verify Authorization header
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader) {
-      console.error("[auth-hook] Missing authorization header");
-      return new Response(
-        JSON.stringify({ claims: {} }),
-        { status: 401, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
     const body = await req.json();
     const claims = body.claims || {};
     const userId = claims.sub || (body.user && body.user.id);
