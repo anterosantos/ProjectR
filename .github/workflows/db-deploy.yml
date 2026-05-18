@@ -14,10 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: supabase/setup-cli@v1
-        with:
-          version: latest
-
       - name: Apply migrations to remote
         working-directory: project-r
         run: bash scripts/push-migrations.sh
