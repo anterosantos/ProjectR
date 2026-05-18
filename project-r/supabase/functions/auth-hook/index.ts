@@ -28,6 +28,8 @@ serve(async (req: Request) => {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
 
+    console.log("Fetching profile for user:", userId);
+
     const { data: profile, error } = await supabaseAdmin
       .from("profiles")
       .select("club_id, role")
@@ -35,12 +37,15 @@ serve(async (req: Request) => {
       .single();
 
     if (error) {
-      console.warn("Could not fetch profile:", error.message);
+      console.warn("Could not fetch profile for user:", userId, "Error:", error.message);
+      console.log("Full error:", JSON.stringify(error));
       return new Response(
         JSON.stringify({ claims: claims }),
         { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
+
+    console.log("Profile found:", JSON.stringify(profile));
 
     // AQUI ESTÁ A CORREÇÃO (Mudado de role para user_role)
     if (profile) {
