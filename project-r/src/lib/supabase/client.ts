@@ -9,8 +9,6 @@ export function createClient() {
   );
 }
 
-export const supabase = createClient();
-
 export async function isAuthenticated() {
   try {
     const {
