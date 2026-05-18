@@ -79,9 +79,11 @@ export default function LoginPage() {
       try {
         const homePath = getRoleHomePath(role);
         console.log("[Login] Redirecting to:", homePath);
+        console.log("[Login] Before router.push() - calling navigation");
         router.push(homePath);
+        console.log("[Login] After router.push() - called successfully");
       } catch (navError) {
-        console.error("Navigation error:", navError);
+        console.error("[Login] Navigation error caught:", navError);
         setError("Erro ao redirecionar. Por favour, tenta novamente.");
         setIsLoading(false);
       }
