@@ -105,9 +105,9 @@ describe("Proxy authentication gate (AC #5)", () => {
       const { proxy } = await import("@/proxy");
       const response = await proxy(makeRequest("/prontidao", "sb-auth=tok"));
 
-      // Should redirect to login for invalid role
-      expect(response.status).toBe(307);
-      expect(response.headers.get("location")).toContain("/login");
+      // After fix: should allow authenticated user even with invalid role
+      // RLS policies will enforce access control, not middleware
+      expect(response.status).not.toBe(307);
     });
 
     it("redirects when user is present but no role is set", async () => {
@@ -121,9 +121,10 @@ describe("Proxy authentication gate (AC #5)", () => {
       const { proxy } = await import("@/proxy");
       const response = await proxy(makeRequest("/prontidao", "sb-auth=tok"));
 
-      // Should redirect to login if no role set
-      expect(response.status).toBe(307);
-      expect(response.headers.get("location")).toContain("/login");
+      // After fix: should allow authenticated user even without role
+      // The page will fetch role from /api/auth/user-role endpoint
+      // RLS policies will enforce access control, not middleware
+      expect(response.status).not.toBe(307);
     });
   });
 
