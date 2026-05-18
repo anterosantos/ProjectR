@@ -38,12 +38,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CI: 'true'
-      # Integration tests run against a local Supabase stack (same pattern as migration-validate).
-      # This avoids a race with db-deploy.yml and ensures tests always see the current migrations.
-      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
-      # Well-known local Supabase default keys (JWT secret: super-secret-jwt-token-with-at-least-32-characters-long)
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRFA0NiK7W9osuKFnAs6W9NtlDjDFKoEgKYPWm8nPbQ
-      SUPABASE_SERVICE_ROLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hj04zWl196z2-SB38
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -60,6 +54,13 @@ jobs:
       - name: Apply migrations
         run: supabase db reset --no-seed
         working-directory: project-r
+      - name: Export Supabase credentials for tests
+        working-directory: project-r
+        run: |
+          STATUS=$(supabase status)
+          echo "NEXT_PUBLIC_SUPABASE_URL=$(echo "$STATUS" | grep 'API URL' | awk '{print $NF}')" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$(echo "$STATUS" | grep 'anon key' | awk '{print $NF}')" >> $GITHUB_ENV
+          echo "SUPABASE_SERVICE_ROLE_KEY=$(echo "$STATUS" | grep 'service_role key' | awk '{print $NF}')" >> $GITHUB_ENV
       - run: npm run test:coverage
       - name: Stop Supabase
         if: always()
