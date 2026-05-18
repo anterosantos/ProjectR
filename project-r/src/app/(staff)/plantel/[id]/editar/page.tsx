@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
 import { getPlayer } from "@/lib/actions/players";
 
-const EditPlayerForm = dynamic(() =>
+const EditPlayerForm = dynamicImport(() =>
   import("./edit-player-form").then(m => ({ default: m.EditPlayerForm }))
 );
 

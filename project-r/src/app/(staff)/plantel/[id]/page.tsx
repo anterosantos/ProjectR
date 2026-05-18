@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
 import Link from "next/link";
 import { Suspense } from "react";
 import { format, differenceInYears } from "date-fns";
@@ -15,16 +15,16 @@ import { MarkInactiveSheet } from "@/components/ui/mark-inactive-sheet";
 import { getPlayer } from "@/lib/actions/players";
 import { getPlayerMetrics } from "@/lib/actions/metrics";
 
-const ArchivePlayerDialog = dynamic(() =>
+const ArchivePlayerDialog = dynamicImport(() =>
   import("./archive-player-dialog").then(m => ({ default: m.ArchivePlayerDialog }))
 );
-const ReactivatePlayerDialog = dynamic(() =>
+const ReactivatePlayerDialog = dynamicImport(() =>
   import("./reactivate-player-dialog").then(m => ({ default: m.ReactivatePlayerDialog }))
 );
-const InvitePlayerSheet = dynamic(() =>
+const InvitePlayerSheet = dynamicImport(() =>
   import("./invite-player-sheet").then(m => ({ default: m.InvitePlayerSheet }))
 );
-const ResendInviteButton = dynamic(() =>
+const ResendInviteButton = dynamicImport(() =>
   import("./resend-invite-button").then(m => ({ default: m.ResendInviteButton }))
 );
 
