@@ -23,27 +23,35 @@ COMMENT ON COLUMN seasons.is_current IS
 
 ALTER TABLE seasons ENABLE ROW LEVEL SECURITY;
 
--- All authenticated club members can read seasons
+-- All authenticated club members can read seasons (direct profile lookup — consistent with 000097)
 CREATE POLICY "seasons_select" ON seasons
-  FOR SELECT USING (club_id = auth.club_id());
+  FOR SELECT TO authenticated
+  USING (club_id = (
+    SELECT club_id FROM profiles WHERE id = auth.uid() LIMIT 1
+  ));
 
 -- Only coach/analyst can create seasons
 CREATE POLICY "seasons_insert" ON seasons
-  FOR INSERT WITH CHECK (
-    club_id = auth.club_id()
-    AND auth.user_role() IN ('coach', 'analyst')
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    club_id = (SELECT club_id FROM profiles WHERE id = auth.uid() LIMIT 1)
+    AND EXISTS (
+      SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('coach', 'analyst')
+    )
   );
 
 -- Only coach/analyst can update their own club's seasons
 CREATE POLICY "seasons_update" ON seasons
-  FOR UPDATE USING (
-    club_id = auth.club_id()
-    AND auth.user_role() IN ('coach', 'analyst')
+  FOR UPDATE TO authenticated
+  USING (
+    club_id = (SELECT club_id FROM profiles WHERE id = auth.uid() LIMIT 1)
+    AND EXISTS (
+      SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('coach', 'analyst')
+    )
   );
 
 -- Atomic swap: unsets all current seasons for club, then sets the given one
--- SECURITY DEFINER bypasses RLS for the swap operation
--- Derives club_id from authenticated user context (no parameter footgun)
+-- SECURITY DEFINER bypasses RLS; role + club isolation enforced inside function
 CREATE OR REPLACE FUNCTION public.set_current_season(p_season_id uuid)
 RETURNS void
 LANGUAGE plpgsql
@@ -53,8 +61,15 @@ AS $$
 DECLARE
   v_club_id uuid;
 BEGIN
-  v_club_id := auth.club_id();
-  IF auth.user_role() NOT IN ('coach', 'analyst') THEN
+  SELECT club_id INTO v_club_id FROM profiles WHERE id = auth.uid() LIMIT 1;
+
+  IF v_club_id IS NULL THEN
+    RAISE EXCEPTION 'User profile not found or missing club_id';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('coach', 'analyst')
+  ) THEN
     RAISE EXCEPTION 'Insufficient privileges: only coach/analyst can set current season';
   END IF;
 

@@ -190,7 +190,7 @@ describe("RLS Policies", () => {
       });
 
       expect(error).toBeDefined();
-      expect(error?.code).toBe("PGRST301"); // RLS violation
+      expect(error?.code).toBe("42501"); // RLS violation at DB level (direct profile lookup)
     });
 
     it("Coach cannot create player in other club", async () => {
@@ -203,7 +203,7 @@ describe("RLS Policies", () => {
       });
 
       expect(error).toBeDefined();
-      expect(error?.code).toBe("PGRST301"); // RLS violation
+      expect(error?.code).toBe("42501"); // RLS violation at DB level (direct profile lookup)
     });
 
     it("Coach can read players in own club", async () => {
@@ -270,7 +270,7 @@ describe("RLS Policies", () => {
       });
 
       expect(error).toBeDefined();
-      expect(error?.code).toBe("PGRST301"); // RLS violation
+      expect(error?.code).toBe("42501"); // RLS violation at DB level (direct profile lookup)
     });
   });
 
@@ -331,7 +331,7 @@ describe("RLS Policies", () => {
       });
 
       expect(error).toBeDefined();
-      expect(error?.code).toBe("PGRST301"); // RLS violation
+      expect(error?.code).toBe("42501"); // RLS violation at DB level (direct profile lookup)
     });
 
     it("Coach cannot record metrics for other club", async () => {
@@ -344,7 +344,7 @@ describe("RLS Policies", () => {
       });
 
       expect(error).toBeDefined();
-      expect(error?.code).toBe("PGRST301"); // RLS violation
+      expect(error?.code).toBe("42501"); // RLS violation at DB level (direct profile lookup)
     });
 
     it("Coach can read metrics for players in own club", async () => {

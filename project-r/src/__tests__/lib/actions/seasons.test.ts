@@ -282,7 +282,6 @@ describe("createSeason", () => {
     });
     expect(rpcMock).toHaveBeenCalledWith("set_current_season", {
       p_season_id: mockSeason.id,
-      p_club_id: CLUB_UUID,
     });
   });
 
