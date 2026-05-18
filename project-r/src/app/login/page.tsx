@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   signInWithPassword,
-  getCurrentUserWithRole,
   getRoleHomePath,
   createClient,
 } from "@/lib/supabase/client";
+import { getCurrentUserRole } from "@/lib/actions/auth";
 import Link from "next/link";
 
 type Stage = "password" | "mfa";
@@ -51,8 +51,8 @@ export default function LoginPage() {
 
   const redirectToHome = async () => {
     try {
-      const { user, role } = await getCurrentUserWithRole();
-      if (!user) {
+      const { user, role, error } = await getCurrentUserRole();
+      if (error || !user) {
         setError("Email ou password incorretos");
         setIsLoading(false);
         return;
