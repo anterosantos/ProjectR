@@ -58,27 +58,34 @@ jobs:
         working-directory: project-r
         run: |
           echo "NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321" >> $GITHUB_ENV
-          # Primary: machine-readable env format (no table/ANSI, stable across CLI versions)
-          STATUS_ENV=$(supabase status -o env 2>/dev/null || true)
-          ANON_KEY=$(echo "$STATUS_ENV" | grep -E '^(ANON_KEY|SUPABASE_ANON_KEY|SUPABASE_KEY)=' | head -1 | cut -d= -f2-)
-          SERVICE_KEY=$(echo "$STATUS_ENV" | grep -E '^(SERVICE_ROLE_KEY|SUPABASE_SERVICE_ROLE_KEY)=' | head -1 | cut -d= -f2-)
-          # Fallback: extract all eyJ* tokens positionally (anon=1st, service_role=2nd)
-          if [ -z "$ANON_KEY" ] || [ -z "$SERVICE_KEY" ]; then
-            echo "--- status -o env output ---"
-            echo "$STATUS_ENV"
-            echo "--- falling back to positional JWT extraction ---"
-            ALL_JWTS=$(supabase status 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -oE 'eyJ[A-Za-z0-9._-]+')
-            ANON_KEY=$(echo "$ALL_JWTS" | sed -n '1p')
-            SERVICE_KEY=$(echo "$ALL_JWTS" | sed -n '2p')
-          fi
-          if [ -z "$ANON_KEY" ] || [ -z "$SERVICE_KEY" ]; then
-            echo "FATAL: could not extract Supabase credentials"
-            supabase status 2>&1
+          # Read the JWT secret GoTrue is actually using (project_id = "project-r" → container name)
+          JWT_SECRET=$(docker exec supabase_auth_project-r printenv GOTRUE_JWT_SECRET 2>/dev/null || true)
+          if [ -z "$JWT_SECRET" ]; then
+            echo "FATAL: could not read GOTRUE_JWT_SECRET from container"
+            docker ps --format "table {{.Names}}" | grep supabase || true
             exit 1
           fi
-          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${ANON_KEY}" >> $GITHUB_ENV
-          echo "SUPABASE_SERVICE_ROLE_KEY=${SERVICE_KEY}" >> $GITHUB_ENV
-          echo "anon: ${ANON_KEY:0:30}... service: ${SERVICE_KEY:0:30}..."
+          echo "JWT_SECRET length: ${#JWT_SECRET}"
+          # Generate anon + service_role JWTs signed with the actual secret
+          cat > /tmp/gen-keys.mjs << 'NODEOF'
+          import { createHmac } from 'crypto';
+          import { appendFileSync } from 'fs';
+          const secret = process.argv[2];
+          const b64 = (obj) => Buffer.from(JSON.stringify(obj)).toString('base64url');
+          const sign = (payload) => {
+            const h = b64({ alg: 'HS256', typ: 'JWT' });
+            const p = b64(payload);
+            const s = createHmac('sha256', secret).update(`${h}.${p}`).digest('base64url');
+            return `${h}.${p}.${s}`;
+          };
+          const anon = sign({ iss: 'supabase-demo', role: 'anon', exp: 1983812996 });
+          const svc  = sign({ iss: 'supabase-demo', role: 'service_role', exp: 1983812996 });
+          appendFileSync(process.env.GITHUB_ENV, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${anon}\n`);
+          appendFileSync(process.env.GITHUB_ENV, `SUPABASE_SERVICE_ROLE_KEY=${svc}\n`);
+          console.log('anon:', anon.slice(0, 30) + '...');
+          console.log('service:', svc.slice(0, 30) + '...');
+          NODEOF
+          node /tmp/gen-keys.mjs "$JWT_SECRET"
       - run: npm run test:coverage
       - name: Stop Supabase
         if: always()
