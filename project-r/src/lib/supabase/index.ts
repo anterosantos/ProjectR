@@ -1,5 +1,5 @@
 // Browser / Client Component client
-export { createClient, supabase } from "./client";
+export { createClient } from "./client";
 
 // Server Action / Server Component client
 export { createServerClient } from "./server";
