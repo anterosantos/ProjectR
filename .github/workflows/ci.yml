@@ -64,6 +64,11 @@ jobs:
           node-version: '22'
           cache: 'npm'
           cache-dependency-path: project-r/package-lock.json
+      - name: Debug env vars
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL length: ${#NEXT_PUBLIC_SUPABASE_URL}"
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY length: ${#NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}"
+        working-directory: project-r
       - run: npm ci
       - run: npm run build
       - run: npm run check-bundle-size
