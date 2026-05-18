@@ -6,13 +6,8 @@ ALTER TABLE players
   ADD COLUMN email text,
   ADD COLUMN invite_sent_at timestamptz;
 
--- Constraint UNIQUE para evitar race conditions na unicidade de email por clube
-ALTER TABLE players
-  ADD CONSTRAINT unique_players_club_email UNIQUE (club_id, email)
-  WHERE email IS NOT NULL;
-
--- Index suplementar para queries de lookup por email
-CREATE INDEX idx_players_email_club
+-- Unique index to prevent email race conditions per club (ignores NULL emails)
+CREATE UNIQUE INDEX idx_players_club_email_unique
   ON players(club_id, email)
   WHERE email IS NOT NULL;
 
