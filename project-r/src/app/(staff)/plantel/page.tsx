@@ -20,8 +20,15 @@ const AGE_GROUP_LABELS: Record<string, string> = {
   senior: "Sénior",
 };
 
-export default async function PlantelPage() {
-  const result = await getPlayers();
+export default async function PlantelPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
+  const { view } = await searchParams;
+  const showInactive = view === "inativos";
+
+  const result = await getPlayers(showInactive ? { showInactive: true } : undefined);
 
   if (!result.ok) {
     return (
@@ -37,13 +44,27 @@ export default async function PlantelPage() {
   return (
     <div className="px-4 py-6 sm:px-6">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-foreground">Plantel</h1>
+        <h1 className="text-xl font-semibold text-foreground">
+          Plantel{showInactive ? " — Inativos" : ""}
+        </h1>
         <Button asChild size="sm">
           <Link href="/plantel/novo">
             <Plus className="h-4 w-4" />
             Adicionar
           </Link>
         </Button>
+      </div>
+
+      <div className="mb-4">
+        {showInactive ? (
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/plantel">← Ver activos</Link>
+          </Button>
+        ) : (
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/plantel?view=inativos">Ver inativos</Link>
+          </Button>
+        )}
       </div>
 
       {!hasPlayers ? (
@@ -91,7 +112,13 @@ export default async function PlantelPage() {
                               {primaryPos?.position ?? "—"}
                             </p>
                           </div>
-                          <SemaforoBadge state="neutral" size="sm" />
+                          {showInactive ? (
+                            <span className="text-xs text-muted-foreground rounded bg-muted px-2 py-0.5">
+                              Inactivo
+                            </span>
+                          ) : (
+                            <SemaforoBadge state="neutral" size="sm" />
+                          )}
                         </Link>
                       </li>
                     );

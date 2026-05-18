@@ -53,6 +53,20 @@ export const ArchivePlayerSchema = z.object({
   playerId: z.string().uuid("ID de jogador inválido"),
 });
 
+export const MarkInactiveSchema = z.object({
+  playerId: z.string().uuid("ID de jogador inválido"),
+  inactive_reason: z
+    .string()
+    .max(200, "Motivo não pode exceder 200 caracteres")
+    .optional(),
+});
+
+export const ReactivatePlayerSchema = z.object({
+  playerId: z.string().uuid("ID de jogador inválido"),
+});
+
 export type PlayerCreate = z.infer<typeof PlayerCreateSchema>;
 export type PlayerUpdate = z.infer<typeof PlayerUpdateSchema>;
 export type ArchivePlayer = z.infer<typeof ArchivePlayerSchema>;
+export type MarkInactive = z.infer<typeof MarkInactiveSchema>;
+export type ReactivatePlayer = z.infer<typeof ReactivatePlayerSchema>;

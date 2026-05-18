@@ -8,8 +8,13 @@ import { Button } from "@/components/ui/button";
 import { CalmConfirmation } from "@/components/ui/calm-confirmation";
 import { SemaforoBadge } from "@/components/ui/semaforo-badge";
 import { PlayerPhoto } from "@/components/ui/player-photo";
+import { PlayerMetricsChart } from "@/components/ui/player-metrics-chart";
+import { AddMetricSheet } from "@/components/ui/add-metric-sheet";
+import { MarkInactiveSheet } from "@/components/ui/mark-inactive-sheet";
 import { getPlayer } from "@/lib/actions/players";
+import { getPlayerMetrics } from "@/lib/actions/metrics";
 import { ArchivePlayerDialog } from "./archive-player-dialog";
+import { ReactivatePlayerDialog } from "./reactivate-player-dialog";
 
 const AGE_GROUP_LABELS: Record<string, string> = {
   u14: "Sub-14",
@@ -35,17 +40,21 @@ export default async function PlayerDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ created?: string; updated?: string }>;
+  searchParams: Promise<{ created?: string; updated?: string; reativado?: string }>;
 }) {
   const { id } = await params;
-  const { created, updated } = await searchParams;
+  const { created, updated, reativado } = await searchParams;
 
   const result = await getPlayer(id);
   if (!result.ok) notFound();
 
   const player = result.data;
+
+  const metricsResult = await getPlayerMetrics(player.id);
+  const metrics = metricsResult.ok ? metricsResult.data : [];
   const showCreated = created === "1";
   const showUpdated = updated === "1";
+  const showReativado = reativado === "1";
 
   const birthDate = new Date(player.birthdate);
   const age = differenceInYears(new Date(), birthDate);
@@ -62,6 +71,7 @@ export default async function PlayerDetailPage({
     <div className="px-4 py-6 sm:px-6 max-w-lg">
       {showCreated && <CalmConfirmation message="Jogador adicionado" />}
       {showUpdated && <CalmConfirmation message="Jogador actualizado" />}
+      {showReativado && <CalmConfirmation message="Jogador reactivado" />}
 
       <div className="mb-6 flex items-center gap-3">
         <Button asChild variant="ghost" size="sm">
@@ -97,6 +107,16 @@ export default async function PlayerDetailPage({
           <SemaforoBadge state="neutral" />
         </div>
 
+        {/* Badge de inactivo */}
+        {!player.is_active && (
+          <div className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
+            <span className="font-medium">Inactivo</span>
+            {player.inactive_reason && (
+              <span className="ml-2">— {player.inactive_reason}</span>
+            )}
+          </div>
+        )}
+
         {/* Info */}
         <dl className="divide-y divide-border rounded-lg border border-border bg-background">
           <div className="flex items-center justify-between px-4 py-3">
@@ -129,8 +149,22 @@ export default async function PlayerDetailPage({
               Editar
             </Link>
           </Button>
+          {player.is_active ? (
+            <MarkInactiveSheet playerId={player.id} playerName={player.full_name} />
+          ) : (
+            <ReactivatePlayerDialog playerId={player.id} playerName={player.full_name} />
+          )}
           <ArchivePlayerDialog playerId={player.id} playerName={player.full_name} />
         </div>
+
+        {/* Métricas físicas */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold">Métricas físicas</h2>
+            <AddMetricSheet playerId={player.id} />
+          </div>
+          <PlayerMetricsChart metrics={metrics} />
+        </section>
       </div>
     </div>
   );

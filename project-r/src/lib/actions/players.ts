@@ -9,9 +9,11 @@ import {
   PlayerCreateSchema,
   PlayerUpdateSchema,
   ArchivePlayerSchema,
+  MarkInactiveSchema,
+  ReactivatePlayerSchema,
   AGE_GROUPS,
 } from "@/lib/schemas/players";
-import type { PlayerCreate, PlayerUpdate, ArchivePlayer, AgeGroup } from "@/lib/schemas/players";
+import type { PlayerCreate, PlayerUpdate, ArchivePlayer, MarkInactive, ReactivatePlayer, AgeGroup } from "@/lib/schemas/players";
 import type { Result, AppError } from "@/lib/types";
 import { ok, err } from "@/lib/types";
 import type { Json } from "@/lib/supabase/database.types";
@@ -32,6 +34,8 @@ export interface PlayerWithPositions {
   birthdate: string;
   age_group: string;
   is_archived: boolean;
+  is_active: boolean;
+  inactive_reason: string | null;
   photo_path: string | null;
   created_at: string;
   updated_at: string;
@@ -53,7 +57,9 @@ const AGE_GROUP_ORDER: Record<string, number> = {
   senior: 4,
 };
 
-export async function getPlayers(): Promise<Result<GroupedPlayers, AppError>> {
+export async function getPlayers(
+  options?: { showInactive?: boolean }
+): Promise<Result<GroupedPlayers, AppError>> {
   const supabase = await createServerClient();
   const {
     data: { user },
@@ -72,6 +78,7 @@ export async function getPlayers(): Promise<Result<GroupedPlayers, AppError>> {
     .select("*, positions(*)")
     .eq("club_id", profile.club_id)
     .eq("is_archived", false)
+    .eq("is_active", options?.showInactive ? false : true)
     .order("full_name");
 
   if (error) {
@@ -106,7 +113,7 @@ export async function getPlayer(
 
   const { data, error } = await supabase
     .from("players")
-    .select("id, club_id, profile_id, jersey_num, full_name, birthdate, age_group, is_archived, photo_path, created_at, updated_at, positions(id, position, is_primary, sort_order)")
+    .select("id, club_id, profile_id, jersey_num, full_name, birthdate, age_group, is_archived, is_active, inactive_reason, photo_path, created_at, updated_at, positions(id, position, is_primary, sort_order)")
     .eq("id", playerId)
     .single();
 
@@ -304,6 +311,80 @@ export async function archivePlayer(
   await logAccess("player.archived", "player", validated.data.playerId);
 
   redirect("/plantel");
+}
+
+export async function markPlayerInactive(
+  input: MarkInactive
+): Promise<Result<void, AppError>> {
+  const validated = MarkInactiveSchema.safeParse(input);
+  if (!validated.success) {
+    return err({ code: "validation", message: validated.error.issues[0]?.message ?? "Dados inválidos" });
+  }
+
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return err({ code: "unauthorized", message: "Não autenticado" });
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("club_id")
+    .eq("id", user.id)
+    .single();
+  if (!profile) return err({ code: "forbidden", message: "Perfil não encontrado" });
+
+  const { error } = await supabase
+    .from("players")
+    .update({
+      is_active: false,
+      inactive_reason: validated.data.inactive_reason ?? null,
+    })
+    .eq("id", validated.data.playerId)
+    .eq("club_id", profile.club_id);
+
+  if (error) return err({ code: "unknown", message: error.message });
+
+  await logAccess("player.marked_inactive", "player", validated.data.playerId);
+
+  redirect("/plantel");
+}
+
+export async function reactivatePlayer(
+  input: ReactivatePlayer
+): Promise<Result<void, AppError>> {
+  const validated = ReactivatePlayerSchema.safeParse(input);
+  if (!validated.success) {
+    return err({ code: "validation", message: validated.error.issues[0]?.message ?? "Dados inválidos" });
+  }
+
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return err({ code: "unauthorized", message: "Não autenticado" });
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("club_id")
+    .eq("id", user.id)
+    .single();
+  if (!profile) return err({ code: "forbidden", message: "Perfil não encontrado" });
+
+  const { error } = await supabase
+    .from("players")
+    .update({
+      is_active: true,
+      inactive_reason: null,
+    })
+    .eq("id", validated.data.playerId)
+    .eq("club_id", profile.club_id);
+
+  if (error) return err({ code: "unknown", message: error.message });
+
+  await logAccess("player.reactivated", "player", validated.data.playerId);
+
+  redirect(`/plantel/${validated.data.playerId}?reativado=1`);
 }
 
 export async function uploadPlayerPhoto(

@@ -157,6 +157,8 @@ export type Database = {
           birthdate: string
           age_group: string
           is_archived: boolean
+          is_active: boolean
+          inactive_reason: string | null
           photo_path: string | null
           created_at: string
           updated_at: string
@@ -170,6 +172,8 @@ export type Database = {
           birthdate: string
           age_group: string
           is_archived?: boolean
+          is_active?: boolean
+          inactive_reason?: string | null
           photo_path?: string | null
           created_at?: string
           updated_at?: string
@@ -183,6 +187,8 @@ export type Database = {
           birthdate?: string
           age_group?: string
           is_archived?: boolean
+          is_active?: boolean
+          inactive_reason?: string | null
           photo_path?: string | null
           created_at?: string
           updated_at?: string
@@ -198,6 +204,61 @@ export type Database = {
           {
             foreignKeyName: "players_profile_id_fkey"
             columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_metrics: {
+        Row: {
+          id: string
+          club_id: string
+          player_id: string
+          weight_kg: number | null
+          height_cm: number | null
+          recorded_at: string
+          created_by: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          club_id: string
+          player_id: string
+          weight_kg?: number | null
+          height_cm?: number | null
+          recorded_at?: string
+          created_by: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          club_id?: string
+          player_id?: string
+          weight_kg?: number | null
+          height_cm?: number | null
+          recorded_at?: string
+          created_by?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_metrics_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_metrics_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_metrics_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
