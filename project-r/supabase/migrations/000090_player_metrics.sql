@@ -15,18 +15,18 @@ CREATE TABLE player_metrics (
 ALTER TABLE player_metrics ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "club isolation read" ON player_metrics
-  FOR SELECT USING (club_id = auth.club_id());
+  FOR SELECT USING (club_id = public.club_id());
 
 CREATE POLICY "staff write own club" ON player_metrics
   FOR INSERT WITH CHECK (
-    club_id = auth.club_id()
-    AND auth.user_role() IN ('coach', 'analyst')
+    club_id = public.club_id()
+    AND public.user_role() IN ('coach', 'analyst')
   );
 
 CREATE POLICY "staff update own club" ON player_metrics
   FOR UPDATE USING (
-    club_id = auth.club_id()
-    AND auth.user_role() IN ('coach', 'analyst')
+    club_id = public.club_id()
+    AND public.user_role() IN ('coach', 'analyst')
   );
 
 CREATE INDEX idx_player_metrics_player_recorded
