@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Suspense } from "react";
 import { format, differenceInYears } from "date-fns";
@@ -13,10 +14,19 @@ import { AddMetricSheet } from "@/components/ui/add-metric-sheet";
 import { MarkInactiveSheet } from "@/components/ui/mark-inactive-sheet";
 import { getPlayer } from "@/lib/actions/players";
 import { getPlayerMetrics } from "@/lib/actions/metrics";
-import { ArchivePlayerDialog } from "./archive-player-dialog";
-import { ReactivatePlayerDialog } from "./reactivate-player-dialog";
-import { InvitePlayerSheet } from "./invite-player-sheet";
-import { ResendInviteButton } from "./resend-invite-button";
+
+const ArchivePlayerDialog = dynamic(() =>
+  import("./archive-player-dialog").then(m => ({ default: m.ArchivePlayerDialog }))
+);
+const ReactivatePlayerDialog = dynamic(() =>
+  import("./reactivate-player-dialog").then(m => ({ default: m.ReactivatePlayerDialog }))
+);
+const InvitePlayerSheet = dynamic(() =>
+  import("./invite-player-sheet").then(m => ({ default: m.InvitePlayerSheet }))
+);
+const ResendInviteButton = dynamic(() =>
+  import("./resend-invite-button").then(m => ({ default: m.ResendInviteButton }))
+);
 
 export const dynamic = "force-dynamic";
 
@@ -33,8 +43,6 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  // Skip database call during build - use default title
-  // Full name will be shown by the page component once loaded
   return { title: "Jogador" };
 }
 
@@ -47,11 +55,6 @@ export default async function PlayerDetailPage({
 }) {
   const { id } = await params;
   const { created, updated, reativado, invited, resent } = await searchParams;
-
-  // During CI build without env vars, return early
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
-    return <div>Loading...</div>;
-  }
 
   const result = await getPlayer(id);
   if (!result.ok) notFound();
