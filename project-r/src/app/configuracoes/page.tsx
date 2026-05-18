@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { CalendarDaysIcon, ChevronRightIcon } from "lucide-react";
 import { StickyHeader } from "@/components/patterns/StickyHeader";
 
 export const metadata = {
@@ -9,8 +11,20 @@ export default function ConfiguracoesPage() {
     <main id="main-content">
       <StickyHeader title="Configurações" />
       <div className="px-4 py-6 sm:px-6">
-        {/* Content placeholder for settings */}
-        <p className="text-gray-600">Conteúdo será adicionado em histórias futuras.</p>
+        <ul className="space-y-2">
+          <li>
+            <Link
+              href="/configuracoes/epocas"
+              className="flex items-center justify-between rounded-lg border px-4 py-3 hover:bg-muted transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <CalendarDaysIcon className="h-5 w-5 text-muted-foreground" />
+                <span className="text-sm font-medium">Épocas</span>
+              </div>
+              <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+            </Link>
+          </li>
+        </ul>
       </div>
     </main>
   );

@@ -303,6 +303,44 @@ export type Database = {
           },
         ]
       }
+      seasons: {
+        Row: {
+          id: string
+          club_id: string
+          name: string
+          start_date: string
+          end_date: string
+          is_current: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          club_id: string
+          name: string
+          start_date: string
+          end_date: string
+          is_current?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          club_id?: string
+          name?: string
+          start_date?: string
+          end_date?: string
+          is_current?: boolean
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seasons_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -314,6 +352,10 @@ export type Database = {
       uuidv7: { Args: never; Returns: string }
       upsert_player_positions: {
         Args: { p_player_id: string; p_positions: Json }
+        Returns: void
+      }
+      set_current_season: {
+        Args: { p_season_id: string; p_club_id: string }
         Returns: void
       }
     }
