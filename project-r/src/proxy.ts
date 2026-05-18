@@ -77,9 +77,9 @@ export const config = {
      * Match all paths except:
      * - _next/static  (static assets)
      * - _next/image   (image optimisation)
-     * - favicon.ico, sitemap.xml, robots.txt
+     * - favicon.ico, sitemap.xml, robots.txt, sw.js
      * - /api routes (own auth layer)
      */
-    "/((?!api|_next/static|_next/image|favicon\\.ico|sitemap\\.xml|robots\\.txt).*)",
+    "/((?!api|_next/static|_next/image|favicon\\.ico|sitemap\\.xml|robots\\.txt|sw\\.js).*)",
   ],
 };
