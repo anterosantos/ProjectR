@@ -27,10 +27,10 @@ export function getServiceRoleClient() {
 }
 
 export const serviceRoleClient = new Proxy(
-  {},
+  {} as ReturnType<typeof getServiceRoleClient>,
   {
     get(target, prop) {
-      return (getServiceRoleClient() as any)[prop];
+      return Reflect.get(getServiceRoleClient(), prop);
     },
   }
 ) as ReturnType<typeof getServiceRoleClient>;

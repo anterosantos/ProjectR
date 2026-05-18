@@ -25,7 +25,7 @@ vi.mock("@/lib/logger", () => ({
 }));
 
 import { createServerClient } from "@/lib/supabase/server";
-import { getServiceRoleClient, serviceRoleClient } from "@/lib/supabase/service-role";
+import { getServiceRoleClient } from "@/lib/supabase/service-role";
 
 describe("logTelemetry", () => {
   let mockInsert: ReturnType<typeof vi.fn>;
