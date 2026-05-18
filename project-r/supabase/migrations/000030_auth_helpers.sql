@@ -59,7 +59,7 @@ STABLE
 SET search_path = pg_catalog, public, pg_temp
 AS $$
 BEGIN
-  RETURN auth.jwt() ->> 'role';
+  RETURN auth.jwt() ->> 'user_role';
 END;
 $$;
 
