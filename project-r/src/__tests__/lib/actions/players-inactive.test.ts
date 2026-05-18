@@ -104,6 +104,27 @@ function buildProfilesFrom() {
   };
 }
 
+function buildPlayersFrom() {
+  return {
+    select: vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({ data: { is_active: true, is_archived: false }, error: null }),
+        }),
+      }),
+    }),
+    update: vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({ data: { is_active: false }, error: null }),
+          }),
+        }),
+      }),
+    }),
+  };
+}
+
 describe("markPlayerInactive", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -133,11 +154,7 @@ describe("markPlayerInactive", () => {
   });
 
   it("actualiza is_active=false com isolamento multi-tenant e chama logAccess", async () => {
-    const mockUpdate = vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ error: null }),
-      }),
-    });
+    const playersFrom = buildPlayersFrom();
 
     vi.mocked(createServerClient).mockResolvedValue({
       auth: {
@@ -145,13 +162,14 @@ describe("markPlayerInactive", () => {
       },
       from: vi.fn().mockImplementation((table: string) => {
         if (table === "profiles") return buildProfilesFrom();
-        return { update: mockUpdate };
+        if (table === "players") return playersFrom;
+        return {};
       }),
     } as unknown as Awaited<ReturnType<typeof createServerClient>>);
 
     await markPlayerInactive({ playerId: VALID_UUID, inactive_reason: "lesão" }).catch(() => {});
 
-    expect(mockUpdate).toHaveBeenCalledWith({
+    expect(playersFrom.update).toHaveBeenCalledWith({
       is_active: false,
       inactive_reason: "lesão",
     });
@@ -160,11 +178,24 @@ describe("markPlayerInactive", () => {
   });
 
   it("retorna err quando update falha no Supabase", async () => {
-    const mockUpdate = vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ error: { message: "DB error" } }),
+    const playersFrom = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({ data: { is_active: true, is_archived: false }, error: null }),
+          }),
+        }),
       }),
-    });
+      update: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            select: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({ error: { message: "DB error" } }),
+            }),
+          }),
+        }),
+      }),
+    };
 
     vi.mocked(createServerClient).mockResolvedValue({
       auth: {
@@ -172,7 +203,8 @@ describe("markPlayerInactive", () => {
       },
       from: vi.fn().mockImplementation((table: string) => {
         if (table === "profiles") return buildProfilesFrom();
-        return { update: mockUpdate };
+        if (table === "players") return playersFrom;
+        return {};
       }),
     } as unknown as Awaited<ReturnType<typeof createServerClient>>);
 
@@ -213,11 +245,24 @@ describe("reactivatePlayer", () => {
   });
 
   it("actualiza is_active=true e inactive_reason=null com isolamento multi-tenant", async () => {
-    const mockUpdate = vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ error: null }),
+    const playersFrom = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({ data: { is_active: false }, error: null }),
+          }),
+        }),
       }),
-    });
+      update: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            select: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({ data: { is_active: true }, error: null }),
+            }),
+          }),
+        }),
+      }),
+    };
 
     vi.mocked(createServerClient).mockResolvedValue({
       auth: {
@@ -225,13 +270,14 @@ describe("reactivatePlayer", () => {
       },
       from: vi.fn().mockImplementation((table: string) => {
         if (table === "profiles") return buildProfilesFrom();
-        return { update: mockUpdate };
+        if (table === "players") return playersFrom;
+        return {};
       }),
     } as unknown as Awaited<ReturnType<typeof createServerClient>>);
 
     await reactivatePlayer({ playerId: VALID_UUID }).catch(() => {});
 
-    expect(mockUpdate).toHaveBeenCalledWith({
+    expect(playersFrom.update).toHaveBeenCalledWith({
       is_active: true,
       inactive_reason: null,
     });

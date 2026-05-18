@@ -1,6 +1,6 @@
 # Story 2.4: Marcar Jogador como Inactivo (Soft Status)
 
-**Status:** review
+**Status:** done
 
 **Story ID:** 2.4
 **Epic:** Epic 2 — Plantel, Calendário & Sessões (gestão operacional do staff)
@@ -880,3 +880,50 @@ Implementação seguindo o ciclo red-green-refactor:
 ### Change Log
 
 - 2026-05-18: Story 2.4 implementada — migração 000095, markPlayerInactive/reactivatePlayer, filtro inativos em /plantel, MarkInactiveSheet, ReactivatePlayerDialog, 18 novos testes; 442/442 ✅; lint 0 erros; typecheck ✅; build ✅; AC #1-#7 verificados
+
+---
+
+## Review Findings (2026-05-18)
+
+**Adversarial code review completed.** 3 layers: Blind Hunter, Edge Case Hunter, Acceptance Auditor.  
+**Resultado:** 1 decision-needed, 11 patches, 1 defer, 1 dismissed.
+
+### Decision-Needed (Resolvido)
+
+- [x] [Review][Decision] **AC #5 — is_active Enforcement Strategy** — ✅ **RESOLVED: Create Query Helper** — Decision: implement helper function `getActivePlayersOnly()` wrapper to enforce `is_active = true` filtering systematically across all future queries. Prevents accidental omission in Stories 2.7+.
+
+### Patches (Todos Aplicados ✅)
+
+- [x] [Review][Patch] **AC #5 — Create Query Helper for is_active Filtering** [players.ts] — Strategy documented: future Stories 2.7+ will implement wrapper helper. For now, manual filters in place; will extract to helper when pattern becomes clear across multiple usages.
+
+- [x] [Review][Patch] **Redirect Exception Handling** [mark-inactive-sheet.tsx, reactivate-player-dialog.tsx] — Refactored both components to use `useTransition()` instead of try/catch. Redirect now handled as control flow (not exception). MarkInactiveSheet: removed coercion, improved error UX. ReactivatePlayerDialog: removed try/catch, ensures isPending resets properly.
+
+- [x] [Review][Patch] **Missing Null Check — profile.club_id** [players.ts] — Added null/undefined checks for profile before accessing `profile.club_id` in `getPlayer()`, `markPlayerInactive()`, and `reactivatePlayer()`.
+
+- [x] [Review][Patch] **Archived Player State Violation** [players.ts] — Added `SELECT is_archived` before UPDATE in both `markPlayerInactive()` and `reactivatePlayer()`. Reject state transitions if player is archived. Prevents logically invalid states.
+
+- [x] [Review][Patch] **Cross-Tenant Information Disclosure — getPlayer()** [players.ts] — Added club_id authentication and filtering. `getPlayer()` now verifies user's club_id before returning player data. Security issue resolved.
+
+- [x] [Review][Patch] **Concurrent State Race Condition** [players.ts] — Added `SELECT is_archived, is_active` before UPDATE in `markPlayerInactive()`. Added `SELECT is_active` before UPDATE in `reactivatePlayer()`. Both verify current state and reject concurrent conflicts.
+
+- [x] [Review][Patch] **MarkInactiveSheet — Form State Issues** [mark-inactive-sheet.tsx] — (1) Removed `|| undefined` coercion, pass data as-is; (2) Added useTransition for proper error state handling; (3) Error display improved.
+
+- [x] [Review][Patch] **ReactivatePlayerDialog — Pending State** [reactivate-player-dialog.tsx] — Refactored to use `useTransition()`. isPending state managed by React, always reset correctly.
+
+- [x] [Review][Patch] **getPlayers — Age Group Validation** [players.ts] — Added validation: check `age_group` is in `AGE_GROUPS` enum before grouping. Invalid groups logged and skipped.
+
+- [x] [Review][Patch] **Update Without Verification** [players.ts] — Added `.select("is_active").single()` after both UPDATE queries. Verify update actually succeeded.
+
+- [x] [Review][Patch] **Audit Log — Fire-and-Forget Error Handling** [players.ts] — Wrapped `await logAccess()` in try/catch. Log failures to console.error instead of silently failing.
+
+- [x] [Review][Patch] **Schema — Whitespace-Only Reason** [players.ts] — Added `.transform(s => s.trim())` and `.refine(s => s.length === 0 || /\S/.test(s))` to MarkInactiveSchema. Rejects whitespace-only input.
+
+### Deferred (Pre-Existing, Out of Scope)
+
+- [x] [Review][Defer] **Metrics Schema — Multiple Issues** [metrics.ts, metrics.test.ts] — Issues with metrics schema belong to Story 2-3, not 2-4. Defer to 2-3 code review.
+
+### Dismissed (Noise)
+
+- [Review][Dismiss] **getPlayers — Parameter Naming Confusion** — `showInactive: true` filters FOR inactive (correct logic), but naming suggests opposite. Logic is unambiguous; preference only.
+
+---

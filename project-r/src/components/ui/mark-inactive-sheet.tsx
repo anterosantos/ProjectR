@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DrillDownSheet } from "@/components/ui/drill-down-sheet";
@@ -15,6 +15,7 @@ interface MarkInactiveSheetProps {
 
 export function MarkInactiveSheet({ playerId, playerName }: MarkInactiveSheetProps) {
   const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm<MarkInactive>({
     resolver: zodResolver(MarkInactiveSchema),
@@ -22,14 +23,13 @@ export function MarkInactiveSheet({ playerId, playerName }: MarkInactiveSheetPro
   });
 
   async function onSubmit(data: MarkInactive) {
-    const result = await markPlayerInactive({
-      ...data,
-      inactive_reason: data.inactive_reason || undefined,
+    startTransition(async () => {
+      const result = await markPlayerInactive(data);
+      if (!result.ok) {
+        form.setError("root", { message: result.error.message });
+      }
+      // On success: markPlayerInactive calls redirect("/plantel"), which interrupts execution
     });
-    if (!result.ok) {
-      form.setError("root", { message: result.error.message });
-    }
-    // On success: markPlayerInactive calls redirect("/plantel")
   }
 
   return (
@@ -62,10 +62,10 @@ export function MarkInactiveSheet({ playerId, playerName }: MarkInactiveSheetPro
           )}
 
           <div className="flex gap-2 pt-2">
-            <Button type="submit" className="flex-1" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? "A guardar…" : "Confirmar"}
+            <Button type="submit" className="flex-1" disabled={isPending}>
+              {isPending ? "A guardar…" : "Confirmar"}
             </Button>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={isPending}>
               Cancelar
             </Button>
           </div>

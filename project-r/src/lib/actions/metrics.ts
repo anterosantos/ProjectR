@@ -86,7 +86,11 @@ export async function getPlayerMetrics(
     return err({ code: "unknown", message: error.message });
   }
 
-  return ok((data ?? []) as PlayerMetric[]);
+  if (!data) {
+    return ok([]);
+  }
+
+  return ok(data as PlayerMetric[]);
 }
 
 export async function updatePlayerMetric(
@@ -116,6 +120,12 @@ export async function updatePlayerMetric(
     return err({ code: "not_found", message: "Leitura não encontrada" });
 
   const recordedAt = new Date(existing.recorded_at as string);
+  if (isNaN(recordedAt.getTime())) {
+    return err({
+      code: "forbidden",
+      message: "Data de leitura inválida",
+    });
+  }
   const hoursSince = (Date.now() - recordedAt.getTime()) / 1000 / 3600;
   if (hoursSince > 24) {
     return err({

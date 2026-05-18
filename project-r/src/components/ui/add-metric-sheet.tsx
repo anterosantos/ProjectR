@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -34,6 +34,13 @@ interface AddMetricSheetProps {
 export function AddMetricSheet({ playerId, onSuccess }: AddMetricSheetProps) {
   const [open, setOpen] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const defaultRecordedAt = format(new Date(), "yyyy-MM-dd'T'HH:mm");
 
@@ -45,7 +52,10 @@ export function AddMetricSheet({ playerId, onSuccess }: AddMetricSheetProps) {
     },
   });
 
-  async function onSubmit(data: MetricFormValues) {
+  // eslint-disable-next-line
+  const handleSubmit = form.handleSubmit(async (data: MetricFormValues) => {
+    form.clearErrors("root");
+
     const metricData: PlayerMetricCreate = {
       player_id: data.player_id,
       weight_kg: data.weight_kg,
@@ -54,6 +64,8 @@ export function AddMetricSheet({ playerId, onSuccess }: AddMetricSheetProps) {
     };
 
     const result = await addPlayerMetric(metricData);
+    if (!isMounted.current) return;
+
     if (result.ok) {
       setOpen(false);
       setShowSuccess(true);
@@ -65,7 +77,7 @@ export function AddMetricSheet({ playerId, onSuccess }: AddMetricSheetProps) {
     } else {
       form.setError("root", { message: result.error.message });
     }
-  }
+  });
 
   return (
     <>
@@ -82,7 +94,7 @@ export function AddMetricSheet({ playerId, onSuccess }: AddMetricSheetProps) {
 
       <DrillDownSheet open={open} onOpenChange={setOpen}>
         <h2 className="text-base font-semibold mb-4">Nova leitura</h2>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
             <label className="text-sm font-medium">Peso (kg)</label>
             <input

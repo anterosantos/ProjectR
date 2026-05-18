@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,23 +20,18 @@ interface ReactivatePlayerDialogProps {
 
 export function ReactivatePlayerDialog({ playerId, playerName }: ReactivatePlayerDialogProps) {
   const [open, setOpen] = useState(false);
-  const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   async function handleReactivate() {
     setError(null);
-    setIsPending(true);
-    try {
+    startTransition(async () => {
       const result = await reactivatePlayer({ playerId });
       if (!result.ok) {
         setError(result.error.message);
-        setIsPending(false);
       }
-      // On success: reactivatePlayer calls redirect(`/plantel/${playerId}?reativado=1`)
-    } catch {
-      setError("Erro inesperado. Tenta novamente.");
-      setIsPending(false);
-    }
+      // On success: reactivatePlayer calls redirect(`/plantel/${playerId}?reativado=1`), which interrupts execution
+    });
   }
 
   return (

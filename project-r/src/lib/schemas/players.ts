@@ -58,6 +58,8 @@ export const MarkInactiveSchema = z.object({
   inactive_reason: z
     .string()
     .max(200, "Motivo não pode exceder 200 caracteres")
+    .transform(s => s.trim())
+    .refine(s => s.length === 0 || /\S/.test(s), "Motivo não pode ser apenas espaços em branco")
     .optional(),
 });
 

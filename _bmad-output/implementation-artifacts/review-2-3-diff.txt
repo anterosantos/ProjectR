@@ -1,0 +1,1166 @@
+diff --git a/project-r/src/__tests__/components/player-metrics-chart.test.tsx b/project-r/src/__tests__/components/player-metrics-chart.test.tsx
+new file mode 100644
+index 0000000..a7beaec
+--- /dev/null
++++ b/project-r/src/__tests__/components/player-metrics-chart.test.tsx
+@@ -0,0 +1,109 @@
++import { describe, it, expect, vi, beforeAll } from "vitest";
++import { render, screen } from "@testing-library/react";
++import type { PlayerMetric } from "@/lib/actions/metrics";
++
++// Mock recharts — uses ResizeObserver and SVG APIs unavailable in jsdom
++vi.mock("recharts", () => ({
++  ComposedChart: ({ children }: { children: React.ReactNode }) => (
++    <div data-testid="composed-chart">{children}</div>
++  ),
++  Line: () => null,
++  XAxis: () => null,
++  YAxis: () => null,
++  CartesianGrid: () => null,
++  Tooltip: () => null,
++  Legend: () => null,
++  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
++    <div data-testid="responsive-container">{children}</div>
++  ),
++}));
++
++// ResizeObserver polyfill
++beforeAll(() => {
++  global.ResizeObserver = class ResizeObserver {
++    observe() {}
++    unobserve() {}
++    disconnect() {}
++  };
++});
++
++import { PlayerMetricsChart } from "@/components/ui/player-metrics-chart";
++
++const PLAYER_ID = "650e8400-e29b-41d4-a716-446655440001";
++const CLUB_ID = "850e8400-e29b-41d4-a716-446655440003";
++const USER_ID = "950e8400-e29b-41d4-a716-446655440004";
++
++function makeMetric(overrides: Partial<PlayerMetric> = {}): PlayerMetric {
++  return {
++    id: "750e8400-e29b-41d4-a716-446655440002",
++    player_id: PLAYER_ID,
++    club_id: CLUB_ID,
++    weight_kg: 72.5,
++    height_cm: 178.0,
++    recorded_at: "2026-05-01T10:00:00Z",
++    created_by: USER_ID,
++    created_at: "2026-05-01T10:00:00Z",
++    ...overrides,
++  };
++}
++
++describe("PlayerMetricsChart", () => {
++  it("renders EmptyState when no metrics", () => {
++    render(<PlayerMetricsChart metrics={[]} />);
++    expect(screen.getByText("Sem leituras ainda")).toBeInTheDocument();
++    expect(screen.getByText(/Adiciona a primeira leitura/i)).toBeInTheDocument();
++  });
++
++  it("renders EmptyState CTA button when onAddReading provided", () => {
++    const onAdd = vi.fn();
++    render(<PlayerMetricsChart metrics={[]} onAddReading={onAdd} />);
++    expect(screen.getByRole("button", { name: /Adicionar leitura/i })).toBeInTheDocument();
++  });
++
++  it("renders chart when metrics exist", () => {
++    const metrics = [makeMetric()];
++    render(<PlayerMetricsChart metrics={metrics} />);
++    expect(screen.getByTestId("responsive-container")).toBeInTheDocument();
++  });
++
++  it("shows latest weight value in summary", () => {
++    const metrics = [makeMetric({ weight_kg: 72.5, height_cm: null })];
++    render(<PlayerMetricsChart metrics={metrics} />);
++    expect(screen.getByText(/72.5 kg/i)).toBeInTheDocument();
++  });
++
++  it("shows latest height value in summary", () => {
++    const metrics = [makeMetric({ weight_kg: null, height_cm: 178.0 })];
++    render(<PlayerMetricsChart metrics={metrics} />);
++    expect(screen.getByText(/178 cm/i)).toBeInTheDocument();
++  });
++
++  it("shows most recent weight when multiple readings", () => {
++    const metrics = [
++      makeMetric({
++        id: "id-1",
++        weight_kg: 70.0,
++        recorded_at: "2026-04-01T10:00:00Z",
++      }),
++      makeMetric({
++        id: "id-2",
++        weight_kg: 72.5,
++        recorded_at: "2026-05-01T10:00:00Z",
++      }),
++    ];
++    render(<PlayerMetricsChart metrics={metrics} />);
++    expect(screen.getByText(/72.5 kg/i)).toBeInTheDocument();
++  });
++
++  it("does not show weight summary when all weight_kg values are null", () => {
++    const metrics = [makeMetric({ weight_kg: null, height_cm: 178.0 })];
++    render(<PlayerMetricsChart metrics={metrics} />);
++    expect(screen.queryByText(/Peso actual/i)).not.toBeInTheDocument();
++  });
++
++  it("does not show height summary when all height_cm values are null", () => {
++    const metrics = [makeMetric({ weight_kg: 72.5, height_cm: null })];
++    render(<PlayerMetricsChart metrics={metrics} />);
++    expect(screen.queryByText(/Altura actual/i)).not.toBeInTheDocument();
++  });
++});
+diff --git a/project-r/src/__tests__/lib/actions/metrics.test.ts b/project-r/src/__tests__/lib/actions/metrics.test.ts
+new file mode 100644
+index 0000000..9ab698d
+--- /dev/null
++++ b/project-r/src/__tests__/lib/actions/metrics.test.ts
+@@ -0,0 +1,466 @@
++import { describe, it, expect, vi, beforeEach } from "vitest";
++import {
++  PlayerMetricCreateSchema,
++  PlayerMetricUpdateSchema,
++} from "@/lib/schemas/metrics";
++
++vi.mock("@/lib/supabase/server", () => ({
++  createServerClient: vi.fn(),
++}));
++
++vi.mock("@/lib/actions/audit", () => ({
++  logAccess: vi.fn().mockResolvedValue({ ok: true, data: undefined }),
++}));
++
++import { createServerClient } from "@/lib/supabase/server";
++import { addPlayerMetric, getPlayerMetrics, updatePlayerMetric } from "@/lib/actions/metrics";
++
++const VALID_UUID = "550e8400-e29b-41d4-a716-446655440000";
++const PLAYER_UUID = "650e8400-e29b-41d4-a716-446655440001";
++const METRIC_UUID = "750e8400-e29b-41d4-a716-446655440002";
++const CLUB_UUID = "850e8400-e29b-41d4-a716-446655440003";
++const USER_UUID = "950e8400-e29b-41d4-a716-446655440004";
++
++// ─── Zod Schema Tests ─────────────────────────────────────────────────────────
++
++describe("PlayerMetricCreateSchema", () => {
++  const validBase = {
++    player_id: VALID_UUID,
++    recorded_at: new Date().toISOString(),
++  };
++
++  it("rejects when neither weight nor height provided", () => {
++    const result = PlayerMetricCreateSchema.safeParse(validBase);
++    expect(result.success).toBe(false);
++    if (!result.success) {
++      expect(result.error.issues[0]?.path).toContain("weight_kg");
++    }
++  });
++
++  it("accepts when only weight_kg provided", () => {
++    const result = PlayerMetricCreateSchema.safeParse({
++      ...validBase,
++      weight_kg: 72.5,
++    });
++    expect(result.success).toBe(true);
++  });
++
++  it("accepts when only height_cm provided", () => {
++    const result = PlayerMetricCreateSchema.safeParse({
++      ...validBase,
++      height_cm: 178.0,
++    });
++    expect(result.success).toBe(true);
++  });
++
++  it("accepts when both weight and height provided", () => {
++    const result = PlayerMetricCreateSchema.safeParse({
++      ...validBase,
++      weight_kg: 72.5,
++      height_cm: 178.0,
++    });
++    expect(result.success).toBe(true);
++  });
++
++  it("rejects weight below 30", () => {
++    const result = PlayerMetricCreateSchema.safeParse({
++      ...validBase,
++      weight_kg: 20,
++    });
++    expect(result.success).toBe(false);
++    if (!result.success) {
++      expect(result.error.issues[0]?.path).toContain("weight_kg");
++    }
++  });
++
++  it("rejects weight above 150", () => {
++    const result = PlayerMetricCreateSchema.safeParse({
++      ...validBase,
++      weight_kg: 160,
++    });
++    expect(result.success).toBe(false);
++  });
++
++  it("rejects height below 100", () => {
++    const result = PlayerMetricCreateSchema.safeParse({
++      ...validBase,
++      height_cm: 50,
++    });
++    expect(result.success).toBe(false);
++    if (!result.success) {
++      expect(result.error.issues[0]?.path).toContain("height_cm");
++    }
++  });
++
++  it("rejects height above 220", () => {
++    const result = PlayerMetricCreateSchema.safeParse({
++      ...validBase,
++      height_cm: 250,
++    });
++    expect(result.success).toBe(false);
++  });
++
++  it("rejects invalid player_id UUID", () => {
++    const result = PlayerMetricCreateSchema.safeParse({
++      ...validBase,
++      player_id: "not-a-uuid",
++      weight_kg: 72.5,
++    });
++    expect(result.success).toBe(false);
++    if (!result.success) {
++      expect(result.error.issues[0]?.path).toContain("player_id");
++    }
++  });
++});
++
++describe("PlayerMetricUpdateSchema", () => {
++  it("accepts valid update with just id", () => {
++    const result = PlayerMetricUpdateSchema.safeParse({
++      id: VALID_UUID,
++      weight_kg: 73.0,
++    });
++    expect(result.success).toBe(true);
++  });
++
++  it("rejects non-UUID id", () => {
++    const result = PlayerMetricUpdateSchema.safeParse({
++      id: "not-a-uuid",
++      weight_kg: 73.0,
++    });
++    expect(result.success).toBe(false);
++    if (!result.success) {
++      expect(result.error.issues[0]?.path).toContain("id");
++    }
++  });
++});
++
++// ─── Server Action Tests ───────────────────────────────────────────────────────
++
++function buildMockSupabase(opts?: {
++  userError?: boolean;
++  playerData?: object | null;
++  insertError?: object | null;
++  insertData?: object | null;
++  metricsData?: object[] | null;
++  metricsError?: object | null;
++  existingMetric?: object | null;
++  updateError?: object | null;
++}) {
++  const mockSingle = vi.fn();
++  const mockOrder = vi.fn();
++  const mockEq = vi.fn();
++  const mockSelect = vi.fn();
++
++  return {
++    auth: {
++      getUser: vi.fn().mockResolvedValue(
++        opts?.userError
++          ? { data: { user: null } }
++          : { data: { user: { id: USER_UUID } } }
++      ),
++    },
++    from: vi.fn().mockImplementation((table: string) => {
++      if (table === "players") {
++        return {
++          select: vi.fn().mockReturnValue({
++            eq: vi.fn().mockReturnValue({
++              single: vi.fn().mockResolvedValue({
++                data:
++                  opts?.playerData !== undefined
++                    ? opts.playerData
++                    : { id: PLAYER_UUID, club_id: CLUB_UUID },
++                error: null,
++              }),
++            }),
++          }),
++        };
++      }
++      if (table === "player_metrics") {
++        mockSelect.mockReturnValue({
++          eq: mockEq.mockReturnValue({
++            single: mockSingle.mockResolvedValue({
++              data: opts?.existingMetric ?? null,
++              error: null,
++            }),
++            order: mockOrder.mockResolvedValue({
++              data: opts?.metricsData ?? [],
++              error: opts?.metricsError ?? null,
++            }),
++          }),
++        });
++
++        return {
++          select: mockSelect,
++          insert: vi.fn().mockReturnValue({
++            select: vi.fn().mockReturnValue({
++              single: vi.fn().mockResolvedValue({
++                data: opts?.insertData ?? { id: METRIC_UUID },
++                error: opts?.insertError ?? null,
++              }),
++            }),
++          }),
++          update: vi.fn().mockReturnValue({
++            eq: vi.fn().mockResolvedValue({
++              error: opts?.updateError ?? null,
++            }),
++          }),
++        };
++      }
++      return {};
++    }),
++  };
++}
++
++describe("addPlayerMetric", () => {
++  beforeEach(() => {
++    vi.clearAllMocks();
++  });
++
++  const validInput = {
++    player_id: PLAYER_UUID,
++    weight_kg: 72.5,
++    recorded_at: new Date().toISOString(),
++  };
++
++  it("returns ok with id on successful insert", async () => {
++    vi.mocked(createServerClient).mockResolvedValue(
++      buildMockSupabase() as never
++    );
++    const result = await addPlayerMetric(validInput);
++    expect(result.ok).toBe(true);
++    if (result.ok) {
++      expect(result.data.id).toBe(METRIC_UUID);
++    }
++  });
++
++  it("returns validation error for invalid input (no weight or height)", async () => {
++    const result = await addPlayerMetric({
++      player_id: PLAYER_UUID,
++      recorded_at: new Date().toISOString(),
++    });
++    expect(result.ok).toBe(false);
++    if (!result.ok) {
++      expect(result.error.code).toBe("validation");
++    }
++  });
++
++  it("returns unauthorized when user not authenticated", async () => {
++    vi.mocked(createServerClient).mockResolvedValue(
++      buildMockSupabase({ userError: true }) as never
++    );
++    const result = await addPlayerMetric(validInput);
++    expect(result.ok).toBe(false);
++    if (!result.ok) {
++      expect(result.error.code).toBe("unauthorized");
++    }
++  });
++
++  it("returns forbidden when player not found (club isolation)", async () => {
++    vi.mocked(createServerClient).mockResolvedValue(
++      buildMockSupabase({ playerData: null }) as never
++    );
++    const result = await addPlayerMetric(validInput);
++    expect(result.ok).toBe(false);
++    if (!result.ok) {
++      expect(result.error.code).toBe("forbidden");
++    }
++  });
++
++  it("returns error on database insert failure", async () => {
++    vi.mocked(createServerClient).mockResolvedValue(
++      buildMockSupabase({
++        insertData: null,
++        insertError: { message: "DB error" },
++      }) as never
++    );
++    const result = await addPlayerMetric(validInput);
++    expect(result.ok).toBe(false);
++    if (!result.ok) {
++      expect(result.error.code).toBe("unknown");
++    }
++  });
++});
++
++describe("getPlayerMetrics", () => {
++  beforeEach(() => {
++    vi.clearAllMocks();
++  });
++
++  it("returns empty array when no metrics exist", async () => {
++    const mock = {
++      from: vi.fn().mockReturnValue({
++        select: vi.fn().mockReturnValue({
++          eq: vi.fn().mockReturnValue({
++            order: vi.fn().mockResolvedValue({ data: [], error: null }),
++          }),
++        }),
++      }),
++    };
++    vi.mocked(createServerClient).mockResolvedValue(mock as never);
++    const result = await getPlayerMetrics(PLAYER_UUID);
++    expect(result.ok).toBe(true);
++    if (result.ok) {
++      expect(result.data).toHaveLength(0);
++    }
++  });
++
++  it("returns metrics ordered by recorded_at ascending", async () => {
++    const metricsData = [
++      {
++        id: METRIC_UUID,
++        player_id: PLAYER_UUID,
++        club_id: CLUB_UUID,
++        weight_kg: 70.0,
++        height_cm: 175.0,
++        recorded_at: "2026-01-01T10:00:00Z",
++        created_by: USER_UUID,
++        created_at: "2026-01-01T10:00:00Z",
++      },
++    ];
++    const mock = {
++      from: vi.fn().mockReturnValue({
++        select: vi.fn().mockReturnValue({
++          eq: vi.fn().mockReturnValue({
++            order: vi.fn().mockResolvedValue({ data: metricsData, error: null }),
++          }),
++        }),
++      }),
++    };
++    vi.mocked(createServerClient).mockResolvedValue(mock as never);
++    const result = await getPlayerMetrics(PLAYER_UUID);
++    expect(result.ok).toBe(true);
++    if (result.ok) {
++      expect(result.data).toHaveLength(1);
++      expect(result.data[0]?.weight_kg).toBe(70.0);
++    }
++  });
++
++  it("returns error on database failure", async () => {
++    const mock = {
++      from: vi.fn().mockReturnValue({
++        select: vi.fn().mockReturnValue({
++          eq: vi.fn().mockReturnValue({
++            order: vi.fn().mockResolvedValue({
++              data: null,
++              error: { message: "DB error" },
++            }),
++          }),
++        }),
++      }),
++    };
++    vi.mocked(createServerClient).mockResolvedValue(mock as never);
++    const result = await getPlayerMetrics(PLAYER_UUID);
++    expect(result.ok).toBe(false);
++  });
++});
++
++describe("updatePlayerMetric — 24h window", () => {
++  beforeEach(() => {
++    vi.clearAllMocks();
++  });
++
++  const validInput = {
++    id: METRIC_UUID,
++    weight_kg: 73.0,
++  };
++
++  it("allows update within 24h window", async () => {
++    const recentTime = new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(); // 1h ago
++    const mock = {
++      auth: {
++        getUser: vi.fn().mockResolvedValue({
++          data: { user: { id: USER_UUID } },
++        }),
++      },
++      from: vi.fn().mockReturnValue({
++        select: vi.fn().mockReturnValue({
++          eq: vi.fn().mockReturnValue({
++            single: vi.fn().mockResolvedValue({
++              data: {
++                id: METRIC_UUID,
++                player_id: PLAYER_UUID,
++                recorded_at: recentTime,
++              },
++              error: null,
++            }),
++          }),
++        }),
++        update: vi.fn().mockReturnValue({
++          eq: vi.fn().mockResolvedValue({ error: null }),
++        }),
++      }),
++    };
++    vi.mocked(createServerClient).mockResolvedValue(mock as never);
++    const result = await updatePlayerMetric(validInput);
++    expect(result.ok).toBe(true);
++  });
++
++  it("rejects update older than 24h", async () => {
++    const oldTime = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(); // 25h ago
++    const mock = {
++      auth: {
++        getUser: vi.fn().mockResolvedValue({
++          data: { user: { id: USER_UUID } },
++        }),
++      },
++      from: vi.fn().mockReturnValue({
++        select: vi.fn().mockReturnValue({
++          eq: vi.fn().mockReturnValue({
++            single: vi.fn().mockResolvedValue({
++              data: {
++                id: METRIC_UUID,
++                player_id: PLAYER_UUID,
++                recorded_at: oldTime,
++              },
++              error: null,
++            }),
++          }),
++        }),
++      }),
++    };
++    vi.mocked(createServerClient).mockResolvedValue(mock as never);
++    const result = await updatePlayerMetric(validInput);
++    expect(result.ok).toBe(false);
++    if (!result.ok) {
++      expect(result.error.code).toBe("forbidden");
++    }
++  });
++
++  it("returns not_found when metric does not exist", async () => {
++    const mock = {
++      auth: {
++        getUser: vi.fn().mockResolvedValue({
++          data: { user: { id: USER_UUID } },
++        }),
++      },
++      from: vi.fn().mockReturnValue({
++        select: vi.fn().mockReturnValue({
++          eq: vi.fn().mockReturnValue({
++            single: vi.fn().mockResolvedValue({ data: null, error: null }),
++          }),
++        }),
++      }),
++    };
++    vi.mocked(createServerClient).mockResolvedValue(mock as never);
++    const result = await updatePlayerMetric(validInput);
++    expect(result.ok).toBe(false);
++    if (!result.ok) {
++      expect(result.error.code).toBe("not_found");
++    }
++  });
++
++  it("returns unauthorized when user not authenticated", async () => {
++    const mock = {
++      auth: {
++        getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
++      },
++      from: vi.fn(),
++    };
++    vi.mocked(createServerClient).mockResolvedValue(mock as never);
++    const result = await updatePlayerMetric(validInput);
++    expect(result.ok).toBe(false);
++    if (!result.ok) {
++      expect(result.error.code).toBe("unauthorized");
++    }
++  });
++});
+diff --git a/project-r/src/app/(staff)/plantel/[id]/page.tsx b/project-r/src/app/(staff)/plantel/[id]/page.tsx
+index eaa0baa..72ddbf7 100644
+--- a/project-r/src/app/(staff)/plantel/[id]/page.tsx
++++ b/project-r/src/app/(staff)/plantel/[id]/page.tsx
+@@ -8,8 +8,13 @@ import { Button } from "@/components/ui/button";
+ import { CalmConfirmation } from "@/components/ui/calm-confirmation";
+ import { SemaforoBadge } from "@/components/ui/semaforo-badge";
+ import { PlayerPhoto } from "@/components/ui/player-photo";
++import { PlayerMetricsChart } from "@/components/ui/player-metrics-chart";
++import { AddMetricSheet } from "@/components/ui/add-metric-sheet";
++import { MarkInactiveSheet } from "@/components/ui/mark-inactive-sheet";
+ import { getPlayer } from "@/lib/actions/players";
++import { getPlayerMetrics } from "@/lib/actions/metrics";
+ import { ArchivePlayerDialog } from "./archive-player-dialog";
++import { ReactivatePlayerDialog } from "./reactivate-player-dialog";
+
+ const AGE_GROUP_LABELS: Record<string, string> = {
+   u14: "Sub-14",
+@@ -35,17 +40,21 @@ export default async function PlayerDetailPage({
+   searchParams,
+ }: {
+   params: Promise<{ id: string }>;
+-  searchParams: Promise<{ created?: string; updated?: string }>;
++  searchParams: Promise<{ created?: string; updated?: string; reativado?: string }>;
+ }) {
+   const { id } = await params;
+-  const { created, updated } = await searchParams;
++  const { created, updated, reativado } = await searchParams;
+
+   const result = await getPlayer(id);
+   if (!result.ok) notFound();
+
+   const player = result.data;
++
++  const metricsResult = await getPlayerMetrics(player.id);
++  const metrics = metricsResult.ok ? metricsResult.data : [];
+   const showCreated = created === "1";
+   const showUpdated = updated === "1";
++  const showReativado = reativado === "1";
+
+   const birthDate = new Date(player.birthdate);
+   const age = differenceInYears(new Date(), birthDate);
+@@ -62,6 +71,7 @@ export default async function PlayerDetailPage({
+     <div className="px-4 py-6 sm:px-6 max-w-lg">
+       {showCreated && <CalmConfirmation message="Jogador adicionado" />}
+       {showUpdated && <CalmConfirmation message="Jogador actualizado" />}
++      {showReativado && <CalmConfirmation message="Jogador reactivado" />}
+
+       <div className="mb-6 flex items-center gap-3">
+         <Button asChild variant="ghost" size="sm">
+@@ -97,6 +107,16 @@ export default async function PlayerDetailPage({
+           <SemaforoBadge state="neutral" />
+         </div>
+
++        {/* Badge de inactivo */}
++        {!player.is_active && (
++          <div className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
++            <span className="font-medium">Inactivo</span>
++            {player.inactive_reason && (
++              <span className="ml-2">— {player.inactive_reason}</span>
++            )}
++          </div>
++        )}
++
+         {/* Info */}
+         <dl className="divide-y divide-border rounded-lg border border-border bg-background">
+           <div className="flex items-center justify-between px-4 py-3">
+@@ -129,8 +149,22 @@ export default async function PlayerDetailPage({
+               Editar
+             </Link>
+           </Button>
++          {player.is_active ? (
++            <MarkInactiveSheet playerId={player.id} playerName={player.full_name} />
++          ) : (
++            <ReactivatePlayerDialog playerId={player.id} playerName={player.full_name} />
++          )}
+           <ArchivePlayerDialog playerId={player.id} playerName={player.full_name} />
+         </div>
++
++        {/* Métricas físicas */}
++        <section className="space-y-3">
++          <div className="flex items-center justify-between">
++            <h2 className="text-base font-semibold">Métricas físicas</h2>
++            <AddMetricSheet playerId={player.id} />
++          </div>
++          <PlayerMetricsChart metrics={metrics} />
++        </section>
+       </div>
+     </div>
+   );
+diff --git a/project-r/src/components/ui/add-metric-sheet.tsx b/project-r/src/components/ui/add-metric-sheet.tsx
+new file mode 100644
+index 0000000..e8de801
+--- /dev/null
++++ b/project-r/src/components/ui/add-metric-sheet.tsx
+@@ -0,0 +1,162 @@
++"use client";
++
++import { useState } from "react";
++import { useForm } from "react-hook-form";
++import { zodResolver } from "@hookform/resolvers/zod";
++import { z } from "zod";
++import { format } from "date-fns";
++import { DrillDownSheet } from "@/components/ui/drill-down-sheet";
++import { CalmConfirmation } from "@/components/ui/calm-confirmation";
++import { Button } from "@/components/ui/button";
++import { addPlayerMetric } from "@/lib/actions/metrics";
++import type { PlayerMetricCreate } from "@/lib/schemas/metrics";
++
++// Local form schema accepts datetime-local format (no timezone suffix)
++const MetricFormSchema = z
++  .object({
++    player_id: z.string().uuid(),
++    weight_kg: z.number().min(30, "Mínimo 30 kg").max(150, "Máximo 150 kg").optional(),
++    height_cm: z.number().min(100, "Mínimo 100 cm").max(220, "Máximo 220 cm").optional(),
++    recorded_at: z.string().min(1, "Data obrigatória"),
++  })
++  .refine(
++    (data) => data.weight_kg !== undefined || data.height_cm !== undefined,
++    { message: "Preenche pelo menos peso ou altura", path: ["weight_kg"] }
++  );
++
++type MetricFormValues = z.infer<typeof MetricFormSchema>;
++
++interface AddMetricSheetProps {
++  playerId: string;
++  onSuccess?: () => void;
++}
++
++export function AddMetricSheet({ playerId, onSuccess }: AddMetricSheetProps) {
++  const [open, setOpen] = useState(false);
++  const [showSuccess, setShowSuccess] = useState(false);
++
++  const defaultRecordedAt = format(new Date(), "yyyy-MM-dd'T'HH:mm");
++
++  const form = useForm<MetricFormValues>({
++    resolver: zodResolver(MetricFormSchema),
++    defaultValues: {
++      player_id: playerId,
++      recorded_at: defaultRecordedAt,
++    },
++  });
++
++  async function onSubmit(data: MetricFormValues) {
++    const metricData: PlayerMetricCreate = {
++      player_id: data.player_id,
++      weight_kg: data.weight_kg,
++      height_cm: data.height_cm,
++      recorded_at: new Date(data.recorded_at).toISOString(),
++    };
++
++    const result = await addPlayerMetric(metricData);
++    if (result.ok) {
++      setOpen(false);
++      setShowSuccess(true);
++      form.reset({
++        player_id: playerId,
++        recorded_at: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
++      });
++      onSuccess?.();
++    } else {
++      form.setError("root", { message: result.error.message });
++    }
++  }
++
++  return (
++    <>
++      {showSuccess && (
++        <CalmConfirmation
++          message="Leitura registada"
++          onDismiss={() => setShowSuccess(false)}
++        />
++      )}
++
++      <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
++        Adicionar leitura
++      </Button>
++
++      <DrillDownSheet open={open} onOpenChange={setOpen}>
++        <h2 className="text-base font-semibold mb-4">Nova leitura</h2>
++        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
++          <div className="space-y-1">
++            <label className="text-sm font-medium">Peso (kg)</label>
++            <input
++              type="number"
++              step="0.01"
++              min="30"
++              max="150"
++              className="w-full rounded border px-3 py-2 text-sm"
++              placeholder="ex: 72.50"
++              {...form.register("weight_kg", { valueAsNumber: true })}
++            />
++            {form.formState.errors.weight_kg && (
++              <p className="text-xs text-destructive">
++                {form.formState.errors.weight_kg.message}
++              </p>
++            )}
++          </div>
++
++          <div className="space-y-1">
++            <label className="text-sm font-medium">Altura (cm)</label>
++            <input
++              type="number"
++              step="0.01"
++              min="100"
++              max="220"
++              className="w-full rounded border px-3 py-2 text-sm"
++              placeholder="ex: 178.00"
++              {...form.register("height_cm", { valueAsNumber: true })}
++            />
++            {form.formState.errors.height_cm && (
++              <p className="text-xs text-destructive">
++                {form.formState.errors.height_cm.message}
++              </p>
++            )}
++          </div>
++
++          <div className="space-y-1">
++            <label className="text-sm font-medium">Data da leitura</label>
++            <input
++              type="datetime-local"
++              className="w-full rounded border px-3 py-2 text-sm"
++              {...form.register("recorded_at")}
++            />
++            {form.formState.errors.recorded_at && (
++              <p className="text-xs text-destructive">
++                {form.formState.errors.recorded_at.message}
++              </p>
++            )}
++          </div>
++
++          {form.formState.errors.root && (
++            <p className="text-xs text-destructive">
++              {form.formState.errors.root.message}
++            </p>
++          )}
++
++          <div className="flex gap-2 pt-2">
++            <Button
++              type="submit"
++              className="flex-1"
++              disabled={form.formState.isSubmitting}
++            >
++              {form.formState.isSubmitting ? "A guardar…" : "Guardar"}
++            </Button>
++            <Button
++              type="button"
++              variant="ghost"
++              onClick={() => setOpen(false)}
++            >
++              Cancelar
++            </Button>
++          </div>
++        </form>
++      </DrillDownSheet>
++    </>
++  );
++}
+diff --git a/project-r/src/components/ui/player-metrics-chart.tsx b/project-r/src/components/ui/player-metrics-chart.tsx
+new file mode 100644
+index 0000000..f397f09
+--- /dev/null
++++ b/project-r/src/components/ui/player-metrics-chart.tsx
+@@ -0,0 +1,124 @@
++"use client";
++
++import {
++  ComposedChart,
++  Line,
++  XAxis,
++  YAxis,
++  CartesianGrid,
++  Tooltip,
++  Legend,
++  ResponsiveContainer,
++} from "recharts";
++import { format } from "date-fns";
++import { pt } from "date-fns/locale";
++import { BarChart2 } from "lucide-react";
++import type { PlayerMetric } from "@/lib/actions/metrics";
++import { EmptyState } from "@/components/ui/empty-state";
++
++interface PlayerMetricsChartProps {
++  metrics: PlayerMetric[];
++  onAddReading?: () => void;
++}
++
++export function PlayerMetricsChart({
++  metrics,
++  onAddReading,
++}: PlayerMetricsChartProps) {
++  if (metrics.length === 0) {
++    return (
++      <EmptyState
++        icon={<BarChart2 className="h-8 w-8 text-muted-foreground" />}
++        title="Sem leituras ainda"
++        description="Adiciona a primeira leitura de peso ou altura"
++        cta={
++          onAddReading
++            ? { label: "Adicionar leitura", onClick: onAddReading }
++            : undefined
++        }
++      />
++    );
++  }
++
++  const chartData = metrics.map((m) => ({
++    date: format(new Date(m.recorded_at), "d MMM yyyy", { locale: pt }),
++    peso: m.weight_kg ?? null,
++    altura: m.height_cm ?? null,
++  }));
++
++  const latestWeight = [...metrics]
++    .reverse()
++    .find((m) => m.weight_kg !== null)?.weight_kg;
++  const latestHeight = [...metrics]
++    .reverse()
++    .find((m) => m.height_cm !== null)?.height_cm;
++
++  return (
++    <div className="space-y-3">
++      <div className="flex gap-6 text-sm">
++        {latestWeight !== undefined && (
++          <div>
++            <span className="text-muted-foreground">Peso actual: </span>
++            <span className="font-semibold text-blue-600">
++              {latestWeight} kg
++            </span>
++          </div>
++        )}
++        {latestHeight !== undefined && (
++          <div>
++            <span className="text-muted-foreground">Altura actual: </span>
++            <span className="font-semibold text-green-600">
++              {latestHeight} cm
++            </span>
++          </div>
++        )}
++      </div>
++
++      <ResponsiveContainer width="100%" height={240}>
++        <ComposedChart
++          data={chartData}
++          margin={{ top: 4, right: 16, bottom: 0, left: 0 }}
++        >
++          <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
++          <XAxis dataKey="date" tick={{ fontSize: 11 }} />
++          <YAxis
++            yAxisId="peso"
++            orientation="left"
++            domain={["auto", "auto"]}
++            tick={{ fontSize: 11 }}
++            unit=" kg"
++          />
++          <YAxis
++            yAxisId="altura"
++            orientation="right"
++            domain={["auto", "auto"]}
++            tick={{ fontSize: 11 }}
++            unit=" cm"
++          />
++          <Tooltip />
++          <Legend />
++          <Line
++            yAxisId="peso"
++            type="monotone"
++            dataKey="peso"
++            name="Peso (kg)"
++            stroke="#2563eb"
++            strokeWidth={2}
++            dot={{ r: 3 }}
++            connectNulls={false}
++          />
++          <Line
++            yAxisId="altura"
++            type="monotone"
++            dataKey="altura"
++            name="Altura (cm)"
++            stroke="#16a34a"
++            strokeWidth={2}
++            dot={{ r: 3 }}
++            connectNulls={false}
++          />
++        </ComposedChart>
++      </ResponsiveContainer>
++    </div>
++  );
++}
+diff --git a/project-r/src/lib/actions/metrics.ts b/project-r/src/lib/actions/metrics.ts
+new file mode 100644
+index 0000000..2458e85
+--- /dev/null
++++ b/project-r/src/lib/actions/metrics.ts
+@@ -0,0 +1,152 @@
++"use server";
++
++import { createServerClient } from "@/lib/supabase/server";
++import { ok, err } from "@/lib/types";
++import type { Result, AppError } from "@/lib/types";
++import { logAccess } from "@/lib/actions/audit";
++import {
++  PlayerMetricCreateSchema,
++  PlayerMetricUpdateSchema,
++  type PlayerMetricCreate,
++  type PlayerMetricUpdate,
++} from "@/lib/schemas/metrics";
++
++export interface PlayerMetric {
++  id: string;
++  player_id: string;
++  club_id: string;
++  weight_kg: number | null;
++  height_cm: number | null;
++  recorded_at: string;
++  created_by: string;
++  created_at: string;
++}
++
++export async function addPlayerMetric(
++  input: PlayerMetricCreate
++): Promise<Result<{ id: string }, AppError>> {
++  const validated = PlayerMetricCreateSchema.safeParse(input);
++  if (!validated.success) {
++    return err({
++      code: "validation",
++      message: validated.error.issues[0]?.message ?? "Dados inválidos",
++    });
++  }
++
++  const supabase = await createServerClient();
++  const {
++    data: { user },
++  } = await supabase.auth.getUser();
++  if (!user) return err({ code: "unauthorized", message: "Não autenticado" });
++
++  const { data: player } = await supabase
++    .from("players")
++    .select("id, club_id")
++    .eq("id", validated.data.player_id)
++    .single();
++  if (!player)
++    return err({ code: "forbidden", message: "Jogador não encontrado" });
++
++  const { data, error } = await supabase
++    .from("player_metrics")
++    .insert({
++      player_id: validated.data.player_id,
++      club_id: player.club_id,
++      weight_kg: validated.data.weight_kg ?? null,
++      height_cm: validated.data.height_cm ?? null,
++      recorded_at: validated.data.recorded_at,
++      created_by: user.id,
++    })
++    .select("id")
++    .single();
++
++  if (error || !data) {
++    return err({
++      code: "unknown",
++      message: error?.message ?? "Erro ao guardar leitura",
++    });
++  }
++
++  await logAccess("metric.created", "player", validated.data.player_id);
++  return ok({ id: data.id });
++}
++
++export async function getPlayerMetrics(
++  playerId: string
++): Promise<Result<PlayerMetric[], AppError>> {
++  const supabase = await createServerClient();
++
++  const { data, error } = await supabase
++    .from("player_metrics")
++    .select("*")
++    .eq("player_id", playerId)
++    .order("recorded_at", { ascending: true });
++
++  if (error) {
++    return err({ code: "unknown", message: error.message });
++  }
++
++  return ok((data ?? []) as PlayerMetric[]);
++}
++
++export async function updatePlayerMetric(
++  input: PlayerMetricUpdate
++): Promise<Result<void, AppError>> {
++  const validated = PlayerMetricUpdateSchema.safeParse(input);
++  if (!validated.success) {
++    return err({
++      code: "validation",
++      message: validated.error.issues[0]?.message ?? "Dados inválidos",
++    });
++  }
++
++  const supabase = await createServerClient();
++  const {
++    data: { user },
++  } = await supabase.auth.getUser();
++  if (!user) return err({ code: "unauthorized", message: "Não autenticado" });
++
++  const { data: existing } = await supabase
++    .from("player_metrics")
++    .select("id, player_id, recorded_at")
++    .eq("id", validated.data.id)
++    .single();
++
++  if (!existing)
++    return err({ code: "not_found", message: "Leitura não encontrada" });
++
++  const recordedAt = new Date(existing.recorded_at as string);
++  const hoursSince = (Date.now() - recordedAt.getTime()) / 1000 / 3600;
++  if (hoursSince > 24) {
++    return err({
++      code: "forbidden",
++      message: "Só é possível editar leituras das últimas 24 horas",
++    });
++  }
++
++  const updatePayload: {
++    weight_kg?: number | null;
++    height_cm?: number | null;
++    recorded_at?: string;
++  } = {};
++  if (validated.data.weight_kg !== undefined)
++    updatePayload.weight_kg = validated.data.weight_kg;
++  if (validated.data.height_cm !== undefined)
++    updatePayload.height_cm = validated.data.height_cm;
++  if (validated.data.recorded_at !== undefined)
++    updatePayload.recorded_at = validated.data.recorded_at;
++
++  const { error } = await supabase
++    .from("player_metrics")
++    .update(updatePayload)
++    .eq("id", validated.data.id);
++
++  if (error) return err({ code: "unknown", message: error.message });
++
++  await logAccess(
++    "metric.updated",
++    "player",
++    existing.player_id as string
++  );
++  return ok(undefined);
++}
+diff --git a/project-r/src/lib/schemas/metrics.ts b/project-r/src/lib/schemas/metrics.ts
+new file mode 100644
+index 0000000..63b5463
+--- /dev/null
++++ b/project-r/src/lib/schemas/metrics.ts
+@@ -0,0 +1,26 @@
++import { z } from "zod";
++
++export const PlayerMetricCreateSchema = z
++  .object({
++    player_id: z.string().uuid(),
++    weight_kg: z.number().min(30).max(150).multipleOf(0.01).optional(),
++    height_cm: z.number().min(100).max(220).multipleOf(0.01).optional(),
++    recorded_at: z.string().datetime({ offset: true }),
++  })
++  .refine(
++    (data) => data.weight_kg !== undefined || data.height_cm !== undefined,
++    {
++      message: "Preenche pelo menos peso ou altura",
++      message: "Preenche pelo menos peso ou altura",
++      path: ["weight_kg"],
++    }
++  );
++
++export const PlayerMetricUpdateSchema = z.object({
++  id: z.string().uuid(),
++  weight_kg: z.number().min(30).max(150).multipleOf(0.01).optional(),
++  height_cm: z.number().min(100).max(220).multipleOf(0.01).optional(),
++  recorded_at: z.string().datetime({ offset: true }).optional(),
++});
++
++export type PlayerMetricCreate = z.infer<typeof PlayerMetricCreateSchema>;
++export type PlayerMetricUpdate = z.infer<typeof PlayerMetricUpdateSchema>;

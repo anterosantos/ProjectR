@@ -52,6 +52,12 @@ export default async function PlayerDetailPage({
 
   const metricsResult = await getPlayerMetrics(player.id);
   const metrics = metricsResult.ok ? metricsResult.data : [];
+  if (!metricsResult.ok) {
+    console.error(
+      `Failed to load metrics for player ${player.id}:`,
+      metricsResult.error
+    );
+  }
   const showCreated = created === "1";
   const showUpdated = updated === "1";
   const showReativado = reativado === "1";

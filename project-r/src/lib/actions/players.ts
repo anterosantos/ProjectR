@@ -97,10 +97,12 @@ export async function getPlayers(
   }, {} as GroupedPlayers);
 
   for (const player of sorted) {
-    const group = player.age_group as AgeGroup;
-    if (group in grouped) {
-      grouped[group]?.push(player);
+    if (!AGE_GROUPS.includes(player.age_group as AgeGroup)) {
+      console.warn(`[getPlayers] Player ${player.id} has invalid age_group: ${player.age_group}`);
+      continue;
     }
+    const group = player.age_group as AgeGroup;
+    grouped[group]?.push(player);
   }
 
   return ok(grouped);
@@ -110,11 +112,23 @@ export async function getPlayer(
   playerId: string
 ): Promise<Result<PlayerWithPositions, AppError>> {
   const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return err({ code: "unauthorized", message: "Não autenticado" });
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("club_id")
+    .eq("id", user.id)
+    .single();
+  if (!profile) return err({ code: "forbidden", message: "Perfil não encontrado" });
 
   const { data, error } = await supabase
     .from("players")
     .select("id, club_id, profile_id, jersey_num, full_name, birthdate, age_group, is_archived, is_active, inactive_reason, photo_path, created_at, updated_at, positions(id, position, is_primary, sort_order)")
     .eq("id", playerId)
+    .eq("club_id", profile.club_id)
     .single();
 
   if (error || !data) {
@@ -334,6 +348,25 @@ export async function markPlayerInactive(
     .single();
   if (!profile) return err({ code: "forbidden", message: "Perfil não encontrado" });
 
+  const { data: currentPlayer } = await supabase
+    .from("players")
+    .select("is_archived, is_active")
+    .eq("id", validated.data.playerId)
+    .eq("club_id", profile.club_id)
+    .single();
+
+  if (!currentPlayer) {
+    return err({ code: "not_found", message: "Jogador não encontrado" });
+  }
+
+  if (currentPlayer.is_archived) {
+    return err({ code: "forbidden", message: "Não é possível marcar jogador arquivado como inactivo" });
+  }
+
+  if (!currentPlayer.is_active) {
+    return err({ code: "conflict", message: "Jogador já está inactivo" });
+  }
+
   const { error } = await supabase
     .from("players")
     .update({
@@ -341,11 +374,17 @@ export async function markPlayerInactive(
       inactive_reason: validated.data.inactive_reason ?? null,
     })
     .eq("id", validated.data.playerId)
-    .eq("club_id", profile.club_id);
+    .eq("club_id", profile.club_id)
+    .select("is_active")
+    .single();
 
   if (error) return err({ code: "unknown", message: error.message });
 
-  await logAccess("player.marked_inactive", "player", validated.data.playerId);
+  try {
+    await logAccess("player.marked_inactive", "player", validated.data.playerId);
+  } catch (logError) {
+    console.error("[markPlayerInactive] Audit log failed:", logError);
+  }
 
   redirect("/plantel");
 }
@@ -371,6 +410,21 @@ export async function reactivatePlayer(
     .single();
   if (!profile) return err({ code: "forbidden", message: "Perfil não encontrado" });
 
+  const { data: currentPlayer } = await supabase
+    .from("players")
+    .select("is_active")
+    .eq("id", validated.data.playerId)
+    .eq("club_id", profile.club_id)
+    .single();
+
+  if (!currentPlayer) {
+    return err({ code: "not_found", message: "Jogador não encontrado" });
+  }
+
+  if (currentPlayer.is_active) {
+    return err({ code: "conflict", message: "Jogador já está activo" });
+  }
+
   const { error } = await supabase
     .from("players")
     .update({
@@ -378,11 +432,17 @@ export async function reactivatePlayer(
       inactive_reason: null,
     })
     .eq("id", validated.data.playerId)
-    .eq("club_id", profile.club_id);
+    .eq("club_id", profile.club_id)
+    .select("is_active")
+    .single();
 
   if (error) return err({ code: "unknown", message: error.message });
 
-  await logAccess("player.reactivated", "player", validated.data.playerId);
+  try {
+    await logAccess("player.reactivated", "player", validated.data.playerId);
+  } catch (logError) {
+    console.error("[reactivatePlayer] Audit log failed:", logError);
+  }
 
   redirect(`/plantel/${validated.data.playerId}?reativado=1`);
 }

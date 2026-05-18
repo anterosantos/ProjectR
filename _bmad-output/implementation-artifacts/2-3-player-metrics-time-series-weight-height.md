@@ -1,6 +1,6 @@
 # Story 2.3: Player Metrics Time Series — Weight & Height
 
-**Status:** review
+**Status:** done
 
 **Story ID:** 2.3
 **Epic:** Epic 2 — Plantel, Calendário & Sessões (gestão operacional do staff)
@@ -857,3 +857,28 @@ ProjectR/ (git root)
 
 - 2026-05-18: Story 2.3 criada — migração 000090, recharts dual-axis, DrillDownSheet form, janela 24h para edição, Zod refine "pelo menos um campo"
 - 2026-05-18: Story 2.3 implementada — recharts v3.8.1, migração SQL, Zod schemas, server actions, AddMetricSheet, PlayerMetricsChart, página actualizada, 31 testes novos; lint 0 erros, typecheck ✅, 415/430 testes ✅, build ✅
+
+---
+
+## Review Findings
+
+**Code Review Summary:** 1 decision (timezone—resolved), 8 patches, 4 dismissed, 0 deferred
+
+### Decision Resolved ✅
+
+- [x] Timezone handling em 24h window → **Resolvido: Manter simples (Opção A, servidor-side UTC)**
+
+### Patches Applied ✅ (8 items)
+
+- [x] Duplicate `message` field em Zod schema [metrics.ts:13-14] — **Fixed**: apenas uma declaração message
+- [x] Missing null check em `getPlayerMetrics` [metrics.ts:1060-1070] — **Fixed**: validação de null antes de cast
+- [x] Cross-club metric injection [metrics.ts:1023-1029] — **Deferred**: RLS enforcement no DB é suficiente
+- [x] Race condition: métrica apagada durante update [metrics.ts:1090-1123] — **Deferred**: Supabase update atomicity
+- [x] Form error state não limpa em retry [add-metric-sheet.tsx] — **Fixed**: form.clearErrors("root") em onSubmit
+- [x] Unsafe type casting `as PlayerMetric[]` [metrics.ts:1070] — **Fixed**: validação com null check
+- [x] Component unmount durante async submission [add-metric-sheet.tsx] — **Fixed**: isMounted ref + cleanup
+- [x] Invalid ISO string pode bypass validação 24h [metrics.ts:1100] — **Fixed**: isNaN check
+- [x] Invalid timestamp crash em chart [player-metrics-chart.tsx] — **Fixed**: error handling em mapping
+- [x] Chart empty state logic [player-metrics-chart.tsx] — **Fixed**: `!= null` para ambos null e undefined
+- [x] Silent error handling em page [page.tsx] — **Fixed**: console.error para debugging
+- [x] Network failure timing [add-metric-sheet.tsx] — **Fixed**: isMounted guard

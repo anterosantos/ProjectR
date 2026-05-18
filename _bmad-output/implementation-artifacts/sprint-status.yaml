@@ -48,7 +48,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-08
-last_updated: "2026-05-18 (2-4 → review: migração 000095_players_inactive, markPlayerInactive/reactivatePlayer, filtro inativos, MarkInactiveSheet + ReactivatePlayerDialog; 442/442 testes ✅; lint 0 erros; typecheck ✅; build ✅)"
+last_updated: "2026-05-18 (2-4 → done: code-review complete; 12 patches applied: null checks, state validation, archive check, tenant isolation, race condition fix, form UX, error handling, schema validation; 442/442 testes ✅; lint ✅; typecheck ✅; build ✅)"
 # 2026-05-18: 2-3 → ready-for-dev (bmad-create-story: migração 000090_player_metrics, recharts dual-axis, DrillDownSheet form, janela 24h edição, Zod refine "pelo menos um campo")
 # 2026-05-17: 2-2 → ready-for-dev (bmad-create-story: bucket RLS, migration 000080, uploadPlayerPhoto server action, getPlayerPhotoUrl signed URL, <PlayerPhoto> component, cross-club isolation, sharp redimensionamento)
 # 2026-05-17: 2-1 → review (dev-story complete; 000070+000075 migrations; createPlayer/updatePlayer/archivePlayer actions; react-hook-form+Zod; SemaforoBadge neutral; ArchivePlayerDialog; 366/366 testes ✅; lint ✅; typecheck ✅; build ✅; AC #1-#7 verificados)
@@ -124,8 +124,8 @@ development_status:
   epic-2: in-progress
   2-1-player-records-plantel-list: done
   2-2-player-photo-upload: done
-  2-3-player-metrics-time-series-weight-height: review
-  2-4-mark-player-as-inactive-soft-status: review
+  2-3-player-metrics-time-series-weight-height: done
+  2-4-mark-player-as-inactive-soft-status: done
   2-5-season-management-epocas: backlog
   2-6-session-management-create-edit-cancel-treino-jogo-amigavel: backlog
   2-7-calendar-view-per-role: backlog

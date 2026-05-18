@@ -40,11 +40,17 @@ export function PlayerMetricsChart({
     );
   }
 
-  const chartData = metrics.map((m) => ({
-    date: format(new Date(m.recorded_at), "d MMM yyyy", { locale: pt }),
-    peso: m.weight_kg ?? null,
-    altura: m.height_cm ?? null,
-  }));
+  const chartData = metrics.map((m) => {
+    const d = new Date(m.recorded_at);
+    const date = isNaN(d.getTime())
+      ? "Data inválida"
+      : format(d, "d MMM yyyy", { locale: pt });
+    return {
+      date,
+      peso: m.weight_kg ?? null,
+      altura: m.height_cm ?? null,
+    };
+  });
 
   const latestWeight = [...metrics]
     .reverse()
@@ -56,7 +62,7 @@ export function PlayerMetricsChart({
   return (
     <div className="space-y-3">
       <div className="flex gap-6 text-sm">
-        {latestWeight !== undefined && (
+        {latestWeight != null && (
           <div>
             <span className="text-muted-foreground">Peso actual: </span>
             <span className="font-semibold text-blue-600">
@@ -64,7 +70,7 @@ export function PlayerMetricsChart({
             </span>
           </div>
         )}
-        {latestHeight !== undefined && (
+        {latestHeight != null && (
           <div>
             <span className="text-muted-foreground">Altura actual: </span>
             <span className="font-semibold text-green-600">
