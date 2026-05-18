@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { getPlayer } from "@/lib/actions/players";
 import { EditPlayerForm } from "./edit-player-form";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {

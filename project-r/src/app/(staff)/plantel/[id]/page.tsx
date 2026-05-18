@@ -18,6 +18,8 @@ import { ReactivatePlayerDialog } from "./reactivate-player-dialog";
 import { InvitePlayerSheet } from "./invite-player-sheet";
 import { ResendInviteButton } from "./resend-invite-button";
 
+export const dynamic = "force-dynamic";
+
 const AGE_GROUP_LABELS: Record<string, string> = {
   u14: "Sub-14",
   u15: "Sub-15",
