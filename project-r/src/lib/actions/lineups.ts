@@ -166,24 +166,34 @@ export async function submitLineup(
 
     if (deleteResult.error) {
       console.error("[submitLineup] Delete error:", deleteResult.error);
-      return { ok: false, error: "Erro ao remover convocatória anterior" };
+      return {
+        ok: false,
+        error: `Delete failed: ${deleteResult.error.message}`,
+      };
     }
 
     // Insert new lineups
-    const insertResult = await matchLineupTable
-      .insert(lineupInserts.map(l => ({
+    const insertResult = await matchLineupTable.insert(
+      lineupInserts.map((l) => ({
         ...l,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      })));
+      }))
+    );
 
     if (insertResult.error) {
       console.error("[submitLineup] Insert error:", insertResult.error);
-      return { ok: false, error: "Erro ao guardar convocatória" };
+      return {
+        ok: false,
+        error: `Insert failed: ${insertResult.error.message}`,
+      };
     }
   } catch (err) {
     console.error("[submitLineup] Operation error:", err);
-    return { ok: false, error: "Erro ao guardar convocatória" };
+    return {
+      ok: false,
+      error: `Operation failed: ${err instanceof Error ? err.message : "Unknown error"}`,
+    };
   }
 
   // Create audit log entry
