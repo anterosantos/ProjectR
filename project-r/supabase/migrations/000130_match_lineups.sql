@@ -46,20 +46,29 @@ CREATE POLICY "match_lineups_select_club_isolation" ON match_lineups
     EXISTS (
       SELECT 1 FROM sessions s
       WHERE s.id = session_id
-        AND s.club_id = public.club_id()
+        AND s.club_id = (SELECT club_id FROM profiles WHERE id = auth.uid())
     )
-    AND public.user_role() IN ('coach', 'analyst')
+    AND EXISTS (
+      SELECT 1 FROM profiles p
+      WHERE p.id = auth.uid()
+        AND p.role IN ('coach', 'analyst')
+    )
   );
 
 -- RLS: INSERT — coach only (only coach can create/submit lineups)
+-- Note: Validate via profiles table instead of JWT claim for reliability
 CREATE POLICY "match_lineups_insert_coach_only" ON match_lineups
   FOR INSERT TO authenticated
   WITH CHECK (
-    public.user_role() = 'coach'
+    EXISTS (
+      SELECT 1 FROM profiles p
+      WHERE p.id = auth.uid()
+        AND p.role = 'coach'
+    )
     AND EXISTS (
       SELECT 1 FROM sessions s
       WHERE s.id = session_id
-        AND s.club_id = public.club_id()
+        AND s.club_id = (SELECT club_id FROM profiles WHERE id = auth.uid())
     )
   );
 
@@ -68,19 +77,27 @@ CREATE POLICY "match_lineups_insert_coach_only" ON match_lineups
 CREATE POLICY "match_lineups_update_coach" ON match_lineups
   FOR UPDATE TO authenticated
   USING (
-    public.user_role() = 'coach'
+    EXISTS (
+      SELECT 1 FROM profiles p
+      WHERE p.id = auth.uid()
+        AND p.role = 'coach'
+    )
     AND EXISTS (
       SELECT 1 FROM sessions s
       WHERE s.id = session_id
-        AND s.club_id = public.club_id()
+        AND s.club_id = (SELECT club_id FROM profiles WHERE id = auth.uid())
     )
   )
   WITH CHECK (
-    public.user_role() = 'coach'
+    EXISTS (
+      SELECT 1 FROM profiles p
+      WHERE p.id = auth.uid()
+        AND p.role = 'coach'
+    )
     AND EXISTS (
       SELECT 1 FROM sessions s
       WHERE s.id = session_id
-        AND s.club_id = public.club_id()
+        AND s.club_id = (SELECT club_id FROM profiles WHERE id = auth.uid())
     )
   );
 
@@ -88,11 +105,15 @@ CREATE POLICY "match_lineups_update_coach" ON match_lineups
 CREATE POLICY "match_lineups_delete_coach" ON match_lineups
   FOR DELETE TO authenticated
   USING (
-    public.user_role() = 'coach'
+    EXISTS (
+      SELECT 1 FROM profiles p
+      WHERE p.id = auth.uid()
+        AND p.role = 'coach'
+    )
     AND EXISTS (
       SELECT 1 FROM sessions s
       WHERE s.id = session_id
-        AND s.club_id = public.club_id()
+        AND s.club_id = (SELECT club_id FROM profiles WHERE id = auth.uid())
     )
   );
 
