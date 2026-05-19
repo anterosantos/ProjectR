@@ -11,3 +11,4 @@ Thumbs.db
 
 # Tool caches
 .cache/
+project-r/public/sw.js
