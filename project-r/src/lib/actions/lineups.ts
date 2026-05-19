@@ -110,18 +110,17 @@ export async function submitLineup(
     return { ok: false, error: "Convocatória apenas para jogos e amigáveis" };
   }
 
-  // Verify all players belong to the club and check parental consent status
+  // Verify all players belong to the club
   const playerIds = players.map((p) => p.playerId);
   const playersResult = await supabase
     .from("players")
-    .select("id, club_id, parental_consents(status)")
+    .select("id, club_id")
     .in("id", playerIds)
     .eq("club_id", profile.club_id);
   const { data: clubPlayers, error: playersError } = playersResult as {
     data: Array<{
       id: string;
       club_id: string;
-      parental_consents?: Array<{ status: string }>;
     }> | null;
     error: { message: string } | null;
   };
@@ -132,19 +131,6 @@ export async function submitLineup(
 
   if (!clubPlayers || clubPlayers.length !== playerIds.length) {
     return { ok: false, error: "Um ou mais jogadores não pertencem ao seu clube" };
-  }
-
-  // Check parental consent for minors — players without confirmed consent should be flagged
-  // Business logic: warn via audit log, but don't block (consent is for data access, not participation)
-  const playersWithoutConsent = clubPlayers.filter((p) => {
-    const consentStatus = p?.parental_consents?.[0]?.status;
-    return consentStatus && consentStatus !== "confirmed";
-  });
-
-  if (playersWithoutConsent.length > 0) {
-    console.warn(
-      `[submitLineup] Players without confirmed consent: ${playersWithoutConsent.map((p) => p.id).join(", ")}`
-    );
   }
 
   // Delete existing lineups and insert new ones in a single RPC call for atomicity
