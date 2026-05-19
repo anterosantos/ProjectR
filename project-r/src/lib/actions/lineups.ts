@@ -126,22 +126,22 @@ export async function submitLineup(
   };
 
   if (playersError) {
-    console.error("[submitLineup] Player validation error:", {
-      error: playersError,
-      playerIds: playerIds.length,
-      clubId: profile.club_id,
-    });
-    return { ok: false, error: "Erro ao validar jogadores" };
+    console.error("[submitLineup] Player validation error:", playersError.message);
+    return {
+      ok: false,
+      error: `Erro ao validar jogadores: ${playersError.message}`,
+    };
   }
 
   if (!clubPlayers || clubPlayers.length !== playerIds.length) {
-    console.error("[submitLineup] Player count mismatch:", {
-      found: clubPlayers?.length ?? 0,
-      expected: playerIds.length,
-      playerIds,
-      clubPlayers: clubPlayers?.map((p) => p.id),
-    });
-    return { ok: false, error: "Um ou mais jogadores não pertencem ao seu clube" };
+    const found = clubPlayers?.length ?? 0;
+    console.warn(
+      `[submitLineup] Found ${found}/${playerIds.length} players in club ${profile.club_id}`
+    );
+    return {
+      ok: false,
+      error: `${found}/${playerIds.length} jogadores encontrados. Verifique se pertencem ao seu clube.`,
+    };
   }
 
   // Delete existing lineups and insert new ones in a single RPC call for atomicity
