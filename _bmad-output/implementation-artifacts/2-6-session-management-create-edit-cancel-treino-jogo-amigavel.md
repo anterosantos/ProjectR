@@ -1,6 +1,6 @@
 # Story 2.6: Session Management — Create/Edit/Cancel (Treino, Jogo, Amigável)
 
-**Status:** review
+**Status:** in-progress
 
 **Story ID:** 2.6
 **Epic:** Epic 2 — Plantel, Calendário & Sessões (gestão operacional do staff)
