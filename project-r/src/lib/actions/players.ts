@@ -569,25 +569,40 @@ export async function invitePlayer(
     });
   }
 
+  // Guardar na variável para evitar null
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceRoleKey) {
+    return err({ code: "unknown", message: "Configuração do servidor em falta. Contacta o suporte." });
+  }
+
   // Enviar convite via Admin API
   const serviceRole = getServiceRoleClient();
-  const { data: inviteData, error: inviteError } =
-    await serviceRole.auth.admin.inviteUserByEmail(
-      validated.data.email,
-      {
-        data: {
-          club_id: staffProfile.club_id,
-          role: "player",
-          player_id: validated.data.playerId,
-        },
-      }
-    );
+  let inviteData: Awaited<ReturnType<typeof serviceRole.auth.admin.inviteUserByEmail>>["data"];
+  let inviteError: Awaited<ReturnType<typeof serviceRole.auth.admin.inviteUserByEmail>>["error"];
+  try {
+    ({ data: inviteData, error: inviteError } =
+      await serviceRole.auth.admin.inviteUserByEmail(
+        validated.data.email,
+        {
+          data: {
+            club_id: staffProfile.club_id,
+            role: "player",
+            player_id: validated.data.playerId,
+          },
+        }
+      ));
+  } catch (e) {
+    return err({ code: "unknown", message: `Erro ao enviar convite: ${e instanceof Error ? e.message : String(e)}` });
+  }
 
   if (inviteError) {
     // Supabase retorna erro se email já existe em auth.users
+    const msg = inviteError.message.toLowerCase();
     const isConflict =
-      inviteError.message.toLowerCase().includes("already registered") ||
-      inviteError.message.toLowerCase().includes("already been registered");
+      msg.includes("already registered") ||
+      msg.includes("already been registered") ||
+      msg.includes("user already exists");
     if (isConflict) {
       return err({
         code: "email_conflict",
