@@ -48,7 +48,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-08
-last_updated: "2026-05-19 (2-8 → done: code-review complete; 6 patches applied [shirt-num input, atomic upsert, session validation, concurrent guard, type safety, parental consent]; 1 deferred [integration tests]; AC #1-#6 verificados)"
+last_updated: "2026-05-19 (2-8 → done: code-review complete; 6 patches applied [shirt-num input, atomic upsert, session validation, concurrent guard, type safety, parental consent]; 1 deferred [integration tests]; AC #1-#6 verificados; lint 0 errors; typecheck ✅; build ✅; 709 tests ✅)"
 # 2026-05-19: 2-7 → review: dev-story complete; SeasonToggle+SessionTypeFilter, /sessoes analista, /hoje jogador, type filter getSessionsForClub, aria-current, cumulativo toggle DESC; 637 testes ✅; lint 0 erros; typecheck ✅; build ✅; AC #1-#6 verificados
 # 2026-05-19: 2-6 → review: dev-story complete; 000120_sessions migration, 5 server actions, SessionForm+SessionCard+CancelSessionDialog, /calendario+/sessoes/[id]; 610 testes ✅; lint 0; typecheck ✅; build ✅; AC #1-#8 verificados
 # 2026-05-18: 2-6 → ready-for-dev (bmad-create-story: migração 000120_sessions, CRUD sessions, calendar view /calendario, edit /sessoes/[id]/editar, cancel dialog, coach-only write RLS, PT-PT timezone, graceful season degradation)
