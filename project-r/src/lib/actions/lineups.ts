@@ -126,10 +126,21 @@ export async function submitLineup(
   };
 
   if (playersError) {
+    console.error("[submitLineup] Player validation error:", {
+      error: playersError,
+      playerIds: playerIds.length,
+      clubId: profile.club_id,
+    });
     return { ok: false, error: "Erro ao validar jogadores" };
   }
 
   if (!clubPlayers || clubPlayers.length !== playerIds.length) {
+    console.error("[submitLineup] Player count mismatch:", {
+      found: clubPlayers?.length ?? 0,
+      expected: playerIds.length,
+      playerIds,
+      clubPlayers: clubPlayers?.map((p) => p.id),
+    });
     return { ok: false, error: "Um ou mais jogadores não pertencem ao seu clube" };
   }
 
