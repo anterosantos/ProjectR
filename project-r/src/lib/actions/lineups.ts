@@ -100,8 +100,16 @@ export async function submitLineup(
     .eq("club_id", profile.club_id)
     .single();
 
-  if (sessionError || !session) {
-    return { ok: false, error: "Sessão não encontrada" };
+  if (sessionError) {
+    console.error("[submitLineup] Session fetch error:", sessionError);
+    return { ok: false, error: `Sessão não encontrada: ${sessionError.message}` };
+  }
+
+  if (!session) {
+    return {
+      ok: false,
+      error: `Sessão ${sessionId} não encontrada no clube ${profile.club_id}`,
+    };
   }
 
   // Verify session type is match or friendly (not training) — server-side enforcement
