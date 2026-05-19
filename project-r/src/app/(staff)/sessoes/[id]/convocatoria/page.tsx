@@ -63,12 +63,13 @@ export default async function ConvocatoriaPage({
   const lineupResult = await getLineupForSession(id);
   const existingLineups = lineupResult.ok ? lineupResult.data : [];
 
-  // Load players for the club, including parental consent status
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const playersTable = (supabase.from as any)("players");
-  const { data: playersData, error: playersError } = await playersTable
+  // Load players for the club
+  const { data: playersData, error: playersError } = await (
+    supabase
+      .from("players") as unknown as any
+  )
     .select(
-      "id, full_name, jersey_num, is_archived, is_active, positions(position, is_primary), parental_consents(status)"
+      "id, full_name, jersey_num, is_archived, is_active, positions(position, is_primary)"
     )
     .eq("club_id", profile.club_id)
     .eq("is_archived", false)
@@ -79,25 +80,23 @@ export default async function ConvocatoriaPage({
     throw new Error(`Erro ao carregar jogadores: ${playersError.message}`);
   }
 
-  // Transform and group players by position
-  interface PlayerDataRow {
-    id: string;
-    full_name: string;
-    jersey_num: number;
-    is_archived: boolean;
-    is_active: boolean;
-    positions: Array<{ position: string; is_primary: boolean }>;
-    parental_consents: Array<{ status: string }> | null;
+  if (!playersData || !Array.isArray(playersData)) {
+    throw new Error("Dados de jogadores em formato inválido");
   }
 
-  const players: PlayerForLineup[] = (playersData ?? []).map((p: PlayerDataRow) => ({
-    id: p.id,
-    full_name: p.full_name,
-    jersey_num: p.jersey_num,
-    positions: p.positions || [],
-    parental_consent_status:
-      (p.parental_consents && p.parental_consents[0]?.status) || undefined,
-  }));
+  // Transform players
+  const players: PlayerForLineup[] = playersData
+    .map((p: any) => {
+      if (!p.id || !p.full_name) return null;
+      return {
+        id: p.id,
+        full_name: p.full_name,
+        jersey_num: p.jersey_num || 0,
+        positions: (p.positions as any[]) || [],
+        parental_consent_status: undefined,
+      };
+    })
+    .filter(Boolean) as PlayerForLineup[];
 
   const playersByPosition: Record<string, PlayerForLineup[]> = {};
 

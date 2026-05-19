@@ -133,7 +133,7 @@ development_status:
   2-6-session-management-create-edit-cancel-treino-jogo-amigavel: done
   2-7-calendar-view-per-role: done
   2-8-match-squad-selection-convocados-starting-xi: done
-  2-9-retention-policy-preserve-history-5-seasons-anonymization-hook: backlog
+  2-9-retention-policy-preserve-history-5-seasons-anonymization-hook: ready-for-dev
   2-10-player-invite-email-account-linking: done
   epic-2-retrospective: optional
 
