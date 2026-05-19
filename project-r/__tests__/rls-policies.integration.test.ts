@@ -12,7 +12,20 @@
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { createClient } from "@supabase/supabase-js";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient, SupportedStorage } from "@supabase/supabase-js";
+
+// In jsdom, all createClient() instances share the same localStorage origin.
+// After signing in coach → analyst → player, the player's session overwrites all others,
+// causing every client (including adminClient) to use the player's JWT.
+// Fix: give each client its own isolated in-memory storage.
+function makeMemoryStorage(): SupportedStorage {
+  const store = new Map<string, string>();
+  return {
+    getItem: (key: string) => store.get(key) ?? null,
+    setItem: (key: string, value: string) => { store.set(key, value); },
+    removeItem: (key: string) => { store.delete(key); },
+  };
+}
 
 // Test fixtures
 const TEST_DATA = {
@@ -48,7 +61,9 @@ describe("RLS Policies", () => {
       throw new Error("Missing Supabase credentials");
     }
 
-    adminClient = createClient(supabaseUrl, serviceRoleKey);
+    adminClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { storage: makeMemoryStorage(), persistSession: false, autoRefreshToken: false },
+    });
 
     // Create test clubs
     const { data: clubData, error: clubError } = await adminClient
@@ -111,22 +126,30 @@ describe("RLS Policies", () => {
 
     if (profileError) throw profileError;
 
-    // Create authenticated clients
+    // Create authenticated clients — each with its own isolated storage so
+    // sign-ins don't overwrite each other's session in the shared jsdom localStorage.
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
     users = {
       coach: {
         id: coachSignup.data.user.id,
         email: TEST_DATA.coach_email,
-        client: createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!),
+        client: createClient(supabaseUrl, anonKey, {
+          auth: { storage: makeMemoryStorage() },
+        }),
       },
       analyst: {
         id: analystSignup.data.user.id,
         email: TEST_DATA.analyst_email,
-        client: createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!),
+        client: createClient(supabaseUrl, anonKey, {
+          auth: { storage: makeMemoryStorage() },
+        }),
       },
       player: {
         id: playerSignup.data.user.id,
         email: TEST_DATA.player_email,
-        client: createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!),
+        client: createClient(supabaseUrl, anonKey, {
+          auth: { storage: makeMemoryStorage() },
+        }),
       },
     };
 
