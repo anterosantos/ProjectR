@@ -341,6 +341,70 @@ export type Database = {
           },
         ]
       }
+      sessions: {
+        Row: {
+          id: string
+          club_id: string
+          season_id: string
+          type: string
+          scheduled_at: string
+          duration_min: number
+          location: string | null
+          status: string
+          notes: string | null
+          created_by: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          club_id: string
+          season_id: string
+          type: string
+          scheduled_at: string
+          duration_min?: number
+          location?: string | null
+          status?: string
+          notes?: string | null
+          created_by: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          club_id?: string
+          season_id?: string
+          type?: string
+          scheduled_at?: string
+          duration_min?: number
+          location?: string | null
+          status?: string
+          notes?: string | null
+          created_by?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessions_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sessions_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sessions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

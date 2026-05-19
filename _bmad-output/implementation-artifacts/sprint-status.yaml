@@ -48,7 +48,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-08
-last_updated: "2026-05-18 (2-6 → ready-for-dev: bmad-create-story — Session Management; migração 000120, sessions CRUD, coach-only create/edit, cancel dialog, PT-PT timezone, graceful degradation sem época atual)"
+last_updated: "2026-05-19 (2-6 → review: dev-story complete; 000120_sessions migration, 5 server actions, SessionForm+SessionCard+CancelSessionDialog, /calendario+/sessoes/[id]; 610 testes ✅; lint 0; typecheck ✅; build ✅; AC #1-#8 verificados)"
 # 2026-05-18: 2-6 → ready-for-dev (bmad-create-story: migração 000120_sessions, CRUD sessions, calendar view /calendario, edit /sessoes/[id]/editar, cancel dialog, coach-only write RLS, PT-PT timezone, graceful season degradation)
 # 2026-05-18: 2-3 → ready-for-dev (bmad-create-story: migração 000090_player_metrics, recharts dual-axis, DrillDownSheet form, janela 24h edição, Zod refine "pelo menos um campo")
 # 2026-05-17: 2-2 → ready-for-dev (bmad-create-story: bucket RLS, migration 000080, uploadPlayerPhoto server action, getPlayerPhotoUrl signed URL, <PlayerPhoto> component, cross-club isolation, sharp redimensionamento)
@@ -128,7 +128,7 @@ development_status:
   2-3-player-metrics-time-series-weight-height: done
   2-4-mark-player-as-inactive-soft-status: done
   2-5-season-management-epocas: done
-  2-6-session-management-create-edit-cancel-treino-jogo-amigavel: ready-for-dev
+  2-6-session-management-create-edit-cancel-treino-jogo-amigavel: in-progress
   2-7-calendar-view-per-role: backlog
   2-8-match-squad-selection-convocados-starting-xi: backlog
   2-9-retention-policy-preserve-history-5-seasons-anonymization-hook: backlog
