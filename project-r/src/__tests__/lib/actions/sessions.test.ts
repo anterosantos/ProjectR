@@ -149,6 +149,45 @@ describe("getSessionsForClub", () => {
     if (!result.ok) expect(result.error.code).toBe("forbidden");
   });
 
+  it("filtra por type=training quando passado", async () => {
+    const trainingSession = { ...mockSession, type: "training" };
+    const mock = makeSupabaseMock({ sessionsList: [trainingSession] });
+    vi.mocked(createServerClient).mockResolvedValue(mock as never);
+
+    const result = await getSessionsForClub({ type: "training" });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.every((s) => s.type === "training")).toBe(true);
+    }
+  });
+
+  it("filtra por type=match quando passado", async () => {
+    const matchSession = { ...mockSession, type: "match" };
+    const mock = makeSupabaseMock({ sessionsList: [matchSession] });
+    vi.mocked(createServerClient).mockResolvedValue(mock as never);
+
+    const result = await getSessionsForClub({ type: "match" });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data[0]?.type).toBe("match");
+    }
+  });
+
+  it("devolve todas as sessões quando type não é passado", async () => {
+    const mixed = [
+      { ...mockSession, type: "training" },
+      { ...mockSession, id: "id2", type: "match" },
+    ];
+    const mock = makeSupabaseMock({ sessionsList: mixed });
+    vi.mocked(createServerClient).mockResolvedValue(mock as never);
+
+    const result = await getSessionsForClub();
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data).toHaveLength(2);
+    }
+  });
+
   it("aceita filtros opcionais (season_id, status)", async () => {
     // The query chain must be chainable AND awaitable (like the real Supabase client)
     const resolvedData = { data: [], error: null };

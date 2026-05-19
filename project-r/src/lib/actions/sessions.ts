@@ -33,6 +33,7 @@ const SessionFiltersSchema = z.object({
   status: z.enum(["scheduled", "cancelled", "completed"]).optional(),
   from: z.string().datetime().optional(),
   to: z.string().datetime().optional(),
+  type: z.enum(["training", "match", "friendly"]).optional(),
 });
 
 export type SessionFilters = z.infer<typeof SessionFiltersSchema>;
@@ -53,14 +54,16 @@ export async function getSessionsForClub(
   let query = supabase
     .from("sessions")
     .select("*")
-    .eq("club_id", profile.club_id)
-    .order("scheduled_at", { ascending: true });
+    .eq("club_id", profile.club_id);
 
   if (validated.data.season_id) {
     query = query.eq("season_id", validated.data.season_id);
   }
   if (validated.data.status) {
     query = query.eq("status", validated.data.status);
+  }
+  if (validated.data.type) {
+    query = query.eq("type", validated.data.type);
   }
   if (validated.data.from) {
     query = query.gte("scheduled_at", validated.data.from);
@@ -69,7 +72,7 @@ export async function getSessionsForClub(
     query = query.lte("scheduled_at", validated.data.to);
   }
 
-  const { data, error } = await query;
+  const { data, error } = await query.order("scheduled_at", { ascending: true });
   if (error) return err({ code: "unknown", message: error.message });
   return ok((data ?? []) as Session[]);
 }
