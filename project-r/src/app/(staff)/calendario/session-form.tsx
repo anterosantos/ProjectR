@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition, useState, useEffect, useRef } from "react";
+import { useTransition, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -49,7 +49,6 @@ interface SessionFormCreateProps {
 
 function SessionCreateForm({ hasSeason }: SessionFormCreateProps) {
   const router = useRouter();
-  const isMountedRef = useRef(true);
   const [open, setOpen] = useState(true);
   const [isPending, startTransition] = useTransition();
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -64,12 +63,6 @@ function SessionCreateForm({ hasSeason }: SessionFormCreateProps) {
       notes: "",
     },
   });
-
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
 
   function handleClose() {
     setOpen(false);
@@ -86,14 +79,12 @@ function SessionCreateForm({ hasSeason }: SessionFormCreateProps) {
           location: data.location || undefined,
           notes: data.notes || undefined,
         });
-        if (!isMountedRef.current) return;
         if (!result.ok) {
           form.setError("root", { message: result.error.message });
           return;
         }
         setShowConfirmation(true);
-      } catch (e) {
-        if (!isMountedRef.current) return;
+      } catch {
         form.setError("root", { message: "Erro ao comunicar com servidor" });
       }
     });
@@ -245,7 +236,6 @@ interface SessionFormEditProps {
 
 function SessionEditForm({ session }: SessionFormEditProps) {
   const router = useRouter();
-  const isMountedRef = useRef(true);
   const [open, setOpen] = useState(true);
   const [isPending, startTransition] = useTransition();
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -265,12 +255,6 @@ function SessionEditForm({ session }: SessionFormEditProps) {
     },
   });
 
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
   function handleClose() {
     setOpen(false);
     router.push("/calendario");
@@ -287,14 +271,12 @@ function SessionEditForm({ session }: SessionFormEditProps) {
           location: data.location || undefined,
           notes: data.notes || undefined,
         });
-        if (!isMountedRef.current) return;
         if (!result.ok) {
           form.setError("root", { message: result.error.message });
           return;
         }
         setShowConfirmation(true);
-      } catch (e) {
-        if (!isMountedRef.current) return;
+      } catch {
         form.setError("root", { message: "Erro ao comunicar com servidor" });
       }
     });
