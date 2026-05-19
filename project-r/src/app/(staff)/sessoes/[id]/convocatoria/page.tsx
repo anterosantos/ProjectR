@@ -15,6 +15,15 @@ interface PlayerForLineup extends PlayerWithConsent {
   parental_consent_status?: string;
 }
 
+interface PlayerRow {
+  id: string;
+  full_name: string;
+  jersey_num: number | null;
+  is_archived: boolean;
+  is_active: boolean;
+  positions: Array<{ position: string; is_primary: boolean }> | null;
+}
+
 export default async function ConvocatoriaPage({
   params,
 }: {
@@ -65,8 +74,17 @@ export default async function ConvocatoriaPage({
 
   // Load players for the club
   const { data: playersData, error: playersError } = await (
-    supabase
-      .from("players") as unknown as any
+    supabase.from("players") as unknown as {
+      select: (cols: string) => {
+        eq: (col: string, val: unknown) => {
+          eq: (col: string, val: unknown) => {
+            eq: (col: string, val: unknown) => {
+              order: (col: string) => Promise<{ data: PlayerRow[] | null; error: { message: string } | null }>;
+            };
+          };
+        };
+      };
+    }
   )
     .select(
       "id, full_name, jersey_num, is_archived, is_active, positions(position, is_primary)"
@@ -86,13 +104,13 @@ export default async function ConvocatoriaPage({
 
   // Transform players
   const players: PlayerForLineup[] = playersData
-    .map((p: any) => {
+    .map((p: PlayerRow) => {
       if (!p.id || !p.full_name) return null;
       return {
         id: p.id,
         full_name: p.full_name,
         jersey_num: p.jersey_num || 0,
-        positions: (p.positions as any[]) || [],
+        positions: p.positions || [],
         parental_consent_status: undefined,
       };
     })
