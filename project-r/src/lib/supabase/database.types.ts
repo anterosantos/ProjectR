@@ -157,6 +157,7 @@ export type Database = {
           birthdate: string
           age_group: string
           is_archived: boolean
+          archived_at: string | null
           is_active: boolean
           inactive_reason: string | null
           photo_path: string | null
@@ -174,6 +175,7 @@ export type Database = {
           birthdate: string
           age_group: string
           is_archived?: boolean
+          archived_at?: string | null
           is_active?: boolean
           inactive_reason?: string | null
           photo_path?: string | null
@@ -191,6 +193,7 @@ export type Database = {
           birthdate?: string
           age_group?: string
           is_archived?: boolean
+          archived_at?: string | null
           is_active?: boolean
           inactive_reason?: string | null
           photo_path?: string | null
@@ -421,6 +424,10 @@ export type Database = {
       set_current_season: {
         Args: { p_season_id: string }
         Returns: void
+      }
+      anonymize_archived_player: {
+        Args: { p_player_id: string }
+        Returns: boolean
       }
     }
     Enums: {

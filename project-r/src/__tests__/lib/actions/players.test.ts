@@ -525,7 +525,8 @@ describe("archivePlayer", () => {
     (createServerClient as ReturnType<typeof vi.fn>).mockResolvedValue(mockSupabase);
 
     await archivePlayer(validInput).catch(() => {});
-    expect(updateArg).toEqual({ is_archived: true });
+    expect(updateArg).toMatchObject({ is_archived: true });
+    expect(updateArg).toHaveProperty("archived_at");
     expect(updateArg).not.toHaveProperty("photo_path");
   });
 });

@@ -37,6 +37,7 @@ export interface PlayerWithPositions {
   birthdate: string;
   age_group: string;
   is_archived: boolean;
+  archived_at: string | null;
   is_active: boolean;
   inactive_reason: string | null;
   photo_path: string | null;
@@ -131,7 +132,7 @@ export async function getPlayer(
 
   const { data, error } = await supabase
     .from("players")
-    .select("id, club_id, profile_id, jersey_num, full_name, birthdate, age_group, is_archived, is_active, inactive_reason, photo_path, email, invite_sent_at, created_at, updated_at, positions(id, position, is_primary, sort_order)")
+    .select("id, club_id, profile_id, jersey_num, full_name, birthdate, age_group, is_archived, archived_at, is_active, inactive_reason, photo_path, email, invite_sent_at, created_at, updated_at, positions(id, position, is_primary, sort_order)")
     .eq("id", playerId)
     .eq("club_id", profile.club_id)
     .single();
@@ -319,7 +320,7 @@ export async function archivePlayer(
 
   const { error } = await supabase
     .from("players")
-    .update({ is_archived: true })
+    .update({ is_archived: true, archived_at: new Date().toISOString() })
     .eq("id", validated.data.playerId)
     .eq("club_id", profile.club_id);
 
@@ -744,5 +745,79 @@ export async function resendPlayerInvite(
   await logAccess("player.invite_resent", "player", validated.data.playerId);
 
   redirect(`/plantel/${validated.data.playerId}?resent=1`);
+}
+
+async function triggerPhotoCleanup(supabaseUrl: string, serviceKey: string, maxRetries = 3): Promise<void> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await fetch(`${supabaseUrl}/functions/v1/anonymize-player-photos`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${serviceKey}` },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return; // Success
+    } catch (e) {
+      lastError = e instanceof Error ? e : new Error(String(e));
+      const delay = Math.min(1000 * Math.pow(2, attempt), 10000); // Exponential backoff, max 10s
+      if (attempt < maxRetries - 1) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  // Log final failure but don't throw (cleanup is best-effort)
+  console.error("[anonymizePlayer] Photo cleanup failed after retries:", lastError?.message || "Unknown error");
+}
+
+export async function anonymizePlayer(
+  playerId: string
+): Promise<{ success: boolean; message: string }> {
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, message: "Não autenticado" };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("club_id, role")
+    .eq("id", user.id)
+    .single();
+  if (!profile) return { success: false, message: "Perfil não encontrado" };
+
+  if (!["coach", "analyst"].includes(profile.role)) {
+    return { success: false, message: "Sem permissão para anonimizar jogadores" };
+  }
+
+  const { data, error } = await supabase.rpc("anonymize_archived_player", {
+    p_player_id: playerId,
+  });
+
+  if (error) {
+    return { success: false, message: `Anonimização falhou: ${error.message}` };
+  }
+
+  if (data === false) {
+    return { success: false, message: "Jogador não elegível para anonimização (não arquivado, já anonimizado, ou < 5 épocas)" };
+  }
+
+  await logAccess("player.anonymized", "player", playerId);
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (supabaseUrl && serviceKey) {
+    // Trigger photo cleanup with retry logic (best-effort, non-blocking)
+    triggerPhotoCleanup(supabaseUrl, serviceKey).catch((e: unknown) => {
+      console.error("[anonymizePlayer] Photo cleanup error:", e instanceof Error ? e.message : String(e));
+    });
+  }
+
+  return { success: true, message: "Jogador anonimizado com sucesso" };
 }
 

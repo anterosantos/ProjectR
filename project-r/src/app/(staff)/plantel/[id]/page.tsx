@@ -2,9 +2,9 @@ import { notFound } from "next/navigation";
 import dynamicImport from "next/dynamic";
 import Link from "next/link";
 import { Suspense } from "react";
-import { format, differenceInYears } from "date-fns";
+import { format, differenceInYears, addDays, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
-import { ChevronLeft, Pencil } from "lucide-react";
+import { ChevronLeft, Pencil, CircleDashed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CalmConfirmation } from "@/components/ui/calm-confirmation";
 import { SemaforoBadge } from "@/components/ui/semaforo-badge";
@@ -29,6 +29,15 @@ const ResendInviteButton = dynamicImport(() =>
 );
 
 export const dynamic = "force-dynamic";
+
+// 5 seasons ≈ 5 × 275 days = 1375 days
+const FIVE_SEASONS_DAYS = 5 * 275;
+
+function calculateAnonymizationDate(archivedAt: string): Date {
+  // Parse ISO string (archived_at from DB is always UTC timestamptz)
+  // Format for PT-PT locale happens at render time in the UI
+  return addDays(parseISO(archivedAt), FIVE_SEASONS_DAYS);
+}
 
 const AGE_GROUP_LABELS: Record<string, string> = {
   u14: "Sub-14",
@@ -109,11 +118,17 @@ export default async function PlayerDetailPage({
               fallback={<div className="h-24 w-24 rounded-lg bg-neutral-100" />}
             >
               <div className="rounded-lg overflow-hidden">
-                <PlayerPhoto
-                  photoPath={player.photo_path}
-                  fullName={player.full_name}
-                  size="lg"
-                />
+                {player.full_name === "[anonimizado]" && !player.photo_path ? (
+                  <div className="h-24 w-24 flex items-center justify-center rounded-lg bg-neutral-100">
+                    <CircleDashed className="h-12 w-12 text-muted-foreground" aria-label="Foto removida por anonimização" />
+                  </div>
+                ) : (
+                  <PlayerPhoto
+                    photoPath={player.photo_path}
+                    fullName={player.full_name}
+                    size="lg"
+                  />
+                )}
               </div>
             </Suspense>
             <div>
@@ -132,6 +147,27 @@ export default async function PlayerDetailPage({
             <span className="font-medium">Inactivo</span>
             {player.inactive_reason && (
               <span className="ml-2">— {player.inactive_reason}</span>
+            )}
+          </div>
+        )}
+
+        {/* Metadados de arquivo e anonimização */}
+        {player.is_archived && player.archived_at && (
+          <div className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
+            {player.full_name === "[anonimizado]" ? (
+              <span>
+                Anonimizado em{" "}
+                <span className="font-medium">
+                  {format(new Date(player.updated_at), "d 'de' MMMM 'de' yyyy", { locale: pt })}
+                </span>
+              </span>
+            ) : (
+              <span>
+                Será anonimizado em{" "}
+                <span className="font-medium">
+                  {format(calculateAnonymizationDate(player.archived_at), "d 'de' MMMM 'de' yyyy", { locale: pt })}
+                </span>
+              </span>
             )}
           </div>
         )}
