@@ -38,12 +38,6 @@ interface LineupSelection {
   [playerId: string]: "starter" | "bench" | null;
 }
 
-interface LineupWithShirtNum {
-  playerId: string;
-  role: "starter" | "bench";
-  shirtNum: number | null;
-}
-
 export function ClientConvocacaoEditor({
   session,
   existing,

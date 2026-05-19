@@ -64,11 +64,9 @@ export default async function ConvocatoriaPage({
   const existingLineups = lineupResult.ok ? lineupResult.data : [];
 
   // Load players for the club, including parental consent status
-  // Note: parental_consents relation may not be in generated types yet; using type assertion
-  const { data: playersData, error: playersError } = await (
-    supabase
-      .from("players") as unknown as any
-  )
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const playersTable = (supabase.from as any)("players");
+  const { data: playersData, error: playersError } = await playersTable
     .select(
       "id, full_name, jersey_num, is_archived, is_active, positions(position, is_primary), parental_consents(status)"
     )
