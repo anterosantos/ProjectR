@@ -9,7 +9,7 @@ CREATE POLICY "Read own club photos" ON storage.objects
   TO authenticated
   USING (
     bucket_id = 'player-photos'
-    AND (storage.foldername(name))[1] = auth.club_id()::text
+    AND (storage.foldername(name))[1] = public.club_id()::text
   );
 
 -- Policy 2: Analysts and coaches can upload photos to their club
@@ -18,8 +18,8 @@ CREATE POLICY "Upload to own club" ON storage.objects
   TO authenticated
   WITH CHECK (
     bucket_id = 'player-photos'
-    AND (storage.foldername(name))[1] = auth.club_id()::text
-    AND auth.user_role() IN ('coach', 'analyst')
+    AND (storage.foldername(name))[1] = public.club_id()::text
+    AND public.user_role() IN ('coach', 'analyst')
   );
 
 -- Policy 3: Analysts and coaches can update photos in their club
@@ -28,8 +28,8 @@ CREATE POLICY "Update own club photos" ON storage.objects
   TO authenticated
   USING (
     bucket_id = 'player-photos'
-    AND (storage.foldername(name))[1] = auth.club_id()::text
-    AND auth.user_role() IN ('coach', 'analyst')
+    AND (storage.foldername(name))[1] = public.club_id()::text
+    AND public.user_role() IN ('coach', 'analyst')
   );
 
 -- Policy 4: Analysts and coaches can delete photos from their club
@@ -38,8 +38,8 @@ CREATE POLICY "Delete own club photos" ON storage.objects
   TO authenticated
   USING (
     bucket_id = 'player-photos'
-    AND (storage.foldername(name))[1] = auth.club_id()::text
-    AND auth.user_role() IN ('coach', 'analyst')
+    AND (storage.foldername(name))[1] = public.club_id()::text
+    AND public.user_role() IN ('coach', 'analyst')
   );
 
 -- MANUAL SETUP STEPS:

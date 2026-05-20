@@ -123,6 +123,8 @@ export async function initiateParentalConsent(
   return ok({ consentId: consent.id });
 }
 
+const RATE_LIMIT_MS = 5 * 60 * 1000; // 5 minutos
+
 export async function resendConsentEmail(
   playerId: string
 ): Promise<Result<{ message: string }, AppError>> {
@@ -132,7 +134,7 @@ export async function resendConsentEmail(
 
   const { data: staffProfile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, club_id")
     .eq("id", user.id)
     .single();
 
@@ -141,15 +143,54 @@ export async function resendConsentEmail(
   }
 
   const serviceRole = getServiceRoleClient();
+  const { data: player } = await serviceRole
+    .from("players")
+    .select("club_id")
+    .eq("id", playerId)
+    .maybeSingle();
+
+  if (!player) {
+    return err({ code: "not_found", message: "Jogador não encontrado" });
+  }
+
+  // Patch 1: Verify club isolation — staff can only resend for their own club
+  if (staffProfile.club_id !== player.club_id) {
+    return err({ code: "forbidden", message: "Sem permissão para reenviar email para este jogador (club diferente)" });
+  }
+
   const { data: consent } = await serviceRole
     .from("parental_consents")
-    .select("id")
+    .select("id, last_manual_resend_at")
     .eq("player_id", playerId)
     .eq("status", "pending")
     .maybeSingle();
 
   if (!consent) {
     return err({ code: "not_found", message: "Nenhum consentimento pendente para este jogador" });
+  }
+
+  // Patch 2: Rate-limit check — verify timestamp BEFORE sending
+  // Patch 3: Show seconds if <1 minute remaining
+  const now = new Date();
+  if (consent.last_manual_resend_at) {
+    const elapsed = now.getTime() - new Date(consent.last_manual_resend_at as string).getTime();
+    if (elapsed < RATE_LIMIT_MS) {
+      const remaining = RATE_LIMIT_MS - elapsed;
+
+      if (remaining < 60000) {
+        const secondsLeft = Math.ceil(remaining / 1000);
+        return err({
+          code: "rate_limited",
+          message: `Tenta novamente em ${secondsLeft} segundo${secondsLeft !== 1 ? "s" : ""}`,
+        });
+      } else {
+        const minutesLeft = Math.ceil(remaining / 60000);
+        return err({
+          code: "rate_limited",
+          message: `Pode reenviar novamente em ${minutesLeft} minuto${minutesLeft !== 1 ? "s" : ""}`,
+        });
+      }
+    }
   }
 
   const res = await fetch(
@@ -170,7 +211,61 @@ export async function resendConsentEmail(
     return err({ code: "internal", message: "Falha ao enviar email de consentimento" });
   }
 
+  await serviceRole.from("parental_consent_reminders_log").insert({
+    consent_id: consent.id,
+    kind: "manual_resend",
+  });
+
   return ok({ message: "Email de consentimento reenviado." });
+}
+
+export type PendingConsentPlayer = {
+  playerId: string;
+  playerName: string;
+};
+
+export async function getPendingConsentsOver14Days(): Promise<PendingConsentPlayer[]> {
+  const supabase = await createServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  // Patch 4: Get authenticated staff's club_id first
+  const { data: staffProfile } = await supabase
+    .from("profiles")
+    .select("club_id")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!staffProfile?.club_id) return [];
+
+  const serviceRole = getServiceRoleClient();
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 14);
+
+  const { data: consents } = await serviceRole
+    .from("parental_consents")
+    .select("id, player_id")
+    .eq("club_id", staffProfile.club_id)
+    .eq("status", "pending")
+    .lt("created_at", cutoff.toISOString());
+
+  if (!consents || consents.length === 0) return [];
+
+  const playerIds = consents.map((c) => c.player_id as string);
+
+  const { data: players } = await serviceRole
+    .from("players")
+    .select("id, full_name")
+    .in("id", playerIds);
+
+  const nameMap = new Map(
+    (players ?? []).map((p) => [p.id as string, p.full_name as string])
+  );
+
+  return consents.map((c) => ({
+    playerId: c.player_id as string,
+    playerName: nameMap.get(c.player_id as string) ?? "Jogador desconhecido",
+  }));
 }
 
 export async function getPlayerConsentStatus(profileId: string) {

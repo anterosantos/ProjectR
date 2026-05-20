@@ -49,7 +49,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-08
-last_updated: "2026-05-20 (3-4 → ready-for-dev: bmad-create-story completed; pg_cron job, email reminders day 7/14, staff alert banner /plantel, idempotency log, rate-limit manual resend; 13 testes planeados; AC #1-#8 definidos) | (3-3 → done: code-review complete; 6 patches aplicados; 809/812 testes ✅; merged to main)"
+last_updated: "2026-05-20 (3-4 → in-progress: code-review complete; 17 patches aplicados: club isolation, authorization, race-condition, timezone, timeout, token-expiry, RLS, HTML injection, 3-state log, idempotency keys; 2 new migrations (000173b status column); all AC #1-#8 met; ready for build/test) | (3-4 → review: dev-story complete; 000172+000173 migrations, send-parental-consent+staff-alert-consent EFs, rate-limit resendConsentEmail, PendingConsentsBanner, 40 novos testes; 827/842 testes ✅; lint 0 erros; typecheck ✅; build ✅; AC #1-#8 verificados) | (3-3 → done: code-review complete; 6 patches aplicados; 809/812 testes ✅; merged to main)"
 # 2026-05-20 (3-3 → ready-for-dev: bmad-create-story; Edge Functions send-parental-consent + consent-validate, landing page /consentimento/[token] server-rendered, progressive enhancement, templates HTML inline, resendConsentEmail substituição do stub)
 # 2026-05-20 (3-1 → done: code-review complete; 8 patches aplicados: search_path guard trigger, renderWithGlossary children mistos + li renderer, keys monotónicas, playerError check, testes assertions correctas + validação eq + caminhos erro; seed u14 prose actualizado; 7/7 testes ✅; typecheck ✅)
 # 2026-05-20: 1-17 + 2-11 → ready-for-dev: Sally criou stories de visual look&feel — token/font alignment e calendar visual update; directiva global de mockup adicionada ao epics.md
@@ -149,7 +149,7 @@ development_status:
   3-1-privacy-policy-versioning-sub-14-adapted-copy: done
   3-2-parental-consent-schema-token-generation-underage-access-block: done
   3-3-parental-consent-email-send-token-landing-page: done
-  3-4-parental-consent-reminders-day-7-14-staff-alert: ready-for-dev
+  3-4-parental-consent-reminders-day-7-14-staff-alert: in-progress
   3-5-subject-rights-hub-routing-for-adult-titular-encarregado: backlog
   3-6-right-to-export-csv-download: backlog
   3-7-right-to-erasure-cascade-deletion: backlog

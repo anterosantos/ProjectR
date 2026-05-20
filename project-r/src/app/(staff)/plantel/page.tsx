@@ -7,6 +7,7 @@ import { PlayerPhoto } from "@/components/ui/player-photo";
 import { getPlayers } from "@/lib/actions/players";
 import { AGE_GROUPS } from "@/lib/schemas/players";
 import { PlantelEmptyState } from "./plantel-empty-state";
+import { PendingConsentsBanner } from "./pending-consents-banner";
 
 export const metadata = {
   title: "Plantel",
@@ -43,6 +44,9 @@ export default async function PlantelPage({
 
   return (
     <div className="px-4 py-6 sm:px-6">
+      <Suspense fallback={null}>
+        <PendingConsentsBanner />
+      </Suspense>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-foreground">
           Plantel{showInactive ? " — Inativos" : ""}

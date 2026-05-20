@@ -4,16 +4,24 @@ function parentalConsentEmailHtml({
   playerName,
   confirmUrl,
   expiresAt,
+  reminderCopy,
 }: {
   playerName: string;
   confirmUrl: string;
   expiresAt: string;
+  reminderCopy?: string;
 }): { html: string; text: string } {
+  const reminderBlock = reminderCopy
+    ? `<p style="font-size:13px;line-height:1.6;color:#525252;margin-bottom:16px;font-style:italic;">${reminderCopy}</p>`
+    : "";
+  const reminderText = reminderCopy ? `\n${reminderCopy}\n` : "";
+
   const html = `<!DOCTYPE html>
 <html lang="pt-PT">
 <head><meta charset="UTF-8"><title>Consentimento parental</title></head>
 <body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#171717;">
   <h1 style="font-size:20px;font-weight:600;margin-bottom:16px;">Pedido de consentimento parental</h1>
+  ${reminderBlock}
   <p style="font-size:14px;line-height:1.6;margin-bottom:16px;">
     Foi criada uma conta para <strong>${playerName}</strong> na plataforma Project R,
     utilizada pelo clube para gerir sess&#245;es desportivas e bem-estar dos atletas.
@@ -35,7 +43,7 @@ function parentalConsentEmailHtml({
 </html>`;
 
   const text = `Pedido de consentimento parental — Project R
-
+${reminderText}
 Foi criada uma conta para ${playerName} na plataforma Project R.
 Para autorizar o acesso, clique no link abaixo (válido até ${expiresAt}):
 
@@ -63,9 +71,9 @@ const handler = async (req: Request): Promise<Response> => {
     );
   }
 
-  let body: { consentId?: string };
+  let body: { consentId?: string; includePrefix?: boolean; prefixText?: string };
   try {
-    body = await req.json() as { consentId?: string };
+    body = await req.json() as { consentId?: string; includePrefix?: boolean; prefixText?: string };
   } catch {
     return new Response(
       JSON.stringify({ error: "Invalid JSON body" }),
@@ -73,7 +81,7 @@ const handler = async (req: Request): Promise<Response> => {
     );
   }
 
-  const { consentId } = body;
+  const { consentId, includePrefix = false, prefixText = "" } = body;
   if (!consentId) {
     return new Response(
       JSON.stringify({ error: "consentId required" }),
@@ -98,8 +106,16 @@ const handler = async (req: Request): Promise<Response> => {
 
   if (consent.status !== "pending") {
     return new Response(
-      JSON.stringify({ error: "Consent is not pending" }),
-      { status: 409, headers: { "Content-Type": "application/json" } }
+      JSON.stringify({ ok: true, skipped: true, reason: "not_pending" }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  // Patch 7: Check token expiry before sending email
+  if (new Date(consent.token_expires_at) < new Date()) {
+    return new Response(
+      JSON.stringify({ ok: true, skipped: true, reason: "token_expired" }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
     );
   }
 
@@ -113,22 +129,56 @@ const handler = async (req: Request): Promise<Response> => {
   const confirmUrl = `${siteUrl}/consentimento/${consent.token}`;
   const expiresAt = new Date(consent.token_expires_at).toLocaleDateString("pt-PT");
 
-  const { html, text } = parentalConsentEmailHtml({ playerName, confirmUrl, expiresAt });
+  // Construir copy baseado no tipo de lembrete
+  let subject = "Consentimento parental — Project R";
+  let reminderCopy: string | undefined;
 
-  const resendRes = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${resendApiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: "Project R <noreply@project-r.app>",
-      to: [consent.parent_email],
-      subject: "Consentimento parental — Project R",
-      html,
-      text,
-    }),
-  });
+  // Patch 4: Whitelist allowed prefixes for defensive coding
+  const ALLOWED_PREFIXES = ["[Lembrete]", "[2º Lembrete]", "[2o Lembrete]"];
+
+  if (includePrefix && prefixText) {
+    // Validate prefix against whitelist
+    if (!ALLOWED_PREFIXES.includes(prefixText)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid prefixText" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    subject = `${prefixText} Consentimento parental — Project R`;
+    if (prefixText.includes("2º") || prefixText.includes("2o")) {
+      reminderCopy = "Esta é a última tentativa de reenvio automático. Por favor confirme o consentimento o mais brevemente possível.";
+    } else {
+      reminderCopy = "Se já confirmou, pode ignorar este lembrete.";
+    }
+  }
+
+  const { html, text } = parentalConsentEmailHtml({ playerName, confirmUrl, expiresAt, reminderCopy });
+
+  // Patch 8: Add timeout signal to prevent hanging requests
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+  let resendRes;
+  try {
+    resendRes = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "Project R <noreply@project-r.app>",
+        to: [consent.parent_email],
+        subject,
+        html,
+        text,
+      }),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!resendRes.ok) {
     const errBody = await resendRes.text();
@@ -137,6 +187,19 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ error: "Email send failed" }),
       { status: 502, headers: { "Content-Type": "application/json" } }
     );
+  }
+
+  // Patch 14+15: Mark log entry as 'sent' after successful email
+  // (log was inserted with status='pending' by pg_cron before HTTP call)
+  if (includePrefix) {
+    const kind = prefixText.includes("2º") || prefixText.includes("2o") ? "day_14" : "day_7";
+    await supabase
+      .from("parental_consent_reminders_log")
+      .update({ status: "sent" })
+      .eq("consent_id", consentId)
+      .eq("kind", kind)
+      .eq("status", "pending")
+      .gte("sent_at", new Date(Date.now() - 60000).toISOString()); // within last minute
   }
 
   return new Response(

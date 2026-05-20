@@ -196,6 +196,31 @@ describe("initiateParentalConsent", () => {
 
 // ─── resendConsentEmail ──────────────────────────────────────────────────────
 
+function buildResendServiceRole(consentData: unknown) {
+  const updateChain = {
+    update: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockResolvedValue({ error: null }),
+  };
+  const insertChain = {
+    insert: vi.fn().mockResolvedValue({ error: null }),
+  };
+  const consentChain = {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockResolvedValue(consentData),
+    update: vi.fn().mockReturnValue(updateChain),
+  };
+
+  return {
+    from: vi.fn((table: string) => {
+      if (table === "parental_consents") return consentChain;
+      if (table === "parental_consent_reminders_log") return insertChain;
+      return consentChain;
+    }),
+    _consentChain: consentChain,
+  };
+}
+
 describe("resendConsentEmail", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -218,13 +243,9 @@ describe("resendConsentEmail", () => {
       }),
     });
 
-    const serviceRole = {
-      from: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({ data: { id: CONSENT_UUID } }),
-      }),
-    };
+    const serviceRole = buildResendServiceRole({
+      data: { id: CONSENT_UUID, last_manual_resend_at: null },
+    });
     mockGetServiceRoleClient.mockReturnValue(serviceRole);
 
     vi.mocked(fetch).mockResolvedValue(
@@ -255,13 +276,9 @@ describe("resendConsentEmail", () => {
       }),
     });
 
-    const serviceRole = {
-      from: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({ data: { id: CONSENT_UUID } }),
-      }),
-    };
+    const serviceRole = buildResendServiceRole({
+      data: { id: CONSENT_UUID, last_manual_resend_at: null },
+    });
     mockGetServiceRoleClient.mockReturnValue(serviceRole);
 
     vi.mocked(fetch).mockResolvedValue(
@@ -288,13 +305,7 @@ describe("resendConsentEmail", () => {
       }),
     });
 
-    const serviceRole = {
-      from: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({ data: null }),
-      }),
-    };
+    const serviceRole = buildResendServiceRole({ data: null });
     mockGetServiceRoleClient.mockReturnValue(serviceRole);
 
     const result = await resendConsentEmail(PLAYER_UUID);
@@ -318,5 +329,67 @@ describe("resendConsentEmail", () => {
     if (!result.ok) {
       expect(result.error.code).toBe("unauthorized");
     }
+  });
+
+  it("rate-limit: retorna err({ code: 'rate_limited' }) se reenvio dentro de 5 minutos", async () => {
+    mockCreateServerClient.mockResolvedValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: "staff-id" } } }),
+      },
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { role: "coach" } }),
+      }),
+    });
+
+    // Simular último envio há 2 minutos
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+    const serviceRole = buildResendServiceRole({
+      data: { id: CONSENT_UUID, last_manual_resend_at: twoMinutesAgo },
+    });
+    mockGetServiceRoleClient.mockReturnValue(serviceRole);
+
+    const result = await resendConsentEmail(PLAYER_UUID);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("rate_limited");
+      expect(result.error.message).toMatch(/reenviar novamente em \d+ minuto/);
+    }
+    // fetch NÃO deve ter sido chamado
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("rate-limit: permite reenvio após 5 minutos terem passado", async () => {
+    mockCreateServerClient.mockResolvedValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: "staff-id" } } }),
+      },
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { role: "coach" } }),
+      }),
+    });
+
+    // Simular último envio há 6 minutos (fora da janela)
+    const sixMinutesAgo = new Date(Date.now() - 6 * 60 * 1000).toISOString();
+    const serviceRole = buildResendServiceRole({
+      data: { id: CONSENT_UUID, last_manual_resend_at: sixMinutesAgo },
+    });
+    mockGetServiceRoleClient.mockReturnValue(serviceRole);
+
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), { status: 200 })
+    );
+
+    const result = await resendConsentEmail(PLAYER_UUID);
+
+    expect(result.ok).toBe(true);
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/functions/v1/send-parental-consent"),
+      expect.objectContaining({ method: "POST" })
+    );
   });
 });

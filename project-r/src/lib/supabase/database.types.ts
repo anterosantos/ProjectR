@@ -70,6 +70,35 @@ export type Database = {
           },
         ]
       }
+      parental_consent_reminders_log: {
+        Row: {
+          id: string
+          consent_id: string
+          kind: string
+          sent_at: string
+        }
+        Insert: {
+          id?: string
+          consent_id: string
+          kind: string
+          sent_at?: string
+        }
+        Update: {
+          id?: string
+          consent_id?: string
+          kind?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parental_consent_reminders_log_consent_id_fkey"
+            columns: ["consent_id"]
+            isOneToOne: false
+            referencedRelation: "parental_consents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parental_consents: {
         Row: {
           id: string
@@ -83,6 +112,7 @@ export type Database = {
           confirmed_ip: string | null
           policy_version_id: string
           created_at: string
+          last_manual_resend_at: string | null
         }
         Insert: {
           id?: string
@@ -96,6 +126,7 @@ export type Database = {
           confirmed_ip?: string | null
           policy_version_id: string
           created_at?: string
+          last_manual_resend_at?: string | null
         }
         Update: {
           id?: string
@@ -109,6 +140,7 @@ export type Database = {
           confirmed_ip?: string | null
           policy_version_id?: string
           created_at?: string
+          last_manual_resend_at?: string | null
         }
         Relationships: [
           {
