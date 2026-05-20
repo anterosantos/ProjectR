@@ -2,6 +2,12 @@
 
 Items deferred from code reviews — pre-existing issues, out-of-scope work, or items blocked by future stories.
 
+## Deferred from: code review of 3-5-subject-rights-hub-routing-for-adult-titular-encarregado (2026-05-21)
+
+- **Rate limit em memória reset em cada cold start de Edge Function** [`supabase/functions/validate-subject-token/index.ts`]: Spec documenta "básico; Redis preferido, fallback em memória" — limitação conhecida e aceite. Implementar com Redis/Supabase KV quando o volume de GDPR requests justificar.
+- **`x-forwarded-for` trivialmente spoofable para contornar rate limit** [`supabase/functions/validate-subject-token/index.ts`]: Spec diz "básico com headers" como abordagem intencional. Mitigar com Redis + WAF quando o endpoint for exposto a volume real.
+- **Sub-pages de ações `(public)/[token]/` não revalidam token** [`src/app/(public)/direitos/[token]/exportar|apagar|retificar|limitar|retirar`]: Stubs placeholder; cada história 3.6–3.10 deverá incluir validação do token na implementação concreta.
+
 ## Deferred from: code review of story-1.3 (2026-05-09)
 
 - **clubs has no INSERT policy — first-club bootstrap requires admin tooling**: With `enable_signup = false` and only `service_role` able to insert clubs, the entire signup path is non-functional today. Needs a dedicated admin/seed story before Story 1.4 ships. [Sources: Blind Hunter HIGH, Edge Hunter HIGH-2]
