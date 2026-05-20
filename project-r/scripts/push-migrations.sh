@@ -65,3 +65,18 @@ echo "✨ Done! Executed $EXECUTED migrations"
 if [ $FAILED -gt 0 ]; then
   echo "⚠️  $FAILED migrations skipped (may already exist)"
 fi
+
+echo ""
+echo "🌱 Running seed data..."
+
+SEED_FILE="supabase/seed.sql"
+if [ -f "$SEED_FILE" ]; then
+  psql "$SUPABASE_DB_URL" -f "$SEED_FILE" > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    echo "✅ Seed data applied successfully"
+  else
+    echo "⚠️  Seed data partially applied (some inserts may have been skipped due to ON CONFLICT)"
+  fi
+else
+  echo "⚠️  No seed file found at $SEED_FILE"
+fi
