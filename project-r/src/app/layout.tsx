@@ -1,19 +1,33 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter_Tight, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { BrowserGate } from "@/components/patterns/BrowserGate";
 import { ErrorBoundary } from "@/components/patterns/ErrorBoundary";
 import { OutboxProvider } from "@/components/providers/OutboxProvider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const interTight = Inter_Tight({
+  variable: "--font-inter-tight",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetBrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
+
+const darkModeScript = `
+  (function() {
+    try {
+      var mq = window.matchMedia('(prefers-color-scheme: dark)');
+      if (mq.matches) document.documentElement.classList.add('dark');
+      mq.addEventListener('change', function(e) {
+        document.documentElement.classList.toggle('dark', e.matches);
+      });
+    } catch(e) {}
+  })();
+`;
 
 export const metadata: Metadata = {
   title: "Project R",
@@ -29,8 +43,11 @@ export default function RootLayout({
   return (
     <html
       lang="pt-PT"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${interTight.variable} ${jetBrainsMono.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: darkModeScript }} />
+      </head>
       <body className="min-h-full flex flex-col">
         <a
           href="#main-content"

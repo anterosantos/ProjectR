@@ -48,7 +48,8 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-08
-last_updated: "2026-05-20 (1-17 + 2-11 → ready-for-dev: Sally criou stories de visual look&feel — token/font alignment e calendar visual update; directiva global de mockup adicionada ao epics.md)"
+last_updated: "2026-05-20 (1-17 → done: code-review complete; 3 patches aplicados: tabular-nums className, color||undefined, null-guard no teste; 738/738 testes ✅)"
+# 2026-05-20: 1-17 + 2-11 → ready-for-dev: Sally criou stories de visual look&feel — token/font alignment e calendar visual update; directiva global de mockup adicionada ao epics.md
 # 2026-05-20: 3-1 → ready-for-dev: bmad-create-story; 000165_privacy_policies, react-markdown, /politica-privacidade Server Component, TooltipExplain glossário sub-14, seed v1.0.0 PT-PT B1
 # 2026-05-19: 2-7 → review: dev-story complete; SeasonToggle+SessionTypeFilter, /sessoes analista, /hoje jogador, type filter getSessionsForClub, aria-current, cumulativo toggle DESC; 637 testes ✅; lint 0 erros; typecheck ✅; build ✅; AC #1-#6 verificados
 # 2026-05-19: 2-6 → review: dev-story complete; 000120_sessions migration, 5 server actions, SessionForm+SessionCard+CancelSessionDialog, /calendario+/sessoes/[id]; 610 testes ✅; lint 0; typecheck ✅; build ✅; AC #1-#8 verificados
@@ -122,7 +123,7 @@ development_status:
   1-14-github-actions-heartbeat-workflow: done
   1-15-github-actions-weekly-backup-workflow: done
   1-16-accessibility-foundation-skip-link-focus-rings-reduced-motion-alt-text: done
-  1-17-design-token-font-system-alignment-visual-look-feel-baseline: ready-for-dev
+  1-17-design-token-font-system-alignment-visual-look-feel-baseline: done
   epic-1-retrospective: optional
 
   # Epic 2: Plantel, Calendário & Sessões (gestão operacional do staff)
