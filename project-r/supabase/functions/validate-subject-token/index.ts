@@ -1,3 +1,9 @@
+// Type stub for Deno runtime — allows import in Node/Vitest without @deno/types package
+declare const Deno: {
+  env: { get(key: string): string | undefined }
+  serve(handler: (req: Request) => Response | Promise<Response>): void
+}
+
 import { createClient } from '@supabase/supabase-js'
 
 interface ValidateTokenRequest {
