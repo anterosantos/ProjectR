@@ -521,6 +521,83 @@ As classes `text-ink-2`, `text-ink-3`, `text-ink-4`, `bg-ink-2`, `bg-surface`, `
 
 ---
 
+### Estado Actual dos Ficheiros a Modificar
+
+#### `src/app/layout.tsx` — ESTADO ACTUAL COMPLETO
+
+```tsx
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import { BrowserGate } from "@/components/patterns/BrowserGate";
+import { ErrorBoundary } from "@/components/patterns/ErrorBoundary";
+import { OutboxProvider } from "@/components/providers/OutboxProvider";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Project R",
+  description: "Plataforma de gestão de treino e desempenho",
+  manifest: "/manifest.webmanifest",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html
+      lang="pt-PT"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:top-4 focus:left-4 focus:px-4 focus:py-2 focus:bg-background focus:text-foreground focus:rounded-md focus:border-2 focus:border-border focus:shadow-lg"
+        >
+          Saltar para o conteúdo
+        </a>
+        <ErrorBoundary>
+          <BrowserGate>
+            <OutboxProvider>{children}</OutboxProvider>
+          </BrowserGate>
+        </ErrorBoundary>
+      </body>
+    </html>
+  );
+}
+```
+
+**O que mudar:** Remover `Geist` e `Geist_Mono`; importar `Inter_Tight` e `JetBrains_Mono`; adicionar `const darkModeScript`; adicionar `<head>` com `<script>` antes do `<body>`; actualizar `className` do `<html>`.
+
+---
+
+#### `src/app/globals.css` — SECÇÕES RELEVANTES ACTUAIS
+
+No bloco `@theme inline` (linha 13 em diante), as entradas de fonte actuais são:
+
+```css
+--font-sans: var(--font-sans);       /* linha 16 — self-reference; mudar para var(--font-inter-tight) */
+--font-mono: var(--font-geist-mono); /* linha 17 — mudar para var(--font-jetbrains-mono) */
+...
+--font-display: var(--font-sans);    /* linha 64 — mudar para var(--font-inter-tight) */
+--font-body: var(--font-sans);       /* linha 65 — mudar para var(--font-inter-tight) */
+--font-mono: var(--font-geist-mono); /* linha 66 — DUPLICADO de linha 17; mudar para var(--font-jetbrains-mono) */
+```
+
+**ATENÇÃO: `--font-mono` aparece DUAS vezes no `@theme inline`** (linhas 17 e 66). Ambas devem ser actualizadas para `var(--font-jetbrains-mono)`. Não deixar nenhuma referência a `geist-mono`.
+
+---
+
 ### Aviso: Script dark mode e `<head>` explícito em Next.js 16
 
 No Next.js 16, é seguro adicionar um `<head>` explícito na root layout com um `<script>` inline. O Next.js vai fundir este `<head>` com o seu `<Head>` automático. O `<script>` inline com `dangerouslySetInnerHTML` executa **síncronamente** antes do parsing do body, garantindo que `.dark` é aplicado sem flash.

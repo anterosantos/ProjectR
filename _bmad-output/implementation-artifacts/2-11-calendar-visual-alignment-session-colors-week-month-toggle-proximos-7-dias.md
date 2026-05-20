@@ -163,7 +163,7 @@ As Stories 2-6 e 2-7 implementaram a camada de dados e a estrutura base do Calen
   - [ ] 4.1 Criar `src/components/ui/session-block.tsx` — client component (tem estado de dark mode via CSS)
   - [ ] 4.2 Recebe `session: Session`
   - [ ] 4.3 Fundo colorido via `style={{ backgroundColor: config.bg }}` — **NOTA:** usar inline style porque as cores não são tokens Tailwind estáticos (são hex dinâmicos)
-  - [ ] 4.4 Mostra: label de tipo, horário `HH:mm`, duração `"90 min"`, local (se existir)
+  - [ ] 4.4 Mostra: label de tipo, horário `HH:mm` (de `session.scheduled_at`), duração `"${session.duration_min} min"`, local (se `session.location` existir)
   - [ ] 4.5 Texto branco `text-white` sempre (contraste validado ≥4.5:1 sobre as 3 cores de fundo)
   - [ ] 4.6 Sessões canceladas: `opacity-50` + label adicional "Cancelada"
   - [ ] 4.7 Preserva navegação `href="/sessoes/[id]"` via `<Link>` (comportamento existente)
@@ -187,19 +187,33 @@ As Stories 2-6 e 2-7 implementaram a camada de dados e a estrutura base do Calen
   - [ ] 6.8 Header da grelha: "DOM | SEG | TER | QUA | QUI | SEX | SÁB" em `font-mono text-[9px] uppercase text-ink-3`
 
 - [ ] Task 7: Refactorizar `CalendarioPage` para orquestrar as novas views (AC #1–#7)
-  - [ ] 7.1 `src/app/(staff)/calendario/page.tsx` — converter para receber `searchParams` com `vista` (já recebe `cumulativo`)
+  - [ ] 7.1 `src/app/(staff)/calendario/page.tsx` — estender `searchParams` para receber `vista` além do `cumulativo` já existente:
+    ```tsx
+    searchParams?: Promise<{ cumulativo?: string; vista?: string }>
+    ```
   - [ ] 7.2 Extrair lógica de dados para função auxiliar; manter `getSessionsForClub` e `getCurrentSeason` como estão
-  - [ ] 7.3 Calcular dados para ambas as views no Server Component:
+  - [ ] 7.3 Adicionar imports de date-fns ainda não presentes (os existentes são `format, startOfWeek, endOfWeek, isWithinInterval, startOfDay, endOfDay`):
+    ```ts
+    import { addDays, startOfMonth, endOfMonth } from "date-fns";
+    ```
+  - [ ] 7.4 Calcular dados para ambas as views no Server Component:
     - `weekSessions`: sessões da semana actual (para vista semana)
     - `next7Days`: sessões entre hoje e hoje+7 (para a lista de ambas as views)
     - `monthSessions`: sessões do mês actual (para vista mês)
-  - [ ] 7.4 Renderizar `CalendarViewToggle` no `StickyHeader` (novo prop `action?`)
-  - [ ] 7.5 Condicionar view baseado em `searchParams.vista`:
+  - [ ] 7.5 Colocar `CalendarViewToggle` **na mesma linha que `SeasonToggle`** (o `StickyHeader` actual só tem `title`, `meta`, `backHref` — NÃO tem `action` prop):
+    ```tsx
+    <div className="flex items-center justify-between gap-4 flex-wrap">
+      <SeasonToggle isCumulative={isCumulative} />
+      <CalendarViewToggle />  {/* adicionar aqui */}
+      {isCoach && <Button>Nova sessão</Button>}
+    </div>
+    ```
+  - [ ] 7.6 Condicionar view baseado em `params?.vista`:
     - `"semana"` (default): `DayChipStrip` + `SessionBlock` para o dia seleccionado + `NextSevenDaysList`
     - `"mes"`: `MonthGrid` + `NextSevenDaysList`
-  - [ ] 7.6 O `DayChipStrip` e a selecção do dia são Client Components; o restante pode ser Server Component com os dados pre-calculados
-  - [ ] 7.7 **Preservar comportamento existente:** `SeasonToggle` (cumulativo), `EmptyState`, navegação para `/sessoes/[id]`, botão "Nova sessão" para coach
-  - [ ] 7.8 **Não modificar** `/sessoes` (analista) nem `/hoje` (jogador) — apenas `/calendario`
+  - [ ] 7.7 O `DayChipStrip` e a selecção do dia são Client Components; o restante pode ser Server Component com os dados pre-calculados
+  - [ ] 7.8 **Preservar comportamento existente:** `SeasonToggle` (cumulativo), `EmptyState`, navegação para `/sessoes/[id]`, botão "Nova sessão" para coach
+  - [ ] 7.9 **Não modificar** `/sessoes` (analista) nem `/hoje` (jogador) — apenas `/calendario`
 
 - [ ] Task 8: Testes (AC #10)
   - [ ] 8.1 Criar `src/components/ui/session-block.test.tsx`:
@@ -248,6 +262,52 @@ As Stories 2-6 e 2-7 implementaram a camada de dados e a estrutura base do Calen
 - `src/app/(staff)/sessoes/page.tsx` — não é o alvo desta story
 - `src/app/(player)/hoje/page.tsx` — não é o alvo desta story
 - `src/lib/schemas/sessions.ts` — sem alterações ao schema
+
+---
+
+### Estado Actual dos Ficheiros a Modificar
+
+#### `src/app/(staff)/calendario/page.tsx` — ESTADO ACTUAL
+
+**Imports actuais (relevantes):**
+```tsx
+import { format, startOfWeek, endOfWeek, isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import { pt } from "date-fns/locale";
+import type { Session } from "@/lib/schemas/sessions";
+// Componentes: StickyHeader, SeasonToggle, EmptyState, SessionCard, Button
+```
+
+**`searchParams` actual:**
+```tsx
+searchParams?: Promise<{ cumulativo?: string }>
+```
+→ Adicionar `vista?: string` sem remover `cumulativo`.
+
+**Função auxiliar existente:** `groupSessionsByWeek()` pode ser mantida ou removida conforme o refactor. As novas views não a usam (substituem-na por lógica de semana/mês).
+
+**`StickyHeader` interface actual:**
+```tsx
+interface StickyHeaderProps {
+  title: string;
+  meta?: string;
+  backHref?: string;
+}
+```
+**NÃO tem `action` prop.** O `CalendarViewToggle` vai na área de conteúdo abaixo do header, na mesma linha do `SeasonToggle`.
+
+#### `src/lib/schemas/sessions.ts` — Tipo `Session` (campos relevantes)
+
+```ts
+export type Session = {
+  id: string;
+  type: SessionType;           // "training" | "match" | "friendly"
+  scheduled_at: string;        // ISO date string
+  duration_min: number;        // ← é duration_min, NÃO duration_minutes
+  location: string | null;
+  status: SessionStatus;       // "scheduled" | "cancelled" | "completed"
+  // ...outros campos
+};
+```
 
 ---
 
