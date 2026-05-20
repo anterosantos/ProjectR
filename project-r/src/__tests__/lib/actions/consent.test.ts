@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("@/lib/supabase/service-role", () => ({
   getServiceRoleClient: vi.fn(),
@@ -170,6 +170,28 @@ describe("initiateParentalConsent", () => {
       expect(result.error.code).toBe("validation");
     }
   });
+
+  it("happy path: dispara fetch fire-and-forget para send-parental-consent", async () => {
+    const serviceRole = buildServiceRole();
+    mockGetServiceRoleClient.mockReturnValue(serviceRole);
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), { status: 200 })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await initiateParentalConsent({
+      playerId: PLAYER_UUID,
+      parentEmail: "mae@mail.com",
+    });
+
+    // fire-and-forget: flushes microtask queue
+    await new Promise((r) => setTimeout(r, 0));
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("/functions/v1/send-parental-consent"),
+      expect.objectContaining({ method: "POST" })
+    );
+    vi.unstubAllGlobals();
+  });
 });
 
 // ─── resendConsentEmail ──────────────────────────────────────────────────────
@@ -177,9 +199,14 @@ describe("initiateParentalConsent", () => {
 describe("resendConsentEmail", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal("fetch", vi.fn());
   });
 
-  it("stub retorna ok com mensagem placeholder quando registo pending existe", async () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("chama Edge Function e retorna ok quando registo pending existe", async () => {
     mockCreateServerClient.mockResolvedValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({ data: { user: { id: "staff-id" } } }),
@@ -200,11 +227,81 @@ describe("resendConsentEmail", () => {
     };
     mockGetServiceRoleClient.mockReturnValue(serviceRole);
 
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), { status: 200 })
+    );
+
     const result = await resendConsentEmail(PLAYER_UUID);
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.message).toContain("Story 3.3");
+      expect(result.data.message).toBe("Email de consentimento reenviado.");
+    }
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/functions/v1/send-parental-consent"),
+      expect.objectContaining({ method: "POST" })
+    );
+  });
+
+  it("retorna err({ code: 'internal' }) se Edge Function falha", async () => {
+    mockCreateServerClient.mockResolvedValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: "staff-id" } } }),
+      },
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { role: "coach" } }),
+      }),
+    });
+
+    const serviceRole = {
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: { id: CONSENT_UUID } }),
+      }),
+    };
+    mockGetServiceRoleClient.mockReturnValue(serviceRole);
+
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ error: "Email send failed" }), { status: 502 })
+    );
+
+    const result = await resendConsentEmail(PLAYER_UUID);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("internal");
+    }
+  });
+
+  it("retorna err({ code: 'not_found' }) se sem consentimento pending", async () => {
+    mockCreateServerClient.mockResolvedValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: "staff-id" } } }),
+      },
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { role: "coach" } }),
+      }),
+    });
+
+    const serviceRole = {
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+      }),
+    };
+    mockGetServiceRoleClient.mockReturnValue(serviceRole);
+
+    const result = await resendConsentEmail(PLAYER_UUID);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("not_found");
     }
   });
 

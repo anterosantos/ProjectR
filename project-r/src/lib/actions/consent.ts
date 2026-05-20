@@ -100,6 +100,26 @@ export async function initiateParentalConsent(
     payload: { consent_id: consent.id, parent_email: parentEmail },
   });
 
+  // Fire-and-forget — não bloqueia o retorno da Server Action
+  void fetch(
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-parental-consent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+      },
+      body: JSON.stringify({ consentId: consent.id }),
+    }
+  )
+    .then(async (res) => {
+      if (!res.ok) {
+        const errBody = await res.text();
+        console.error("[consent] send-parental-consent failed:", res.status, errBody);
+      }
+    })
+    .catch((e) => console.error("[consent] send-parental-consent fetch error:", e));
+
   return ok({ consentId: consent.id });
 }
 
@@ -132,7 +152,25 @@ export async function resendConsentEmail(
     return err({ code: "not_found", message: "Nenhum consentimento pendente para este jogador" });
   }
 
-  return ok({ message: "O email de consentimento será enviado em breve. (Funcionalidade completa em Story 3.3)" });
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-parental-consent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+      },
+      body: JSON.stringify({ consentId: consent.id }),
+    }
+  );
+
+  if (!res.ok) {
+    const errBody = await res.text();
+    console.error(`[resendConsentEmail] Edge Function error: ${res.status} ${errBody}`);
+    return err({ code: "internal", message: "Falha ao enviar email de consentimento" });
+  }
+
+  return ok({ message: "Email de consentimento reenviado." });
 }
 
 export async function getPlayerConsentStatus(profileId: string) {
