@@ -408,6 +408,36 @@ export type Database = {
           },
         ]
       }
+      privacy_policies: {
+        Row: {
+          id: string
+          version: string
+          effective_from: string
+          body_full_md: string
+          body_u14_md: string
+          is_current: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          version: string
+          effective_from?: string
+          body_full_md: string
+          body_u14_md: string
+          is_current?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          version?: string
+          effective_from?: string
+          body_full_md?: string
+          body_u14_md?: string
+          is_current?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
