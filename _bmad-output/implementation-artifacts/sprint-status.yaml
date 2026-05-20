@@ -48,7 +48,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-08
-last_updated: "2026-05-20 (3-2 → ready-for-dev: bmad-create-story; 000170_parental_consents, profiles.consent_status, initiateParentalConsent action, consent gate middleware, /aguardar-consentimento, ageInYears bypass 16 anos)"
+last_updated: "2026-05-20 (1-17 + 2-11 → ready-for-dev: Sally criou stories de visual look&feel — token/font alignment e calendar visual update; directiva global de mockup adicionada ao epics.md)"
 # 2026-05-20: 3-1 → ready-for-dev: bmad-create-story; 000165_privacy_policies, react-markdown, /politica-privacidade Server Component, TooltipExplain glossário sub-14, seed v1.0.0 PT-PT B1
 # 2026-05-19: 2-7 → review: dev-story complete; SeasonToggle+SessionTypeFilter, /sessoes analista, /hoje jogador, type filter getSessionsForClub, aria-current, cumulativo toggle DESC; 637 testes ✅; lint 0 erros; typecheck ✅; build ✅; AC #1-#6 verificados
 # 2026-05-19: 2-6 → review: dev-story complete; 000120_sessions migration, 5 server actions, SessionForm+SessionCard+CancelSessionDialog, /calendario+/sessoes/[id]; 610 testes ✅; lint 0; typecheck ✅; build ✅; AC #1-#8 verificados
@@ -122,6 +122,7 @@ development_status:
   1-14-github-actions-heartbeat-workflow: done
   1-15-github-actions-weekly-backup-workflow: done
   1-16-accessibility-foundation-skip-link-focus-rings-reduced-motion-alt-text: done
+  1-17-design-token-font-system-alignment-visual-look-feel-baseline: ready-for-dev
   epic-1-retrospective: optional
 
   # Epic 2: Plantel, Calendário & Sessões (gestão operacional do staff)
@@ -136,6 +137,7 @@ development_status:
   2-8-match-squad-selection-convocados-starting-xi: done
   2-9-retention-policy-preserve-history-5-seasons-anonymization-hook: done
   2-10-player-invite-email-account-linking: done
+  2-11-calendar-visual-alignment-session-colors-week-month-toggle-proximos-7-dias: ready-for-dev
   epic-2-retrospective: optional
 
   # Epic 3: Consentimento Parental & Direitos GDPR

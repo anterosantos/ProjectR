@@ -370,12 +370,34 @@ Analytics Dashboards & Reporting:
 
 - AR33: Ordem obrigatória de implementação Sprint 1: (1) Project init, (2) Supabase project EU + DPA + DPIA inicial, (3) Schema migrations (tabelas core → RLS policies → funções derivadas), (4) Auth setup + middleware + helpers `lib/supabase/`, (5) JWT custom claims hook, (6) Outbox + sync engine, (7) Telemetry + audit_logs + data_decisions tables + Server Action helpers, (8) CI/CD workflows.
 
+### Visual Design Reference (Obrigatório em todas as stories de UI)
+
+**DIRECTIVA GLOBAL:** Todas as stories que implementem ecrãs visíveis ao utilizador DEVEM referenciar e respeitar os mockups em `docs/ux-design/`. O sistema visual é definido por `docs/ux-design/profile-shared.jsx` (tokens `PR_TOKENS_LIGHT`/`PR_TOKENS_DARK`) e pelos ficheiros PNG de cada ecrã. Suporte a **modo claro e escuro** é obrigatório em todos os ecrãs, activado exclusivamente via `prefers-color-scheme` (sem toggle de utilizador).
+
+| Mockup | Ecrã | Story |
+|--------|------|-------|
+| `profile-mobile-a/b.jsx`, `profile-desktop.jsx` | Perfil Unificado de Jogador | Epic 7, Story 7-2 |
+| `Variação A Linear` (3 PNGs) | Touchscreen: Jogador → Ação → Zona | Epic 6, Stories 6-1/6-2/6-3 |
+| `Variação A Emoji Daylio` (2 PNGs) | Questionário de Fadiga — versão sub-14 | Epic 4, Story 4-3 |
+| `Variação B Slider Numérico` (PNG) | Questionário de Fadiga — versão sénior | Epic 4, Story 4-2 |
+| `Variação A Semana + Variação B Mês` (2 PNGs) | Calendário (semana + mês) | Story 2-11 |
+| `Reports Viewer 3 tabs` (PNG) | Relatórios PDF/visualização | Epic 7, Story 7-6 |
+| `Workload Manager Cards + Graphs` (PNG) | Gestão de Carga / Painel | Epic 5, Stories 5-4/5-8/5-9 |
+
+**Tipografia obrigatória (a partir de Story 1-17):**
+- UI principal: `Inter Tight` (400/500/600/700)
+- Numerics/stats/mono: `JetBrains Mono` (400/500/600)
+
+**Paleta de tokens obrigatória (a partir de Story 1-17):** Ver `globals.css` — tokens `--color-ink-*`, `--color-surface-*`, `--color-hairline-*`, `--color-field`, `--color-signal-*-bg`, `--color-signal-*-ink`.
+
+---
+
 ### UX Design Requirements
 
 **Design Tokens & Foundation (UX Step 8 + 11)**
 
-- UX-DR1: Tokens de cor estabilizados em `tailwind.config.ts` + `@theme` em `globals.css` — paleta semântica `bg/`, `text/`, `border/`, `accent/`, `signal/` (verde `#16A34A`/`#22C55E`, amarelo `#CA8A04`/`#EAB308`, vermelho `#DC2626`/`#EF4444`, azul info `#2563EB`/`#3B82F6`), light/dark via `prefers-color-scheme` apenas (sem toggle utilizador).
-- UX-DR2: Tokens de tipografia: `font/sans` Inter via `next/font/google` (display=swap), `font/system` system-ui em rotas críticas (questionário, touchscreen) para zero FOUT/CLS, `font/mono` ui-monospace; type scale 10/12/14/16/18/20/24/30 + `display-1` 48px, `display-2` 64px; pesos 400/500/600/700.
+- UX-DR1: Tokens de cor estabilizados em `globals.css` — paleta semântica completa com `signal/` (verde `#16A34A`/`#22C55E`, amarelo `#CA8A04`/`#EAB308`, vermelho `#DC2626`/`#EF4444`, azul info `#2563EB`/`#3B82F6`), `ink/` (4 níveis), `surface/` (2 níveis), `hairline/` (normal+forte), `field` (#10B981 para SVGs de campo), signal background/foreground pairs; light/dark via `prefers-color-scheme` apenas (sem toggle utilizador). Baseline em Story 1-17.
+- UX-DR2: Tokens de tipografia: `font/sans` **Inter Tight** via `next/font/google`, `font/mono` **JetBrains Mono** via `next/font/google`; type scale 10/12/14/16/18/20/24/30 + `display-1` 48px, `display-2` 64px; pesos 400/500/600/700. Baseline em Story 1-17.
 - UX-DR3: Tokens de espaçamento Tailwind base 4px; touch targets ≥44px (≥60px no touchscreen em jogo); border-radius 2/6/12/full; sombras só `sm` e `md`; animação 150ms ease-out (200ms modal enter; 0ms touchscreen em jogo); breakpoints sm 360 / md 414 / lg 768 / xl 1024 / 2xl 1280; z-index escala fixa 0/10/20/30/40/50.
 - UX-DR4: Tokens de iconografia: lucide-react com tamanhos 16/20/24/32px, stroke 1.5 default e 2 em ações primárias, cor `currentColor`, ícones específicos do semáforo (`check-circle-2`, `alert-triangle`, `alert-octagon`, `circle-dashed`).
 
@@ -1125,6 +1147,77 @@ So that the entire system is navigable and respectful of my needs.
 **Then** it has a non-empty `alt` attribute (or `alt=""` for decorative images)
 **And** `eslint-plugin-jsx-a11y` enforces this at build time
 
+### Story 1.17: Design Token & Font System Alignment (Visual Look & Feel Baseline)
+
+As a developer implementing any new screen,
+I want a complete, mockup-aligned token and font system in `globals.css` and `layout.tsx`,
+So that all new screens automatically match the visual look and feel defined in `docs/ux-design/`.
+
+**Acceptance Criteria:**
+
+**Given** the font system (UX-DR2 revised)
+**When** `layout.tsx` is updated
+**Then** `Inter Tight` is loaded via `next/font/google` with weights 400/500/600/700 and subsets `latin`
+**And** `JetBrains Mono` is loaded via `next/font/google` with weights 400/500/600 and subsets `latin`
+**And** the CSS variables `--font-sans` and `--font-mono` in `@theme` point to the new fonts
+**And** `Geist` and `Geist Mono` are removed from the project
+
+**Given** the ink token scale (missing from current `globals.css`)
+**When** the `globals.css` `:root` and `.dark` blocks are updated
+**Then** `:root` defines `--color-ink-2: #525252`, `--color-ink-3: #737373`, `--color-ink-4: #A3A3A3`
+**And** `.dark` defines `--color-ink-2: #D4D4D4`, `--color-ink-3: #A3A3A3`, `--color-ink-4: #737373`
+**And** `@theme inline` exposes them as `--color-ink-2`, `--color-ink-3`, `--color-ink-4`
+
+**Given** the surface token scale (missing from current `globals.css`)
+**When** the `globals.css` `:root` and `.dark` blocks are updated
+**Then** `:root` defines `--color-surface: #FAFAFA`, `--color-surface-2: #F5F5F5`
+**And** `.dark` defines `--color-surface: #171717`, `--color-surface-2: #262626`
+**And** `@theme inline` exposes them as `--color-surface`, `--color-surface-2`
+
+**Given** the hairline token (editorial separators, missing from current `globals.css`)
+**When** the `globals.css` `:root` and `.dark` blocks are updated
+**Then** `:root` defines `--color-hairline: #E5E5E5`, `--color-hairline-strong: #D4D4D4`
+**And** `.dark` defines `--color-hairline: #262626`, `--color-hairline-strong: #404040`
+**And** `@theme inline` exposes them as `--color-hairline`, `--color-hairline-strong`
+
+**Given** the field color (pitch SVG green, used in touchscreen zone selector and position diagram)
+**When** the `globals.css` `:root` block is updated
+**Then** `:root` defines `--color-field: #10B981`, `--color-field-deep: #059669`
+**And** both values are identical in `.dark` (field green is context-invariant)
+**And** `@theme inline` exposes `--color-field`, `--color-field-deep`
+
+**Given** the signal background/foreground token pairs (used in StatusPill/SemaforoBadge)
+**When** the `globals.css` `:root` and `.dark` blocks are updated
+**Then** `:root` defines `--signal-ready-bg: #F0FDF4`, `--signal-ready-ink: #166534`
+**And** `:root` defines `--signal-caution-bg: #FEFCE8`, `--signal-caution-ink: #854D0E`
+**And** `:root` defines `--signal-alert-bg: #FEF2F2`, `--signal-alert-ink: #991B1B`
+**And** `.dark` defines `--signal-ready-bg: rgba(34,197,94,0.12)`, `--signal-ready-ink: #86EFAC`
+**And** `.dark` defines `--signal-caution-bg: rgba(234,179,8,0.14)`, `--signal-caution-ink: #FDE68A`
+**And** `.dark` defines `--signal-alert-bg: rgba(239,68,68,0.14)`, `--signal-alert-ink: #FCA5A5`
+**And** all six tokens are exposed in `@theme inline`
+
+**Given** the dark mode mechanism (UX-DR1 — prefers-color-scheme only, no user toggle)
+**When** the dark mode implementation is audited
+**Then** `globals.css` uses `@media (prefers-color-scheme: dark)` to apply `.dark` class automatically via `<html class>` set server-side from `next/headers` cookies or via `<script>` in `<head>` before first paint
+**And** there is no user-facing dark mode toggle in Settings or navigation
+**And** existing `.dark` class selector continues to work (shadcn compatibility)
+
+**Given** the `Eyebrow` primitive component (small-caps section marker with leading dash, used in profile and multiple screens)
+**When** `src/components/patterns/Eyebrow.tsx` is created
+**Then** it renders a `<div>` with `font-mono text-[9.5px] tracking-[0.14em] uppercase text-ink-3` and a `<span>` leading dash (12px wide, 1px height, bg-ink-3)
+**And** it accepts `children` and an optional `className` prop
+**And** it has a vitest unit test
+
+**Given** the `Datum` primitive component (value + label stacked in mono, used in stats displays)
+**When** `src/components/patterns/Datum.tsx` is created
+**Then** it renders a value in `font-mono font-medium tabular-nums` and a label in `font-mono text-[8.5px] tracking-[0.12em] uppercase text-ink-3`
+**And** it accepts `value`, `unit` (optional), `label`, `valueSize` (default 22), `color` (optional) props
+**And** it has a vitest unit test
+
+**Given** all changes compile and tests pass
+**When** `npm run build` and `npm run test --run` are executed from `project-r/`
+**Then** build exits 0, typecheck exits 0, lint exits 0 with ≤ previous warning count, all existing tests pass
+
 ## Epic 2: Plantel, Calendário & Sessões (gestão operacional do staff)
 
 Analista gere plantel completo (jogadores, métricas peso/altura série temporal, posições principal + 4 alternativas, marcar inativos, política de retenção 5 épocas) e Treinador gere calendário (sessões treino/jogo/amigável, convocados, equipa inicial, épocas com dados filtrados ou cumulativos). Permite operar a app antes de haver fadiga, prontidão ou estatísticas — desbloqueia todos os épicos seguintes que dependem de jogador + sessão.
@@ -1476,6 +1569,58 @@ So that we comply with the retention policy without manual intervention.
 **Given** the Growth-phase full automation (FR16 [Growth])
 **When** Phase 2 evolves
 **Then** the same hook is reused without rewriting (Phase 1 already implements the automatic anonymization; only PII-dashboard surfacing is Phase 2)
+
+### Story 2.11: Calendar Visual Alignment — Session Block Colors, Week/Month Toggle & "Próximos 7 Dias"
+
+As a Treinador or Analista,
+I want the Calendar to visually match the approved mockups (`docs/ux-design/Variação A Semana` and `Variação B Mês`),
+So that the experience is polished, role-appropriate, and consistent with the established look & feel.
+
+**Context:** Stories 2-6 and 2-7 implemented the Calendar's data layer and base structure. This story adds the visual layer defined in the UX mockups, which was not yet implemented. Requires Story 1-17 (token alignment) to be done first.
+
+**Acceptance Criteria:**
+
+**Given** the week view (Variação A — timeline + agenda)
+**When** the `/calendario` page renders in week mode
+**Then** the top strip shows 7 day chips (SEX/SÁB/DOM/SEG/TER/QUA/QUI) with the active day highlighted using a solid pill (bg-foreground, text-background)
+**And** the active day chip has a colored dot below it indicating the session type (or neutral if no session)
+**And** sessions for the selected day are shown as colored full-width blocks: `Fisioterapia`=purple (`#7C3AED`), `Treino *`=blue (`#2563EB`), `Jogo *`=red (`signal-alert`), `Amigável`=yellow (`signal-caution`), `Recuperação`=green (`signal-ready`)
+**And** each session block shows: session type, time + duration, location (if set), and an attendance count badge (e.g. "36")
+**And** below the "hoje" sessions block, a "Próximos 7 dias" section lists upcoming sessions with a colored left-border line per type, time, and attendance count
+
+**Given** the month view (Variação B — grid heatmap + agenda)
+**When** the user toggles to month view
+**Then** a full-month grid renders with week columns (DOM through SÁB)
+**And** each day cell shows: day number, colored dots for each session type that day (max 3 dots, then "+N"), and a subtle highlight for today
+**And** tapping/clicking a day cell scrolls to that day's session block in the "Próximos 7 dias" list below the grid
+**And** the selected day has a border outline (not filled, to avoid competing with the colored session dots)
+
+**Given** the week/month toggle
+**When** the Calendar page header renders
+**Then** a segmented control "Semana | Mês" is visible in the header
+**And** the selected mode persists across navigation (localStorage or URL param)
+
+**Given** dark mode support (Story 1-17 tokens required)
+**When** `prefers-color-scheme: dark` is active
+**Then** session block backgrounds use darkened variants of the session type colors (opacity 0.2 on dark surface, text uses full-brightness color)
+**And** day chip active state inverts correctly (bg-foreground → near-white on dark)
+**And** contrast ratios meet ≥4.5:1 for all text-on-background combinations
+
+**Given** role-based display (Story 2-7 existing logic)
+**When** a Jogador accesses `/calendario` (their view `/hoje`)
+**Then** the player sees only sessions they are convocado for, with no staff-only attendance count badge
+**And** week/month toggle is still available
+
+**Given** accessibility
+**When** the Calendar renders
+**Then** each day chip has `aria-label="[dia], [data], [N sessões]"`
+**And** session blocks have `role="article"` with `aria-label` describing type, time, and location
+**And** the week/month toggle uses `role="tablist"` / `role="tab"` with `aria-selected`
+
+**Given** existing tests (Story 2-6, 2-7)
+**When** `npm run test --run` executes
+**Then** all prior calendar tests continue to pass
+**And** ≥6 new tests cover: day chip selection, session block color mapping, month grid dot rendering, "Próximos 7 dias" list, toggle persistence, dark mode token usage via CSS variables
 
 ## Epic 3: Consentimento Parental & Direitos GDPR
 
