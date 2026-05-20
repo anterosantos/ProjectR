@@ -2,7 +2,7 @@
 -- Purpose: Versioned privacy policy storage (Story 3.1, FR54)
 
 CREATE TABLE public.privacy_policies (
-  id            uuid        PRIMARY KEY DEFAULT extensions.uuid_generate_v7(),
+  id            uuid        PRIMARY KEY DEFAULT public.uuidv7(),
   version       text        NOT NULL,
   effective_from date       NOT NULL DEFAULT CURRENT_DATE,
   body_full_md  text        NOT NULL,
