@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { AlertCircle, Plus, Trash2, ChevronLeft } from "lucide-react";
@@ -38,6 +38,9 @@ export default function NovoJogadorPage() {
     control: form.control,
     name: "positions",
   });
+
+  const watchedAgeGroup = useWatch({ control: form.control, name: "ageGroup" });
+  const showParentEmail = watchedAgeGroup === "u14" || watchedAgeGroup === "u15";
 
   const errors = form.formState.errors;
 
@@ -181,6 +184,35 @@ export default function NovoJogadorPage() {
             </p>
           )}
         </div>
+
+        {/* Email do Encarregado de Educação (apenas para u14/u15) */}
+        {showParentEmail && (
+          <div>
+            <label htmlFor="parentEmail" className="block text-sm font-medium text-foreground mb-1">
+              Email do Encarregado de Educação
+            </label>
+            <input
+              id="parentEmail"
+              type="email"
+              autoComplete="email"
+              aria-describedby={errors.parentEmail ? "parentEmail-error" : "parentEmail-desc"}
+              aria-invalid={!!errors.parentEmail}
+              {...form.register("parentEmail")}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 aria-invalid:border-signal-alert"
+              placeholder="Ex: encarregado@mail.com"
+              disabled={isPending}
+            />
+            <p id="parentEmail-desc" className="mt-1 text-xs text-muted-foreground">
+              Necessário para iniciar o consentimento parental RGPD.
+            </p>
+            {errors.parentEmail && (
+              <p id="parentEmail-error" className="mt-1 flex items-center gap-1 text-xs text-signal-alert">
+                <AlertCircle className="h-3 w-3" />
+                {errors.parentEmail.message}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Posições */}
         <div>

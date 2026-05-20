@@ -10,7 +10,7 @@ import type { Database } from "./database.types";
  */
 export async function updateSession(
   request: NextRequest
-): Promise<{ user: unknown; response: NextResponse; claims: Record<string, unknown> }> {
+): Promise<{ user: unknown; response: NextResponse; claims: Record<string, unknown>; supabase: ReturnType<typeof createServerClient<Database>> }> {
   let response = NextResponse.next({
     request: { headers: request.headers },
   });
@@ -63,5 +63,5 @@ export async function updateSession(
     }
   }
 
-  return { user, response, claims };
+  return { user, response, claims, supabase };
 }

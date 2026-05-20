@@ -16,6 +16,7 @@ import {
   ResendInviteSchema,
   AGE_GROUPS,
 } from "@/lib/schemas/players";
+import { initiateParentalConsent } from "@/lib/actions/consent";
 import type { PlayerCreate, PlayerUpdate, ArchivePlayer, MarkInactive, ReactivatePlayer, InvitePlayer, ResendInvite, AgeGroup } from "@/lib/schemas/players";
 import type { Result, AppError } from "@/lib/types";
 import { ok, err } from "@/lib/types";
@@ -210,6 +211,29 @@ export async function createPlayer(
       console.error("RPC and compensating delete both failed", { rpcError, deleteError });
     }
     return err({ code: "unknown", message: rpcError.message });
+  }
+
+  // Iniciar consentimento parental para u14/u15 quando email fornecido (strict: falha se consent falhar)
+  if (["u14", "u15"].includes(validated.data.ageGroup) && validated.data.parentEmail) {
+    const consentResult = await initiateParentalConsent({
+      playerId,
+      parentEmail: validated.data.parentEmail,
+    });
+
+    if (!consentResult.ok) {
+      // Compensate: delete player if consent initiation fails
+      const { error: deleteError } = await supabase.from("players").delete().eq("id", playerId);
+      if (deleteError) {
+        console.error("Consent failed and compensating delete also failed", {
+          consentError: consentResult.error,
+          deleteError,
+        });
+      }
+      return err({
+        code: "unknown",
+        message: `Não foi possível iniciar consentimento parental: ${consentResult.error.message}`,
+      });
+    }
   }
 
   redirect(`/plantel/${playerId}?created=1`);

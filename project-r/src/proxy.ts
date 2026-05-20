@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
+import { ageInYears } from "@/lib/utils/age";
 
 const PUBLIC_PATHS = new Set([
   "/login",
@@ -14,7 +15,7 @@ const ROLE_DEFAULT_ROUTES: Record<string, string> = {
 };
 
 const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
-  player: ["/hoje", "/historico", "/configuracoes"],
+  player: ["/hoje", "/historico", "/configuracoes", "/aguardar-consentimento"],
   coach: ["/prontidao", "/calendario", "/plantel", "/configuracoes"],
   analyst: ["/sessoes", "/plantel", "/tendencias", "/configuracoes"],
 };
@@ -30,7 +31,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next({ request: { headers: request.headers } });
   }
 
-  const { user, response, claims } = await updateSession(request);
+  const { user, response, claims, supabase } = await updateSession(request);
 
   // Redirect unauthenticated users to /login (307 Temporary Redirect).
   if (!user) {
@@ -46,6 +47,39 @@ export async function proxy(request: NextRequest) {
   // Get user role from JWT custom claims injected by the auth hook (Story 1.4/1.9).
   // The auth hook adds user_role as a top-level JWT claim; it is not in user_metadata.
   const userRole = (claims.user_role || claims.role) as string | undefined;
+
+  // Consent gate para jogadores sub-14/15 (Story 3.2) — precede ROLE_ALLOWED_ROUTES
+  if (userRole === "player" && user) {
+    const typedUser = user as { id: string };
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("consent_status")
+      .eq("id", typedUser.id)
+      .single();
+
+    // Note: consent_status has DEFAULT 'not_required', never NULL. If NULL occurs (edge case),
+    // null !== "pending" is true, granting access. This is intentional fail-safe.
+    if (profileData?.consent_status === "pending") {
+      const { data: playerData } = await supabase
+        .from("players")
+        .select("birthdate")
+        .eq("profile_id", typedUser.id)
+        .maybeSingle();
+
+      const birthdate = playerData?.birthdate ?? null;
+      const isNowAdult = birthdate !== null && ageInYears(birthdate) >= 16;
+
+      if (!isNowAdult) {
+        // Allow access to /aguardar-consentimento and child routes (e.g. /aguardar-consentimento/resend)
+        if (!pathname.startsWith("/aguardar-consentimento")) {
+          return NextResponse.redirect(
+            new URL("/aguardar-consentimento", request.url)
+          );
+        }
+        return response;
+      }
+    }
+  }
 
   // If userRole is available from JWT claims, validate access
   if (userRole && userRole in ROLE_ALLOWED_ROUTES) {

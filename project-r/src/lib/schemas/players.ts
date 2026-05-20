@@ -43,6 +43,7 @@ export const PlayerCreateSchema = z.object({
       (positions) => positions.filter((p) => p.isPrimary).length === 1,
       "Exactamente 1 posição primária obrigatória"
     ),
+  parentEmail: z.string().email("Email inválido").max(254, "Email muito longo").optional(),
 });
 
 export const PlayerUpdateSchema = PlayerCreateSchema.extend({

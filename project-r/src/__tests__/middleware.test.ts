@@ -11,6 +11,23 @@ import { updateSession } from "@/lib/supabase/middleware";
 
 const mockUpdateSession = updateSession as any;
 
+// Helper: supabase mock that simulates consent_status = 'not_required' (no gate triggered)
+function makeSupabaseMock(consentStatus = "not_required") {
+  const playerChain = {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+  };
+  const profileChain = {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    single: vi.fn().mockResolvedValue({ data: { consent_status: consentStatus } }),
+  };
+  return {
+    from: vi.fn((table: string) => (table === "players" ? playerChain : profileChain)),
+  };
+}
+
 describe("Middleware: Authentication and Route Access", () => {
   beforeEach(() => {
     mockUpdateSession.mockClear();
@@ -129,6 +146,7 @@ describe("Middleware: Authentication and Route Access", () => {
         user: { id: "user-123", email: "player@test.test" },
         claims: { user_role: "player" },
         response: NextResponse.next(),
+        supabase: makeSupabaseMock("not_required"),
       });
 
       const request = new NextRequest(new URL("http://localhost:3000/hoje"));
@@ -142,6 +160,7 @@ describe("Middleware: Authentication and Route Access", () => {
         user: { id: "user-123", email: "player@test.test" },
         claims: { user_role: "player" },
         response: NextResponse.next(),
+        supabase: makeSupabaseMock("not_required"),
       });
 
       // Player trying to access coach route

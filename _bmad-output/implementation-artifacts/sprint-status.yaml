@@ -49,7 +49,8 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-08
-last_updated: "2026-05-20 (3-3 → ready-for-dev: bmad-create-story; Edge Functions send-parental-consent + consent-validate, landing page /consentimento/[token] server-rendered, progressive enhancement, templates HTML inline, resendConsentEmail substituição do stub)"
+last_updated: "2026-05-20 (3-2 → done: code-review complete; 11 patches aplicados: profile_id null-safety, age calculation validation (isNaN + future dates), email masking guards, date formatting fallbacks, token TTL env var, child route bypass, consent gate strict mode; 783 testes ✅; lint 0 erros; typecheck ✅; build ✅; AC #1-#9 verificados)"
+# 2026-05-20 (3-3 → ready-for-dev: bmad-create-story; Edge Functions send-parental-consent + consent-validate, landing page /consentimento/[token] server-rendered, progressive enhancement, templates HTML inline, resendConsentEmail substituição do stub)
 # 2026-05-20 (3-1 → done: code-review complete; 8 patches aplicados: search_path guard trigger, renderWithGlossary children mistos + li renderer, keys monotónicas, playerError check, testes assertions correctas + validação eq + caminhos erro; seed u14 prose actualizado; 7/7 testes ✅; typecheck ✅)
 # 2026-05-20: 1-17 + 2-11 → ready-for-dev: Sally criou stories de visual look&feel — token/font alignment e calendar visual update; directiva global de mockup adicionada ao epics.md
 # 2026-05-20: 3-1 → ready-for-dev: bmad-create-story; 000165_privacy_policies, react-markdown, /politica-privacidade Server Component, TooltipExplain glossário sub-14, seed v1.0.0 PT-PT B1
@@ -146,7 +147,7 @@ development_status:
   # Epic 3: Consentimento Parental & Direitos GDPR
   epic-3: in-progress
   3-1-privacy-policy-versioning-sub-14-adapted-copy: done
-  3-2-parental-consent-schema-token-generation-underage-access-block: ready-for-dev
+  3-2-parental-consent-schema-token-generation-underage-access-block: done
   3-3-parental-consent-email-send-token-landing-page: ready-for-dev
   3-4-parental-consent-reminders-day-7-14-staff-alert: backlog
   3-5-subject-rights-hub-routing-for-adult-titular-encarregado: backlog

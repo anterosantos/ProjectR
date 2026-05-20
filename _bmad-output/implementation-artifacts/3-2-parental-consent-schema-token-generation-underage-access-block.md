@@ -1,6 +1,6 @@
 # Story 3.2: Parental Consent — Schema, Token Generation & Underage Access Block
 
-**Status:** ready-for-dev
+**Status:** done
 
 **Story ID:** 3.2
 **Epic:** Epic 3 — Consentimento Parental & Direitos GDPR
@@ -149,99 +149,66 @@ Para que nenhum dado de saúde de um jogador de 13–15 anos seja recolhido sem 
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Migração `000170_parental_consents.sql`** (AC #1, #2)
-  - [ ] 1.1 Criar `project-r/supabase/migrations/000170_parental_consents.sql`
-  - [ ] 1.2 `CREATE EXTENSION IF NOT EXISTS citext;` (idempotente, necessário para `parent_email citext`)
-  - [ ] 1.3 `CREATE TABLE public.parental_consents` com todas as colunas e constraints
-  - [ ] 1.4 `CREATE UNIQUE INDEX idx_parental_consents_active_per_player ON public.parental_consents(player_id) WHERE status IN ('pending','confirmed')`
-  - [ ] 1.5 `CREATE INDEX idx_parental_consents_token ON public.parental_consents(token)` (token lookups em Story 3.3)
-  - [ ] 1.6 `ALTER TABLE public.parental_consents ENABLE ROW LEVEL SECURITY`
-  - [ ] 1.7 `CREATE POLICY "parental_consents_staff_read" ... FOR SELECT TO authenticated USING (club_id = (auth.jwt()->>'club_id')::uuid)`
-  - [ ] 1.8 `ALTER TABLE public.profiles ADD COLUMN consent_status text NOT NULL DEFAULT 'not_required' CHECK (consent_status IN ('not_required','pending','granted','revoked'))`
-  - [ ] 1.9 Validar: `supabase db reset` sem erros localmente
+- [x] **Task 1: Migração `000170_parental_consents.sql`** (AC #1, #2)
+  - [x] 1.1 Criar `project-r/supabase/migrations/000170_parental_consents.sql`
+  - [x] 1.2 `CREATE EXTENSION IF NOT EXISTS citext;` (idempotente, necessário para `parent_email citext`)
+  - [x] 1.3 `CREATE TABLE public.parental_consents` com todas as colunas e constraints
+  - [x] 1.4 `CREATE UNIQUE INDEX idx_parental_consents_active_per_player ON public.parental_consents(player_id) WHERE status IN ('pending','confirmed')`
+  - [x] 1.5 `CREATE INDEX idx_parental_consents_token ON public.parental_consents(token)` (token lookups em Story 3.3)
+  - [x] 1.6 `ALTER TABLE public.parental_consents ENABLE ROW LEVEL SECURITY`
+  - [x] 1.7 `CREATE POLICY "parental_consents_staff_read" ... FOR SELECT TO authenticated USING (club_id = (auth.jwt()->>'club_id')::uuid)`
+  - [x] 1.8 `ALTER TABLE public.profiles ADD COLUMN consent_status text NOT NULL DEFAULT 'not_required' CHECK (consent_status IN ('not_required','pending','granted','revoked'))`
+  - [x] 1.9 Validar: `supabase db reset` sem erros localmente
 
-- [ ] **Task 2: Atualizar `database.types.ts`** (AC #8)
-  - [ ] 2.1 Adicionar tabela `parental_consents` com `Row`, `Insert`, `Update` seguindo padrão existente
-  - [ ] 2.2 Adicionar `consent_status: string` a `profiles.Row` e `consent_status?: string` a `profiles.Insert` e `profiles.Update`
-  - [ ] 2.3 `npm run typecheck` sem erros
+- [x] **Task 2: Atualizar `database.types.ts`** (AC #8)
+  - [x] 2.1 Adicionar tabela `parental_consents` com `Row`, `Insert`, `Update` seguindo padrão existente
+  - [x] 2.2 Adicionar `consent_status: string` a `profiles.Row` e `consent_status?: string` a `profiles.Insert` e `profiles.Update`
+  - [x] 2.3 `npm run typecheck` sem erros
 
-- [ ] **Task 3: Server action `consent.ts`** (AC #3, #7)
-  - [ ] 3.1 Criar `project-r/src/lib/actions/consent.ts` com `"use server"`
-  - [ ] 3.2 Importar `getServiceRoleClient`, `newId`, `createServerClient`, `logAudit` (de `@/lib/actions/audit`)
-  - [ ] 3.3 Definir `ConsentInitiateSchema = z.object({ playerId: z.string().uuid(), parentEmail: z.string().email() })`
-  - [ ] 3.4 Implementar `initiateParentalConsent(input: unknown): Promise<Result<{ consentId: string }, AppError>>`:
-    - Validar com Zod
-    - Buscar jogador (`players WHERE id = playerId`) — verificar `age_group IN ('u14','u15')` e obter `profile_id`
-    - Verificar conflito: `parental_consents WHERE player_id = playerId AND status IN ('pending','confirmed')` via `.maybeSingle()` → `err({ code: 'conflict' })`
-    - Buscar `policy_version_id` de `privacy_policies WHERE is_current = true`
-    - Gerar `token = newId()`, `token_expires_at = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()`
-    - Inserir em `parental_consents` via `getServiceRoleClient()`
-    - `UPDATE profiles SET consent_status = 'pending' WHERE id = profile_id` via service-role
-    - Registar em `audit_logs`: `action='consent.initiate'`, `target_kind='player'`, `target_id=playerId`
-    - Retornar `ok({ consentId: novoRegisto.id })`
-  - [ ] 3.5 Implementar `resendConsentEmail(playerId: string): Promise<Result<{ message: string }, AppError>>` — stub:
-    - Verificar autenticação do utilizador (staff apenas — role 'coach' ou 'analyst')
-    - Verificar existe registo `pending` para o jogador
-    - Retornar `ok({ message: 'Email de consentimento será enviado. (Funcionalidade completa em Story 3.3)' })`
-  - [ ] 3.6 Implementar `getPlayerConsentStatus(profileId: string)` via service-role para uso nos Server Components
+- [x] **Task 3: Server action `consent.ts`** (AC #3, #7)
+  - [x] 3.1 Criar `project-r/src/lib/actions/consent.ts` com `"use server"`
+  - [x] 3.2 Importar `getServiceRoleClient`, `newId`, `createServerClient`
+  - [x] 3.3 Definir `ConsentInitiateSchema = z.object({ playerId: z.string().uuid(), parentEmail: z.string().email() })`
+  - [x] 3.4 Implementar `initiateParentalConsent` com validação, conflict detection, audit log
+  - [x] 3.5 Implementar `resendConsentEmail` stub com verificação de autenticação e role
+  - [x] 3.6 Implementar `getPlayerConsentStatus` via service-role
 
-- [ ] **Task 4: Extensão de `createPlayer` e schema** (AC #4)
-  - [ ] 4.1 Em `src/lib/schemas/players.ts`, adicionar `parent_email: z.string().email().optional()` ao `PlayerCreateSchema`
-  - [ ] 4.2 Em `src/lib/actions/players.ts`, após inserção bem-sucedida do jogador:
-    ```ts
-    if (['u14', 'u15'].includes(validatedData.age_group) && validatedData.parent_email) {
-      // fire-and-forget — não bloquear createPlayer se consent falhar
-      initiateParentalConsent({ playerId: newPlayer.id, parentEmail: validatedData.parent_email })
-        .catch((e) => console.error('[consent] initiateParentalConsent failed:', e));
-    }
-    ```
-  - [ ] 4.3 Localizar o formulário de criação de jogador: `grep -r "createPlayer" src/app --include="*.tsx" -l`
-  - [ ] 4.4 Adicionar campo `parent_email` condicional ao formulário (visível quando `watch('age_group') === 'u14' || watch('age_group') === 'u15'`)
-  - [ ] 4.5 Label PT-PT: "Email do Encarregado de Educação" com `FormDescription`: "Necessário para iniciar o consentimento parental RGPD."
+- [x] **Task 4: Extensão de `createPlayer` e schema** (AC #4)
+  - [x] 4.1 Em `src/lib/schemas/players.ts`, adicionar `parentEmail: z.string().email().optional()` ao `PlayerCreateSchema`
+  - [x] 4.2 Em `src/lib/actions/players.ts`, fire-and-forget `initiateParentalConsent` após inserção
+  - [x] 4.3 Localizar formulário de criação de jogador: `src/app/(staff)/plantel/novo/page.tsx`
+  - [x] 4.4 Adicionar campo `parentEmail` condicional ao formulário com `useWatch`
+  - [x] 4.5 Label PT-PT com descrição RGPD
 
-- [ ] **Task 5: Utilitários de suporte** (AC #5, #6, #7)
-  - [ ] 5.1 Criar `src/lib/utils/age.ts` com `export function ageInYears(birthdate: string): number`
-  - [ ] 5.2 Criar `src/lib/utils/mask-email.ts` com `export function maskEmail(email: string): string`
+- [x] **Task 5: Utilitários de suporte** (AC #5, #6, #7)
+  - [x] 5.1 Criar `src/lib/utils/age.ts` com `export function ageInYears(birthdate: string): number`
+  - [x] 5.2 Criar `src/lib/utils/mask-email.ts` com `export function maskEmail(email: string): string`
 
-- [ ] **Task 6: Middleware — consent gate** (AC #5, #6)
-  - [ ] 6.1 Modificar `src/lib/supabase/middleware.ts`: adicionar `supabase` ao tipo de retorno e à instrução `return`
-  - [ ] 6.2 Em `src/proxy.ts`, após `const { user, response, claims, supabase } = await updateSession(request)`:
-    - Se `userRole === 'player'` e `user` presente, fazer query `profiles.consent_status` pelo `user.id`
-    - Se `consent_status === 'pending'`: query `players.birthdate WHERE profile_id = user.id`
-    - Se `birthdate` presente e `ageInYears(birthdate) >= 16` → bypass (não bloquear; actualização de `consent_status` é best-effort fora do middleware — ver nota em Dev Notes)
-    - Se `birthdate` null ou age < 16 → redirect `/aguardar-consentimento` (excepto se já está nessa rota)
-  - [ ] 6.3 Garantir que o bloco de consent gate fica **antes** do bloco `ROLE_ALLOWED_ROUTES`
+- [x] **Task 6: Middleware — consent gate** (AC #5, #6)
+  - [x] 6.1 Modificar `src/lib/supabase/middleware.ts`: adicionar `supabase` ao tipo de retorno e instrução `return`
+  - [x] 6.2 Em `src/proxy.ts`: consent gate com query profiles + players.birthdate + redirect + loop prevention
+  - [x] 6.3 Bloco de consent gate antes do bloco `ROLE_ALLOWED_ROUTES`
 
-- [ ] **Task 7: Página `/aguardar-consentimento`** (AC #7)
-  - [ ] 7.1 Criar `project-r/src/app/(player)/aguardar-consentimento/page.tsx` (Server Component async)
-  - [ ] 7.2 Buscar via service-role: `parental_consents WHERE player_id = (players WHERE profile_id = user.id).id AND status = 'pending'`
-  - [ ] 7.3 Mostrar `maskEmail(parentEmail)` e data de expiração formatada PT-PT
-  - [ ] 7.4 Botão/Form "Reenviar email" → Server Action `resendConsentEmail`
-  - [ ] 7.5 Copy: "O teu encarregado de educação ainda precisa de confirmar os teus dados."
-  - [ ] 7.6 Exportar `metadata: { title: 'A aguardar consentimento' }`
-  - [ ] 7.7 Fallback se nenhum registo pending for encontrado: redirecionar para `/hoje`
+- [x] **Task 7: Página `/aguardar-consentimento`** (AC #7)
+  - [x] 7.1 Criar `project-r/src/app/(player)/aguardar-consentimento/page.tsx` (Server Component async)
+  - [x] 7.2 Buscar via `getPlayerConsentStatus` (service-role)
+  - [x] 7.3 Mostrar `maskEmail(parentEmail)` e data de expiração formatada PT-PT
+  - [x] 7.4 `ResendButton` Client Component stub
+  - [x] 7.5 Copy: "O teu encarregado de educação ainda precisa de confirmar os teus dados."
+  - [x] 7.6 `metadata: { title: 'A aguardar consentimento' }`
+  - [x] 7.7 Fallback: redireciona para `/hoje` se nenhum registo pending
 
-- [ ] **Task 8: Testes** (AC #9)
-  - [ ] 8.1 Criar `src/__tests__/lib/actions/consent.test.ts`:
-    - `initiateParentalConsent` happy path: token gerado, `parental_consents` inserido, `profiles.consent_status` actualizado
-    - `initiateParentalConsent` conflict: retorna `err({ code: 'conflict' })`
-    - `initiateParentalConsent` com jogador u18: deve retornar `err` (não elegível)
-    - `resendConsentEmail` stub: retorna ok com mensagem placeholder
-  - [ ] 8.2 Criar `src/__tests__/proxy/consent-gate.test.ts`:
-    - `pending` + age 14 → redirect `/aguardar-consentimento`
-    - `pending` + age 16 → bypass (não redirecionar)
-    - `pending` + birthdate null → block (redirect)
-    - `not_required` → flow normal
-    - `confirmed` → flow normal
-    - Já em `/aguardar-consentimento` com `pending` → não redirecionar (loop prevention)
-  - [ ] 8.3 Actualizar testes de `createPlayer` para cobrir path u14+parent_email (verify `initiateParentalConsent` é chamado)
-  - [ ] 8.4 Testes de `ageInYears` e `maskEmail`
+- [x] **Task 8: Testes** (AC #9)
+  - [x] 8.1 Criar `src/__tests__/lib/actions/consent.test.ts` — happy path, conflict, inelegível, not_found, validação, stub
+  - [x] 8.2 Criar `src/__tests__/proxy/consent-gate.test.ts` — 7 cenários completos
+  - [x] 8.3 Atualizar `src/__tests__/middleware.test.ts` — supabase mock para player tests
+  - [x] 8.4 Criar `src/__tests__/lib/utils/age.test.ts` — ageInYears + maskEmail
 
-- [ ] **Task 9: Verificação final** (AC #1–#9)
-  - [ ] 9.1 `npm run lint` — zero erros
-  - [ ] 9.2 `npm run typecheck` — zero erros
-  - [ ] 9.3 `npm run test --run` — todos os testes passam
-  - [ ] 9.4 `npm run build` — build limpa
+- [x] **Task 9: Verificação final** (AC #1–#9)
+  - [x] 9.1 `npm run lint` — zero erros
+  - [x] 9.2 `npm run typecheck` — zero erros
+  - [x] 9.3 `npm run test --run` — 783 testes passam
+  - [x] 9.4 `npm run build` — build limpa (23 rotas, incluindo /aguardar-consentimento)
 
 ---
 
@@ -857,6 +824,19 @@ claude-sonnet-4-6
 
 ### Completion Notes List
 
+- Migração `000170_parental_consents.sql` criada com tabela completa, índice único parcial (FR6), índice por token, RLS habilitada com policy read-only para staff, e `profiles.consent_status` adicionado via ALTER TABLE.
+- `database.types.ts` actualizado: tabela `parental_consents` com Row/Insert/Update/Relationships + `consent_status` em profiles.
+- `src/lib/actions/consent.ts` implementado: `initiateParentalConsent` (Zod validation, conflict detection, audit log), `resendConsentEmail` stub (verifica autenticação de staff), `getPlayerConsentStatus` (service-role).
+- `PlayerCreateSchema` estendido com `parentEmail?: string` (email opcional válido).
+- `createPlayer` actualizado com fire-and-forget consent após inserção bem-sucedida para u14/u15.
+- Formulário `/plantel/novo` atualizado com campo `parentEmail` condicional via `useWatch`.
+- `src/lib/utils/age.ts` e `src/lib/utils/mask-email.ts` criados.
+- `middleware.ts` atualizado para retornar `supabase` client.
+- `proxy.ts` atualizado: consent gate antes de `ROLE_ALLOWED_ROUTES`, `/aguardar-consentimento` adicionada às rotas permitidas de player.
+- Página `/aguardar-consentimento` criada: Server Component + `ResendButton` Client Component stub.
+- Testes: `consent.test.ts` (6 casos), `consent-gate.test.ts` (7 casos), `age.test.ts` (ageInYears + maskEmail), `middleware.test.ts` atualizado.
+- 783 testes ✅ | lint 0 erros | typecheck ✅ | build ✅ (23 rotas)
+
 ### File List
 
 - `project-r/supabase/migrations/000170_parental_consents.sql` (NEW)
@@ -873,3 +853,50 @@ claude-sonnet-4-6
 - `project-r/src/__tests__/lib/actions/consent.test.ts` (NEW)
 - `project-r/src/__tests__/proxy/consent-gate.test.ts` (NEW)
 - `project-r/src/__tests__/lib/utils/age.test.ts` (NEW)
+- `project-r/src/__tests__/middleware.test.ts` (UPDATE — supabase mock para player tests)
+
+## Change Log
+
+| Data | Alteração |
+|------|-----------|
+| 2026-05-20 | Implementação completa da Story 3.2 — migração 000170, consent.ts, consent gate middleware, página /aguardar-consentimento, testes; 783 testes ✅; build ✅ |
+
+---
+
+## Review Findings
+
+### Decision-Needed (Resolvidas — Convertidas em Patches) — APLICADAS
+
+- [x] [Review][Decision→Patch] **Fire-and-forget failure em createPlayer** — **Decisão: Opção 1 (strict)** — FIXED: `initiateParentalConsent` agora é awaited. Falha de consentimento impede criação. Compensating delete implementado. [players.ts:216-238]
+
+- [x] [Review][Decision→Patch] **Token expiration 90 dias é hardcoded** — **Decisão: Opção 1 (env var)** — FIXED: `process.env.PARENTAL_CONSENT_TOKEN_TTL_DAYS` com default 90 dias. [consent.ts:61-62]
+
+- [x] [Review][Decision→Patch] **Redirect bypass para child routes em `/aguardar-consentimento`** — **Decisão: Opção 2 (bypass prefixo)** — FIXED: Mudado de `pathname !== "/aguardar-consentimento"` para `!pathname.startsWith("/aguardar-consentimento")`. Permite `/aguardar-consentimento/*`. [proxy.ts:71]
+
+- [x] [Review][Decision→Patch] **`consent_status = NULL` handling** — **Decisão: Opção 1 (trust schema)** — FIXED: Comentário explicativo adicionado. Valida que DEFAULT 'not_required' previne NULL. [proxy.ts:60-62]
+
+- [x] [Review][Decision→Patch] **Retry logic para conflitos** — **Decisão: Opção 1 (keep current)** — DEFERRED: Pattern pré-existente. Já registado como deferred em Review Findings. [consent.ts:39-48]
+
+### Patches (Fixável Sem Input) — APLICADOS
+
+- [x] [Review][Patch] **Silent `profile_id` bypass — consent_status fora de sincronização** [consent.ts:81-86] — FIXED: Agora falha explicitamente se profile_id é falsy ou update falha. Erro reportado em vez de silenciosamente pulado.
+
+- [x] [Review][Patch] **Invalid birthdate string causa age calculation incorrecta** [age.ts:2] — FIXED: `ageInYears()` agora verifica `isNaN(dob.getTime())` e retorna 0 (fail-safe para menores).
+
+- [x] [Review][Patch] **Invalid `token_expires_at` exibe "Invalid Date"** [aguardar-consentimento:18] — FIXED: Valida data antes de `.toLocaleDateString()`, mostra "data inválida" como fallback.
+
+- [x] [Review][Patch] **Missing `consent.parent_email` causa TypeError** [aguardar-consentimento:29] — FIXED: Null check antes de `maskEmail()`, fallback para "email não disponível".
+
+- [x] [Review][Patch] **Empty email string em maskEmail** [mask-email.ts:2-3] — FIXED: Guarda para empty string no início da função.
+
+- [x] [Review][Patch] **Future birthdate não é validado** [age.ts:2-4] — FIXED: `ageInYears()` agora rejeita `birthdate > today`, retorna 0 (fail-safe).
+
+### Deferred (Pré-existente, Não Causado por Esta Story)
+
+- [x] [Review][Defer] **Concurrent duplicate consent requests — retry logic ausente** [consent.ts:39-48] — Unique index previne duplicatas e erro é retornado. Sem exponential backoff ou retry logic. Padrão pré-existente em outras tabelas de transações. — deferred, pré-existente
+
+- [x] [Review][Defer] **No caching para queries em middleware** [proxy.ts:54-65] — Cada request autenticado de player faz 2 queries (profiles + players). Sem caching de result. Impacto de performance é architectural, afecta múltiplas stories. — deferred, pré-existente
+
+- [x] [Review][Defer] **Missing privacy_policies dependency documentação** [migrations/000170] — FK referencia `privacy_policies(id)` de Story 3.1. Dependency documentado no story file, mas sem ordenação automática de migrations. Convenção pré-existente em BMad workflow. — deferred, pré-existente
+
+---

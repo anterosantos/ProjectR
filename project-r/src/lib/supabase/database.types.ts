@@ -38,6 +38,7 @@ export type Database = {
       profiles: {
         Row: {
           club_id: string
+          consent_status: string
           created_at: string
           full_name: string | null
           id: string
@@ -45,6 +46,7 @@ export type Database = {
         }
         Insert: {
           club_id: string
+          consent_status?: string
           created_at?: string
           full_name?: string | null
           id: string
@@ -52,6 +54,7 @@ export type Database = {
         }
         Update: {
           club_id?: string
+          consent_status?: string
           created_at?: string
           full_name?: string | null
           id?: string
@@ -63,6 +66,70 @@ export type Database = {
             columns: ["club_id"]
             isOneToOne: false
             referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parental_consents: {
+        Row: {
+          id: string
+          club_id: string
+          player_id: string
+          parent_email: string
+          token: string
+          token_expires_at: string
+          status: string
+          confirmed_at: string | null
+          confirmed_ip: string | null
+          policy_version_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          club_id: string
+          player_id: string
+          parent_email: string
+          token: string
+          token_expires_at: string
+          status: string
+          confirmed_at?: string | null
+          confirmed_ip?: string | null
+          policy_version_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          club_id?: string
+          player_id?: string
+          parent_email?: string
+          token?: string
+          token_expires_at?: string
+          status?: string
+          confirmed_at?: string | null
+          confirmed_ip?: string | null
+          policy_version_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parental_consents_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parental_consents_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parental_consents_policy_version_id_fkey"
+            columns: ["policy_version_id"]
+            isOneToOne: false
+            referencedRelation: "privacy_policies"
             referencedColumns: ["id"]
           },
         ]
