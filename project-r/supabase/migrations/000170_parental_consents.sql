@@ -1,14 +1,11 @@
 -- Migration: 000170_parental_consents
 -- Purpose: Parental consent tokenized schema + profiles.consent_status (Story 3.2, AR13, FR4, FR6)
 
--- pg_uuidv7 para uuid_generate_v7() (idempotente — garante disponibilidade no CI)
-CREATE EXTENSION IF NOT EXISTS pg_uuidv7 SCHEMA extensions;
-
 -- citext extension para emails case-insensitive
 CREATE EXTENSION IF NOT EXISTS citext;
 
 CREATE TABLE public.parental_consents (
-  id                uuid        PRIMARY KEY DEFAULT extensions.uuid_generate_v7(),
+  id                uuid        PRIMARY KEY DEFAULT public.uuidv7(),
   club_id           uuid        NOT NULL REFERENCES public.clubs(id) ON DELETE CASCADE,
   player_id         uuid        NOT NULL REFERENCES public.players(id) ON DELETE CASCADE,
   parent_email      citext      NOT NULL,
