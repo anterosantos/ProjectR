@@ -7,61 +7,33 @@ import { getCurrentSeason } from "@/lib/actions/seasons";
 import { StickyHeader } from "@/components/patterns/StickyHeader";
 import { SeasonToggle } from "@/components/patterns/SeasonToggle";
 import { EmptyState } from "@/components/ui/empty-state";
-import { SessionCard } from "@/components/ui/session-card";
 import { Button } from "@/components/ui/button";
-import { format, startOfWeek, endOfWeek, isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import { CalendarViewToggle } from "@/components/ui/calendar-view-toggle";
+import { CalendarWeekView } from "@/components/ui/calendar-week-view";
+import { CalendarMonthView } from "@/components/ui/calendar-month-view";
+import {
+  format,
+  startOfWeek,
+
+  startOfDay,
+  endOfDay,
+  addDays,
+  startOfMonth,
+  endOfMonth,
+} from "date-fns";
 import { pt } from "date-fns/locale";
 import type { Session } from "@/lib/schemas/sessions";
 
 export const metadata = { title: "Calendário" };
 
-function groupSessionsByWeek(
-  sessions: Session[]
-): Array<{ weekLabel: string; sessions: Session[]; isCurrentWeek: boolean }> {
-  const weekOrder: string[] = [];
-  const weekLabels = new Map<string, string>();
-  const weekSessions = new Map<string, Session[]>();
-  const now = new Date();
-
-  for (const session of sessions) {
-    const date = new Date(session.scheduled_at);
-    const weekStart = startOfWeek(date, { weekStartsOn: 1 });
-    const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
-    const key = weekStart.toISOString();
-
-    if (!weekSessions.has(key)) {
-      weekOrder.push(key);
-      weekLabels.set(
-        key,
-        `${format(weekStart, "d MMM", { locale: pt })} – ${format(weekEnd, "d MMM", { locale: pt })}`
-      );
-      weekSessions.set(key, []);
-    }
-    weekSessions.get(key)!.push(session);
-  }
-
-  return weekOrder.map((key) => {
-    const weekStart = new Date(key);
-    const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
-    const isCurrentWeek = isWithinInterval(now, {
-      start: startOfDay(weekStart),
-      end: endOfDay(weekEnd),
-    });
-    return {
-      weekLabel: weekLabels.get(key) ?? "",
-      sessions: weekSessions.get(key) ?? [],
-      isCurrentWeek,
-    };
-  });
-}
-
 export default async function CalendarioPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ cumulativo?: string }>;
+  searchParams?: Promise<{ cumulativo?: string; vista?: string }>;
 }) {
   const params = await searchParams;
   const isCumulative = params?.cumulativo === "true";
+  const vista = params?.vista === "mes" ? "mes" : "semana";
 
   const supabase = await createServerClient();
   const {
@@ -104,7 +76,42 @@ export default async function CalendarioPage({
   }
 
   const isCoach = profile.role === "coach";
-  const weeks = groupSessionsByWeek(sessions);
+  const today = new Date();
+
+  // Week data for DayChipStrip
+  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const date = addDays(weekStart, i);
+    const dayStart = startOfDay(date);
+    const dayEnd = endOfDay(date);
+    const daySessions = sessions.filter((s) => {
+      const d = new Date(s.scheduled_at);
+      return d >= dayStart && d <= dayEnd;
+    });
+    return { date: date.toISOString(), sessions: daySessions };
+  });
+
+  // Next 7 days sessions
+  const next7End = addDays(today, 7);
+  const next7Sessions = sessions
+    .filter((s) => {
+      const d = new Date(s.scheduled_at);
+      return d >= startOfDay(today) && d <= endOfDay(next7End);
+    })
+    .sort(
+      (a, b) =>
+        new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
+    );
+
+  // Month data for MonthGrid
+  const monthStart = startOfMonth(today);
+  const monthEnd = endOfMonth(today);
+  const monthSessions = sessions.filter((s) => {
+    const d = new Date(s.scheduled_at);
+    return d >= monthStart && d <= monthEnd;
+  });
+
+  const monthLabel = format(today, "MMMM yyyy", { locale: pt });
 
   return (
     <main id="main-content">
@@ -112,6 +119,7 @@ export default async function CalendarioPage({
       <div className="px-4 py-6 sm:px-6 space-y-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <SeasonToggle isCumulative={isCumulative} />
+          <CalendarViewToggle />
           {isCoach && (
             <Button asChild variant="primary">
               <Link href="/calendario/nova">
@@ -132,23 +140,20 @@ export default async function CalendarioPage({
                 : "Ainda não há sessões agendadas."
             }
           />
+        ) : vista === "semana" ? (
+          <CalendarWeekView
+            weekDays={weekDays}
+            next7Sessions={next7Sessions}
+            isCoach={isCoach}
+          />
         ) : (
-          <div className="space-y-6">
-            {weeks.map(({ weekLabel, sessions: weekSessions, isCurrentWeek }) => (
-              <section key={weekLabel}>
-                <h2
-                  className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-                  {...(isCurrentWeek ? { "aria-current": "date" } : {})}
-                >
-                  {weekLabel}
-                </h2>
-                <div className="space-y-2">
-                  {weekSessions.map((session) => (
-                    <SessionCard key={session.id} session={session} />
-                  ))}
-                </div>
-              </section>
-            ))}
+          <div className="space-y-2">
+            <p className="text-xs font-mono uppercase text-ink-3 capitalize">{monthLabel}</p>
+            <CalendarMonthView
+              monthSessions={monthSessions}
+              next7Sessions={next7Sessions}
+              month={monthStart.toISOString()}
+            />
           </div>
         )}
       </div>
