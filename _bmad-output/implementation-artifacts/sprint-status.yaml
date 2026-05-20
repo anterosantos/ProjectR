@@ -48,7 +48,8 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-08
-last_updated: "2026-05-19 (2-9 → done: code-review complete; 3 patches applied [timezone parseISO, Edge Function logging, Server Action retry+backoff]; 3 deferred [timezone ops, Index constraint, Cron UTC]; 733 testes ✅; lint 0 erros; typecheck ✅; build ✅; AC #1-#10 verificados)"
+last_updated: "2026-05-20 (3-2 → ready-for-dev: bmad-create-story; 000170_parental_consents, profiles.consent_status, initiateParentalConsent action, consent gate middleware, /aguardar-consentimento, ageInYears bypass 16 anos)"
+# 2026-05-20: 3-1 → ready-for-dev: bmad-create-story; 000165_privacy_policies, react-markdown, /politica-privacidade Server Component, TooltipExplain glossário sub-14, seed v1.0.0 PT-PT B1
 # 2026-05-19: 2-7 → review: dev-story complete; SeasonToggle+SessionTypeFilter, /sessoes analista, /hoje jogador, type filter getSessionsForClub, aria-current, cumulativo toggle DESC; 637 testes ✅; lint 0 erros; typecheck ✅; build ✅; AC #1-#6 verificados
 # 2026-05-19: 2-6 → review: dev-story complete; 000120_sessions migration, 5 server actions, SessionForm+SessionCard+CancelSessionDialog, /calendario+/sessoes/[id]; 610 testes ✅; lint 0; typecheck ✅; build ✅; AC #1-#8 verificados
 # 2026-05-18: 2-6 → ready-for-dev (bmad-create-story: migração 000120_sessions, CRUD sessions, calendar view /calendario, edit /sessoes/[id]/editar, cancel dialog, coach-only write RLS, PT-PT timezone, graceful season degradation)
@@ -138,9 +139,9 @@ development_status:
   epic-2-retrospective: optional
 
   # Epic 3: Consentimento Parental & Direitos GDPR
-  epic-3: backlog
-  3-1-privacy-policy-versioning-sub-14-adapted-copy: backlog
-  3-2-parental-consent-schema-token-generation-underage-access-block: backlog
+  epic-3: in-progress
+  3-1-privacy-policy-versioning-sub-14-adapted-copy: ready-for-dev
+  3-2-parental-consent-schema-token-generation-underage-access-block: ready-for-dev
   3-3-parental-consent-email-send-token-landing-page: backlog
   3-4-parental-consent-reminders-day-7-14-staff-alert: backlog
   3-5-subject-rights-hub-routing-for-adult-titular-encarregado: backlog
