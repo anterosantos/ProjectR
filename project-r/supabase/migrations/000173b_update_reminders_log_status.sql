@@ -13,6 +13,5 @@ UPDATE public.parental_consent_reminders_log
 SET status = 'sent'
 WHERE status IS NULL;
 
--- Create index on status for fast queries
-CREATE INDEX idx_consent_reminders_log_status
-  ON public.parental_consent_reminders_log(consent_id, status);
+-- Existing idx_consent_reminders_log_dedup already provides lookups by (consent_id, kind)
+-- No additional index needed for status filtering

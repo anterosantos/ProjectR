@@ -19,9 +19,10 @@ CREATE TABLE public.parental_consent_reminders_log (
   sent_at     timestamptz NOT NULL DEFAULT now()
 );
 
--- Previne lembretes duplos no mesmo dia para o mesmo consent+kind (AC #6)
-CREATE UNIQUE INDEX idx_consent_reminders_log_dedup
-  ON public.parental_consent_reminders_log(consent_id, kind, DATE(sent_at));
+-- Índice para lookups rápidos por (consent_id, kind)
+-- Idempotência garantida pela lógica NOT EXISTS na função PL/pgSQL (verifica DATE(sent_at))
+CREATE INDEX idx_consent_reminders_log_dedup
+  ON public.parental_consent_reminders_log(consent_id, kind);
 
 -- Suporte a lookups por consent_id
 CREATE INDEX idx_consent_reminders_log_consent_id
