@@ -64,6 +64,14 @@ const handler = async (req: Request): Promise<Response> => {
   const resendApiKey = Deno.env.get("RESEND_API_KEY");
   const siteUrl = Deno.env.get("SITE_URL") ?? "https://project-r.vercel.app";
 
+  console.log("[send-parental-consent] env check:", {
+    hasSupabaseUrl: !!supabaseUrl,
+    hasServiceRoleKey: !!serviceRoleKey,
+    hasResendApiKey: !!resendApiKey,
+    resendKeyPrefix: resendApiKey?.slice(0, 8) ?? "missing",
+    siteUrl,
+  });
+
   if (!supabaseUrl || !serviceRoleKey || !resendApiKey) {
     return new Response(
       JSON.stringify({ error: "Missing environment variables" }),
