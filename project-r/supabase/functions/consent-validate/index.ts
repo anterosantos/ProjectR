@@ -66,9 +66,8 @@ async function sendConfirmationEmail({
 const handler = async (req: Request): Promise<Response> => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const resendApiKey = Deno.env.get("RESEND_API_KEY");
 
-  if (!supabaseUrl || !serviceRoleKey || !resendApiKey) {
+  if (!supabaseUrl || !serviceRoleKey) {
     return new Response(
       JSON.stringify({ error: "Missing environment variables" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
@@ -199,14 +198,17 @@ const handler = async (req: Request): Promise<Response> => {
         payload: { consent_id: consent.id, confirmed_ip: ip ?? null },
       });
 
+      const resendApiKey = Deno.env.get("RESEND_API_KEY");
       const confirmedAt = new Date().toLocaleDateString("pt-PT");
       const playerName = player?.full_name ?? "o seu educando";
-      await sendConfirmationEmail({
-        resendApiKey,
-        parentEmail: consent.parent_email,
-        playerName,
-        confirmedAt,
-      });
+      if (resendApiKey) {
+        await sendConfirmationEmail({
+          resendApiKey,
+          parentEmail: consent.parent_email,
+          playerName,
+          confirmedAt,
+        });
+      }
 
       return jsonResponse({ ok: true, action: "confirmed" });
     }
