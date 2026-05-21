@@ -171,10 +171,12 @@ export async function createPlayer(
   if (!profile) return err({ code: "forbidden", message: "Perfil não encontrado" });
 
   const playerId = newId();
+  const playerProfileId = newId();
 
   const { error: insertError } = await supabase.from("players").insert({
     id: playerId,
     club_id: profile.club_id,
+    profile_id: playerProfileId,
     full_name: validated.data.fullName,
     birthdate: validated.data.birthdate,
     jersey_num: validated.data.jerseyNum,
@@ -190,6 +192,25 @@ export async function createPlayer(
       });
     }
     return err({ code: "unknown", message: insertError.message });
+  }
+
+  const serviceRole = getServiceRoleClient();
+  const { error: profileError } = await serviceRole.from("profiles").insert({
+    id: playerProfileId,
+    club_id: profile.club_id,
+    role: "player",
+    full_name: validated.data.fullName,
+  });
+
+  if (profileError) {
+    const { error: deleteError } = await supabase.from("players").delete().eq("id", playerId);
+    if (deleteError) {
+      console.error("Profile creation failed and compensating player delete also failed", {
+        profileError,
+        deleteError,
+      });
+    }
+    return err({ code: "unknown", message: profileError.message });
   }
 
   const positionsJson = validated.data.positions.map((p, i) => ({

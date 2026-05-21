@@ -45,8 +45,9 @@ ON CONFLICT (id) DO NOTHING;
 -- PRIVACY POLICIES (Story 3.1)
 -- =============================================================================
 
-INSERT INTO public.privacy_policies (version, effective_from, body_full_md, body_u14_md, is_current)
+INSERT INTO public.privacy_policies (id, version, effective_from, body_full_md, body_u14_md, is_current)
 VALUES (
+  '00000000-0000-7000-c000-000000000001',
   '1.0.0',
   '2026-05-20',
   $body_full$
