@@ -173,6 +173,18 @@ export async function createPlayer(
   const playerId = newId();
   const playerProfileId = newId();
 
+  const serviceRole = getServiceRoleClient();
+  const { error: profileError } = await serviceRole.from("profiles").insert({
+    id: playerProfileId,
+    club_id: profile.club_id,
+    role: "player",
+    full_name: validated.data.fullName,
+  });
+
+  if (profileError) {
+    return err({ code: "unknown", message: profileError.message });
+  }
+
   const { error: insertError } = await supabase.from("players").insert({
     id: playerId,
     club_id: profile.club_id,
@@ -184,6 +196,7 @@ export async function createPlayer(
   });
 
   if (insertError) {
+    await serviceRole.from("profiles").delete().eq("id", playerProfileId);
     if (insertError.code === "23505") {
       return err({
         code: "conflict",
@@ -192,25 +205,6 @@ export async function createPlayer(
       });
     }
     return err({ code: "unknown", message: insertError.message });
-  }
-
-  const serviceRole = getServiceRoleClient();
-  const { error: profileError } = await serviceRole.from("profiles").insert({
-    id: playerProfileId,
-    club_id: profile.club_id,
-    role: "player",
-    full_name: validated.data.fullName,
-  });
-
-  if (profileError) {
-    const { error: deleteError } = await supabase.from("players").delete().eq("id", playerId);
-    if (deleteError) {
-      console.error("Profile creation failed and compensating player delete also failed", {
-        profileError,
-        deleteError,
-      });
-    }
-    return err({ code: "unknown", message: profileError.message });
   }
 
   const positionsJson = validated.data.positions.map((p, i) => ({
