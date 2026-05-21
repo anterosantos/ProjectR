@@ -10,27 +10,25 @@ on:
 jobs:
   deploy-functions:
     runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_REF }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Supabase CLI
         run: npm install -g supabase
 
+      - name: Link project
+        working-directory: project-r
+        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+
       - name: Deploy Edge Functions
         working-directory: project-r
         run: |
-          supabase functions deploy auth-hook \
-            --project-ref ${{ secrets.SUPABASE_PROJECT_REF }} \
-            --no-verify-jwt
-          supabase functions deploy anonymize-player-photos \
-            --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
-          supabase functions deploy consent-validate \
-            --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
-          supabase functions deploy send-parental-consent \
-            --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
-          supabase functions deploy staff-alert-consent \
-            --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
-          supabase functions deploy validate-subject-token \
-            --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          supabase functions deploy auth-hook --no-verify-jwt
+          supabase functions deploy anonymize-player-photos
+          supabase functions deploy consent-validate
+          supabase functions deploy send-parental-consent
+          supabase functions deploy staff-alert-consent
+          supabase functions deploy validate-subject-token
