@@ -79,17 +79,16 @@ export async function initiateParentalConsent(
     return err({ code: "internal", message: "Erro ao criar registo de consentimento" });
   }
 
-  if (!player.profile_id) {
-    return err({ code: "internal", message: "Perfil de jogador não encontrado" });
-  }
+  // Player may not have an auth account yet (invited later) — update consent_status only if profile exists
+  if (player.profile_id) {
+    const { error: profileError } = await serviceRole
+      .from("profiles")
+      .update({ consent_status: "pending" })
+      .eq("id", player.profile_id);
 
-  const { error: profileError } = await serviceRole
-    .from("profiles")
-    .update({ consent_status: "pending" })
-    .eq("id", player.profile_id);
-
-  if (profileError) {
-    return err({ code: "internal", message: "Erro ao actualizar estado de consentimento" });
+    if (profileError) {
+      return err({ code: "internal", message: "Erro ao actualizar estado de consentimento" });
+    }
   }
 
   await serviceRole.from("audit_logs").insert({

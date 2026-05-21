@@ -171,24 +171,10 @@ export async function createPlayer(
   if (!profile) return err({ code: "forbidden", message: "Perfil não encontrado" });
 
   const playerId = newId();
-  const playerProfileId = newId();
-
-  const serviceRole = getServiceRoleClient();
-  const { error: profileError } = await serviceRole.from("profiles").insert({
-    id: playerProfileId,
-    club_id: profile.club_id,
-    role: "player",
-    full_name: validated.data.fullName,
-  });
-
-  if (profileError) {
-    return err({ code: "unknown", message: profileError.message });
-  }
 
   const { error: insertError } = await supabase.from("players").insert({
     id: playerId,
     club_id: profile.club_id,
-    profile_id: playerProfileId,
     full_name: validated.data.fullName,
     birthdate: validated.data.birthdate,
     jersey_num: validated.data.jerseyNum,
@@ -196,7 +182,6 @@ export async function createPlayer(
   });
 
   if (insertError) {
-    await serviceRole.from("profiles").delete().eq("id", playerProfileId);
     if (insertError.code === "23505") {
       return err({
         code: "conflict",
