@@ -163,23 +163,28 @@ const handler = async (req: Request): Promise<Response> => {
 
   const { html, text } = parentalConsentEmailHtml({ playerName, confirmUrl, expiresAt, reminderCopy });
 
-  let resendRes;
+  const fetchResend = fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${resendApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: "Project R <onboarding@resend.dev>",
+      to: [consent.parent_email],
+      subject,
+      html,
+      text,
+    }),
+  });
+
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("resend_timeout")), 8000)
+  );
+
+  let resendRes: Response;
   try {
-    resendRes = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${resendApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "Project R <onboarding@resend.dev>",
-        to: [consent.parent_email],
-        subject,
-        html,
-        text,
-      }),
-      signal: AbortSignal.timeout(10000),
-    });
+    resendRes = await Promise.race([fetchResend, timeoutPromise]);
   } catch (e) {
     console.error("[send-parental-consent] Resend fetch error/timeout:", e);
     return new Response(
