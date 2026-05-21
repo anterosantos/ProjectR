@@ -1,4 +1,4 @@
-﻿---
+---
 stepsCompleted:
   - step-01-document-discovery
   - step-02-prd-analysis

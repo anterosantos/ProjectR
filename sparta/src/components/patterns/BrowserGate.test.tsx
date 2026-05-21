@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, act } from "@testing-library/react";
 import { BrowserGate } from "./BrowserGate";
 import type { BrowserEnvironment } from "@/lib/pwa/webview-detection";

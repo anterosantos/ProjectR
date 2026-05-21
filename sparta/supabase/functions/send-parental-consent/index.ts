@@ -1,4 +1,4 @@
-﻿import { createClient } from "https://esm.sh/@supabase/supabase-js@2.46.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.46.0";
 
 function parentalConsentEmailHtml({
   playerName,

@@ -1,4 +1,4 @@
-﻿# Authentication Testing Guide
+# Authentication Testing Guide
 
 ## Overview
 This guide documents how to test the authentication flow to ensure we don't regress on the fixed issues.

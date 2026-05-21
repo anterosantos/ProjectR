@@ -1,4 +1,4 @@
-﻿---
+---
 title: Integration Summary - Wellness & Analytics Requirements
 date: 2026-05-09
 author: John (Product Manager)

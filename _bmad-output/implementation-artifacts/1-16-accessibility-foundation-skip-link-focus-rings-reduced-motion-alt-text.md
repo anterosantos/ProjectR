@@ -1,4 +1,4 @@
-﻿# Story 1.16: Accessibility Foundation — Skip Link, Focus Rings, Reduced Motion, Alt Text
+# Story 1.16: Accessibility Foundation — Skip Link, Focus Rings, Reduced Motion, Alt Text
 
 **Status:** done
 

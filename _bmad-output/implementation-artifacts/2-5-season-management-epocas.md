@@ -1,4 +1,4 @@
-﻿# Story 2.5: Season Management (Épocas)
+# Story 2.5: Season Management (Épocas)
 
 **Status:** done
 

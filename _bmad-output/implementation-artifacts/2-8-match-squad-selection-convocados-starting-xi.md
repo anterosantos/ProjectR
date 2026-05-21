@@ -1,4 +1,4 @@
-﻿# Story 2.8: Match Squad Selection — Convocados & Starting XI
+# Story 2.8: Match Squad Selection — Convocados & Starting XI
 
 **Status:** ready-for-dev
 

@@ -1,4 +1,4 @@
-﻿import { createClient } from "https://esm.sh/@supabase/supabase-js@2.46.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.46.0";
 
 function staffAlertEmailHtml(playerNames: string[], total: number): { html: string; text: string } {
   const displayed = playerNames.slice(0, 5);

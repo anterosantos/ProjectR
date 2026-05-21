@@ -1,4 +1,4 @@
-﻿# Story 1.12: Audit Logs & Telemetry Foundation Tables
+# Story 1.12: Audit Logs & Telemetry Foundation Tables
 
 **Status:** in-progress
 

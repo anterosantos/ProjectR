@@ -1,4 +1,4 @@
-﻿# Story 3.3: Consentimento Parental — Envio de Email & Página de Confirmação por Token
+# Story 3.3: Consentimento Parental — Envio de Email & Página de Confirmação por Token
 
 **Status:** review
 

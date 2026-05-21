@@ -1,4 +1,4 @@
-﻿# Multi-Tenant Setup — SPARTA
+# Multi-Tenant Setup — SPARTA
 
 Story 1.6 establishes multi-tenant isolation via Row-Level Security (RLS).
 All Supabase queries are automatically scoped by `club_id = public.club_id()`

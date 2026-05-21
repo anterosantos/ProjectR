@@ -1,4 +1,4 @@
-﻿# Story 3.5: Subject Rights Hub — Routing para Titular Adulto & Encarregado
+# Story 3.5: Subject Rights Hub — Routing para Titular Adulto & Encarregado
 
 **Status:** done
 

@@ -1,4 +1,4 @@
-﻿# Story 2.9: Retention Policy — Preserve History 5 Seasons + Anonymization Hook
+# Story 2.9: Retention Policy — Preserve History 5 Seasons + Anonymization Hook
 
 **Status:** done
 

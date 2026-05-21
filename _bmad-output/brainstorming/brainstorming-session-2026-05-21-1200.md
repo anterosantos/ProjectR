@@ -1,4 +1,4 @@
-﻿---
+---
 stepsCompleted: [1, 2, 3, 4]
 inputDocuments: ['_bmad-output/planning-artifacts/product-brief-sparta.md', '_bmad-output/planning-artifacts/prd.md']
 session_topic: 'Nome do produto/solução (substituir o codinome "SPARTA")'

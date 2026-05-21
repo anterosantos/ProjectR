@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 // Local wrapper for Lighthouse CI. Uses .lighthouserc.json in sparta/.
 // In CI, npx lhci autorun is called directly from the workflow.
 // Local usage: npm run lighthouse

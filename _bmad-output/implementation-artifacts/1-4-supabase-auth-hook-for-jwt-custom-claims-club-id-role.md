@@ -1,4 +1,4 @@
-﻿# Story 1.4: Supabase Auth Hook for JWT Custom Claims (club_id, role)
+# Story 1.4: Supabase Auth Hook for JWT Custom Claims (club_id, role)
 
 **Status:** ✅ completed — May 11, 2026
 

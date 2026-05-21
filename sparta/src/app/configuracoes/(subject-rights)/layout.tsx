@@ -1,4 +1,4 @@
-﻿import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Users } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'

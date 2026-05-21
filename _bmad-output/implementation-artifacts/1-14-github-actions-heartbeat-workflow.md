@@ -1,4 +1,4 @@
-﻿# Story 1.14: GitHub Actions Heartbeat Workflow
+# Story 1.14: GitHub Actions Heartbeat Workflow
 
 **Status:** done
 

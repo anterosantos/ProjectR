@@ -1,4 +1,4 @@
-﻿# Story 1.9 Code Review — Triage
+# Story 1.9 Code Review — Triage
 
 **Review Mode:** full (with spec)  
 **Failed Layers:** none  

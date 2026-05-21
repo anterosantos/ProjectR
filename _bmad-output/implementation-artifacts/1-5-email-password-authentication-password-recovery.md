@@ -1,4 +1,4 @@
-﻿# Story 1.5: Email/Password Authentication & Password Recovery
+# Story 1.5: Email/Password Authentication & Password Recovery
 
 **Status:** done
 

@@ -1,4 +1,4 @@
-﻿# Deferred Work Tracker
+# Deferred Work Tracker
 
 Items deferred from code reviews — pre-existing issues, out-of-scope work, or items blocked by future stories.
 

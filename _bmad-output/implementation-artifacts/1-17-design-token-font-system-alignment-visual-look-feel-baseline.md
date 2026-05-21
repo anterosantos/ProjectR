@@ -1,4 +1,4 @@
-﻿# Story 1.17: Design Token & Font System Alignment — Visual Look & Feel Baseline
+# Story 1.17: Design Token & Font System Alignment — Visual Look & Feel Baseline
 
 **Status:** done
 

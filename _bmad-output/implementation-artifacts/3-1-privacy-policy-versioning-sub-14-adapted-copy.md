@@ -1,4 +1,4 @@
-﻿# Story 3.1: Privacy Policy Versioning + Sub-14 Adapted Copy
+# Story 3.1: Privacy Policy Versioning + Sub-14 Adapted Copy
 
 **Status:** done
 

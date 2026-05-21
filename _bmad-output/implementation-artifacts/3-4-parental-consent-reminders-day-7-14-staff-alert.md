@@ -1,4 +1,4 @@
-﻿# Story 3.4: Consentimento Parental — Lembretes Dia 7/14 & Alerta Staff
+# Story 3.4: Consentimento Parental — Lembretes Dia 7/14 & Alerta Staff
 
 **Status:** in-progress
 

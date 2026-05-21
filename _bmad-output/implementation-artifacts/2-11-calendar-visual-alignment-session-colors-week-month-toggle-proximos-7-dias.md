@@ -1,4 +1,4 @@
-﻿# Story 2.11: Calendar Visual Alignment — Session Block Colors, Week/Month Toggle & "Próximos 7 Dias"
+# Story 2.11: Calendar Visual Alignment — Session Block Colors, Week/Month Toggle & "Próximos 7 Dias"
 
 **Status:** done
 

@@ -1,4 +1,4 @@
-﻿---
+---
 stepsCompleted: [1, 2, 3, 4, 5]
 inputDocuments:
   - "_bmad-output/planning-artifacts/product-brief-sparta.md"

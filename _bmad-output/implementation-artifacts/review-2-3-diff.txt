@@ -1,4 +1,4 @@
-﻿diff --git a/sparta/src/__tests__/components/player-metrics-chart.test.tsx b/sparta/src/__tests__/components/player-metrics-chart.test.tsx
+diff --git a/sparta/src/__tests__/components/player-metrics-chart.test.tsx b/sparta/src/__tests__/components/player-metrics-chart.test.tsx
 new file mode 100644
 index 0000000..a7beaec
 --- /dev/null

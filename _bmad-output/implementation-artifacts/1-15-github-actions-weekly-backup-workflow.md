@@ -1,4 +1,4 @@
-﻿# Story 1.15: GitHub Actions Weekly Backup Workflow
+# Story 1.15: GitHub Actions Weekly Backup Workflow
 
 **Status:** done
 

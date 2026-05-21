@@ -1,4 +1,4 @@
-﻿# Story 1.8: Design System Foundation — Tokens, 7 Pattern Components & Button Hierarchy
+# Story 1.8: Design System Foundation — Tokens, 7 Pattern Components & Button Hierarchy
 
 **Status:** done
 

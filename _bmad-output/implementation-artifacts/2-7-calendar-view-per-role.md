@@ -1,4 +1,4 @@
-﻿# Story 2.7: Vista de Calendário por Papel
+# Story 2.7: Vista de Calendário por Papel
 
 **Status:** review
 

@@ -1,4 +1,4 @@
-﻿# Auth Hook Configuration Diagnostic Guide
+# Auth Hook Configuration Diagnostic Guide
 
 ## Current Issue
 JWT missing `user_role` and `club_id` custom claims after user login, causing RLS policy failures (403 Forbidden) on player_metrics insertion.

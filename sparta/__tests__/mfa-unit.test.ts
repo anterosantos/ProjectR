@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Unit tests for MFA flows (Story 1.7)
  *
  * Tests cover: MFA enrollment logic, MFA disable (unenroll), login MFA challenge detection,

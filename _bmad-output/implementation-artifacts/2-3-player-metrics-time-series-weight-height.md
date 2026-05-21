@@ -1,4 +1,4 @@
-﻿# Story 2.3: Player Metrics Time Series — Weight & Height
+# Story 2.3: Player Metrics Time Series — Weight & Height
 
 **Status:** done
 

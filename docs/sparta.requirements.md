@@ -1,4 +1,4 @@
-﻿# Projecto R
+# Projecto R
 
 :::info
 :bulb: Este documento descreve as necessidades que vão servir de base para uma solução para fazer o seguimento de vários parâmetros e métricas de jogadores de uma equipa de futebol 11.

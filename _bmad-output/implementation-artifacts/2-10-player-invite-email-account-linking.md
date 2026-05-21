@@ -1,4 +1,4 @@
-﻿# Story 2.10: Player Invite — Email & Account Linking
+# Story 2.10: Player Invite — Email & Account Linking
 
 **Status:** done
 

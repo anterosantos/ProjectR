@@ -1,4 +1,4 @@
-﻿# RLS Policy Fix: Custom Claims Migration
+# RLS Policy Fix: Custom Claims Migration
 
 **Status:** ✅ Resolved (2026-05-18)
 

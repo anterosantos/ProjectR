@@ -1,4 +1,4 @@
-﻿# Story 1.9: Role-Based Navigation Shell & Route Groups
+# Story 1.9: Role-Based Navigation Shell & Route Groups
 
 **Status:** done
 

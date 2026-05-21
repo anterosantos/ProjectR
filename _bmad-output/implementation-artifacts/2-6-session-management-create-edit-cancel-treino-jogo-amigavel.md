@@ -1,4 +1,4 @@
-﻿# Story 2.6: Session Management — Create/Edit/Cancel (Treino, Jogo, Amigável)
+# Story 2.6: Session Management — Create/Edit/Cancel (Treino, Jogo, Amigável)
 
 **Status:** done
 

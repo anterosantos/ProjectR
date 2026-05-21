@@ -1,4 +1,4 @@
-﻿# Secrets Rotation Policy
+# Secrets Rotation Policy
 
 **Status:** Policy established 2026-05-09 (Code Review, Story 1.2)  
 **Next Review:** 2026-08-09 (quarterly)

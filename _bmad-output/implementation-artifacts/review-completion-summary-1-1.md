@@ -1,4 +1,4 @@
-﻿# Code Review Completion Summary — Story 1.1
+# Code Review Completion Summary — Story 1.1
 
 **Date:** 2026-05-08  
 **Story:** 1-1-project-initialization-stack-bootstrap  

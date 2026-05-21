@@ -1,4 +1,4 @@
-﻿# Story 1.1: Project Initialization & Stack Bootstrap
+# Story 1.1: Project Initialization & Stack Bootstrap
 
 Status: review
 

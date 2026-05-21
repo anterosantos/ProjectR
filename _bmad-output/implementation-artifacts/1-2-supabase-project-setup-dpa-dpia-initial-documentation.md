@@ -1,4 +1,4 @@
-﻿# Story 1.2: Supabase Project Setup, DPA & DPIA Initial Documentation
+# Story 1.2: Supabase Project Setup, DPA & DPIA Initial Documentation
 
 **Status:** done
 

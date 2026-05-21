@@ -1,4 +1,4 @@
-﻿# Data Protection Impact Assessment (DPIA) — SPARTA
+# Data Protection Impact Assessment (DPIA) — SPARTA
 
 > **Status:** ⏳ Draft v0.1 — sign-off required before pilot launch.
 > **Story:** 1.2 — initial documentation; refined as the system matures.

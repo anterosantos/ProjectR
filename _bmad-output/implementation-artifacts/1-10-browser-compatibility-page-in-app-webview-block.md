@@ -1,4 +1,4 @@
-﻿# Story 1.10: Browser Compatibility Page & In-App WebView Block
+# Story 1.10: Browser Compatibility Page & In-App WebView Block
 
 **Status:** in-progress
 

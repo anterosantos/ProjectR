@@ -1,4 +1,4 @@
-﻿import { Download, Trash2, Edit, Lock, XCircle, Users } from 'lucide-react'
+import { Download, Trash2, Edit, Lock, XCircle, Users } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'

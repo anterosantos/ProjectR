@@ -1,4 +1,4 @@
-﻿# Data Processing Agreement (DPA) — SPARTA × Supabase
+# Data Processing Agreement (DPA) — SPARTA × Supabase
 
 > **Status:** ✅ Accepted by reference — Supabase Free tier incorporates the DPA into the Terms of Service.
 > **Standard DPA URL:** https://supabase.com/legal/dpa (verified accessible 2026-05-09, HTTP 200)

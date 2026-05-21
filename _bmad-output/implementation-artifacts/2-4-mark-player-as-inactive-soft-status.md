@@ -1,4 +1,4 @@
-﻿# Story 2.4: Marcar Jogador como Inactivo (Soft Status)
+# Story 2.4: Marcar Jogador como Inactivo (Soft Status)
 
 **Status:** done
 

@@ -1,4 +1,4 @@
-﻿# Testing Guide
+# Testing Guide
 
 This document covers testing strategies for SPARTA, including RLS policies, API endpoints, and component tests.
 

@@ -1,4 +1,4 @@
-﻿# Code Review Triaged Findings — Story 3.4
+# Code Review Triaged Findings — Story 3.4
 ## Parental Consent Reminders (Day 7/14 & Staff Alert)
 
 **Review Date:** 2026-05-20  

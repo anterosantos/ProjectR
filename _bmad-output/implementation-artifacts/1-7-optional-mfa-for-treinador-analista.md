@@ -1,4 +1,4 @@
-﻿# Story 1.7: Optional MFA for Treinador & Analista
+# Story 1.7: Optional MFA for Treinador & Analista
 
 **Status:** done
 

@@ -1,4 +1,4 @@
-﻿# SPARTA — Local Development Setup
+# SPARTA — Local Development Setup
 
 This guide walks you through setting up the SPARTA development environment. Expected time: **~30 minutes** on first setup.
 

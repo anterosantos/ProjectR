@@ -1,4 +1,4 @@
-﻿# Story 3.2: Parental Consent — Schema, Token Generation & Underage Access Block
+# Story 3.2: Parental Consent — Schema, Token Generation & Underage Access Block
 
 **Status:** done
 

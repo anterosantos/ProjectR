@@ -1,4 +1,4 @@
-﻿# Story 1.3: Migrations Foundation — Core Identity Tables, UUIDv7, RLS & Helpers
+# Story 1.3: Migrations Foundation — Core Identity Tables, UUIDv7, RLS & Helpers
 
 **Status:** done
 

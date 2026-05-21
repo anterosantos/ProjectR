@@ -1,4 +1,4 @@
-﻿---
+---
 document_title: "Product Brief: SPARTA"
 status: "draft"
 created: "2026-05-01"

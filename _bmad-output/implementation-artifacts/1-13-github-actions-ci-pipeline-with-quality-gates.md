@@ -1,4 +1,4 @@
-﻿# Story 1.13: GitHub Actions CI Pipeline with Quality Gates
+# Story 1.13: GitHub Actions CI Pipeline with Quality Gates
 
 **Status:** done
 

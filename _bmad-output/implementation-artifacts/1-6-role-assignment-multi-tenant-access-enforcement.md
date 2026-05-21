@@ -1,4 +1,4 @@
-﻿# Story 1.6: Role Assignment & Multi-Tenant Access Enforcement
+# Story 1.6: Role Assignment & Multi-Tenant Access Enforcement
 
 **Status:** ready-for-dev
 

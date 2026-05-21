@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Integration tests for MFA flows (Story 1.7)
  *
  * These tests require a local Supabase instance running:

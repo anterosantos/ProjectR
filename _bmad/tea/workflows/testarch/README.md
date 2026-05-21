@@ -1,4 +1,4 @@
-﻿# TEA Workflow Step Files
+# TEA Workflow Step Files
 
 This folder contains the Test Architect (TEA) workflows converted to skill-driven step-file architecture for strict LLM compliance. Each workflow is tri-modal (create, edit, validate) and uses small, ordered step files routed from `SKILL.md` instead of a single monolithic instruction file.
 

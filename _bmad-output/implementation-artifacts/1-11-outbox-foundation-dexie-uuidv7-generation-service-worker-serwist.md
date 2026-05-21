@@ -1,4 +1,4 @@
-﻿# Story 1.11: Outbox Foundation — Dexie + UUIDv7 Generation & Service Worker (Serwist)
+# Story 1.11: Outbox Foundation — Dexie + UUIDv7 Generation & Service Worker (Serwist)
 
 **Status:** done
 

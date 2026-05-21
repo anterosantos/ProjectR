@@ -1,4 +1,4 @@
-﻿---
+---
 stepsCompleted: [1, 2, 3, 4]
 inputDocuments: ['docs/SPARTA.requirements.md']
 session_topic: 'Funcionalidades em falta no SPARTA'

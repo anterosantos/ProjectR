@@ -1,4 +1,4 @@
-﻿# Story 2.1: Player Records & Plantel List
+# Story 2.1: Player Records & Plantel List
 
 **Status:** done
 

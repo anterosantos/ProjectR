@@ -1,4 +1,4 @@
-﻿import { ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { CopyLinkButton } from "./CopyLinkButton";
 
 export function WebViewBlockPage() {

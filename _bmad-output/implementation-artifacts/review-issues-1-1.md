@@ -1,4 +1,4 @@
-﻿# Code Review Issues — Story 1.1
+# Code Review Issues — Story 1.1
 
 **Generated:** 2026-05-08  
 **Review Type:** Adversarial (Blind Hunter + Edge Case Hunter + Acceptance Auditor)  

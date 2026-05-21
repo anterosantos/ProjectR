@@ -1,4 +1,4 @@
-﻿# Architecture Pattern Violations Log
+# Architecture Pattern Violations Log
 
 This file logs deviations from the canonical architecture, with rationale and remediation owner.
 

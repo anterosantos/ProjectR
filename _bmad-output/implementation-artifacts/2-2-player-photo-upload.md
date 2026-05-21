@@ -1,4 +1,4 @@
-﻿# Story 2.2: Player Photo Upload
+# Story 2.2: Player Photo Upload
 
 **Status:** done
 
