@@ -155,10 +155,6 @@ const handler = async (req: Request): Promise<Response> => {
 
   const { html, text } = parentalConsentEmailHtml({ playerName, confirmUrl, expiresAt, reminderCopy });
 
-  // Patch 8: Add timeout signal to prevent hanging requests
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
   let resendRes;
   try {
     resendRes = await fetch("https://api.resend.com/emails", {
@@ -174,10 +170,14 @@ const handler = async (req: Request): Promise<Response> => {
         html,
         text,
       }),
-      signal: controller.signal,
+      signal: AbortSignal.timeout(10000),
     });
-  } finally {
-    clearTimeout(timeoutId);
+  } catch (e) {
+    console.error("[send-parental-consent] Resend fetch error/timeout:", e);
+    return new Response(
+      JSON.stringify({ error: "Email send timeout" }),
+      { status: 504, headers: { "Content-Type": "application/json" } }
+    );
   }
 
   if (!resendRes.ok) {
