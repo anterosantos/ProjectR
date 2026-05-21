@@ -14,6 +14,7 @@ import { AddMetricSheet } from "@/components/ui/add-metric-sheet";
 import { MarkInactiveSheet } from "@/components/ui/mark-inactive-sheet";
 import { getPlayer } from "@/lib/actions/players";
 import { getPlayerMetrics } from "@/lib/actions/metrics";
+import { getConsentByPlayerId } from "@/lib/actions/consent";
 
 const ArchivePlayerDialog = dynamicImport(() =>
   import("./archive-player-dialog").then(m => ({ default: m.ArchivePlayerDialog }))
@@ -26,6 +27,12 @@ const InvitePlayerSheet = dynamicImport(() =>
 );
 const ResendInviteButton = dynamicImport(() =>
   import("./resend-invite-button").then(m => ({ default: m.ResendInviteButton }))
+);
+const InitiateConsentSheet = dynamicImport(() =>
+  import("./initiate-consent-sheet").then(m => ({ default: m.InitiateConsentSheet }))
+);
+const ResendConsentButton = dynamicImport(() =>
+  import("../resend-consent-button").then(m => ({ default: m.ResendConsentButton }))
 );
 
 export const dynamic = "force-dynamic";
@@ -72,6 +79,9 @@ export default async function PlayerDetailPage({
 
   const metricsResult = await getPlayerMetrics(player.id);
   const metrics = metricsResult.ok ? metricsResult.data : [];
+
+  const isMinor = player.age_group === "u14" || player.age_group === "u15";
+  const consent = isMinor ? await getConsentByPlayerId(player.id) : null;
   if (!metricsResult.ok) {
     console.error(
       `Failed to load metrics for player ${player.id}:`,
@@ -220,6 +230,37 @@ export default async function PlayerDetailPage({
           </div>
           <PlayerMetricsChart metrics={metrics} />
         </section>
+
+        {/* Consentimento parental */}
+        {isMinor && (
+          <section className="space-y-3">
+            <h2 className="text-base font-semibold">Consentimento parental RGPD</h2>
+            {!consent && (
+              <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+                <p className="text-sm text-muted-foreground">Sem consentimento registado</p>
+                <InitiateConsentSheet playerId={player.id} />
+              </div>
+            )}
+            {consent?.status === "pending" && (
+              <div className="rounded-lg border border-border px-4 py-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Aguarda resposta de</p>
+                    <p className="text-sm font-medium">{consent.parent_email as string}</p>
+                  </div>
+                  <span className="text-xs text-signal-alert font-medium">Pendente</span>
+                </div>
+                <ResendConsentButton playerId={player.id} />
+              </div>
+            )}
+            {consent?.status === "confirmed" && (
+              <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+                <p className="text-sm text-muted-foreground">Consentido por</p>
+                <span className="text-sm font-medium text-signal-ok">{consent.parent_email as string}</span>
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Acesso à app */}
         <section className="space-y-3">

@@ -267,6 +267,17 @@ export async function getPendingConsentsOver14Days(): Promise<PendingConsentPlay
   }));
 }
 
+export async function getConsentByPlayerId(playerId: string) {
+  const serviceRole = getServiceRoleClient();
+  const { data } = await serviceRole
+    .from("parental_consents")
+    .select("status, parent_email, token_expires_at")
+    .eq("player_id", playerId)
+    .in("status", ["pending", "confirmed"])
+    .maybeSingle();
+  return data ?? null;
+}
+
 export async function getPlayerConsentStatus(profileId: string) {
   const serviceRole = getServiceRoleClient();
 
