@@ -303,6 +303,69 @@ export async function getConsentByPlayerId(playerId: string) {
   return data ?? null;
 }
 
+export type ConsentTokenState =
+  | "valid"
+  | "expired"
+  | "confirmed"
+  | "withdrawn"
+  | "invalid";
+
+export type ConsentTokenResult = {
+  state: ConsentTokenState;
+  playerName?: string;
+  policyBody?: string;
+  tokenExpiresAt?: string;
+};
+
+export async function getConsentByToken(
+  token: string
+): Promise<ConsentTokenResult> {
+  if (!token) return { state: "invalid" };
+
+  const serviceRole = getServiceRoleClient();
+
+  const { data: consent } = await serviceRole
+    .from("parental_consents")
+    .select("id, status, player_id, token_expires_at, policy_version_id")
+    .eq("token", token)
+    .maybeSingle();
+
+  if (!consent) return { state: "invalid" };
+
+  if (consent.status === "confirmed") return { state: "confirmed" };
+  if (consent.status === "withdrawn") return { state: "withdrawn" };
+
+  const isExpired = new Date(consent.token_expires_at as string) < new Date();
+  if (consent.status === "expired" || isExpired) {
+    if (consent.status === "pending" && isExpired) {
+      await serviceRole
+        .from("parental_consents")
+        .update({ status: "expired" })
+        .eq("id", consent.id);
+    }
+    return { state: "expired" };
+  }
+
+  const { data: player } = await serviceRole
+    .from("players")
+    .select("full_name")
+    .eq("id", consent.player_id)
+    .maybeSingle();
+
+  const { data: policy } = await serviceRole
+    .from("privacy_policies")
+    .select("body_full_md")
+    .eq("id", consent.policy_version_id)
+    .maybeSingle();
+
+  return {
+    state: "valid",
+    playerName: (player?.full_name as string) ?? "o seu educando",
+    policyBody: (policy?.body_full_md as string) ?? "",
+    tokenExpiresAt: consent.token_expires_at as string,
+  };
+}
+
 export async function getPlayerConsentStatus(profileId: string) {
   const serviceRole = getServiceRoleClient();
 

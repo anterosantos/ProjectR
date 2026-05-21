@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 vi.mock("next/navigation", () => ({
@@ -15,36 +15,27 @@ vi.mock("@/app/consentimento/[token]/consent-form", () => ({
   ),
 }));
 
-import ConsentimentoPage from "@/app/consentimento/[token]/page";
+vi.mock("@/lib/actions/consent", () => ({
+  getConsentByToken: vi.fn(),
+}));
 
-function makeFetchMock(response: unknown, status = 200) {
-  return vi.fn().mockResolvedValue(
-    new Response(JSON.stringify(response), {
-      status,
-      headers: { "Content-Type": "application/json" },
-    })
-  );
-}
+import ConsentimentoPage from "@/app/consentimento/[token]/page";
+import { getConsentByToken } from "@/lib/actions/consent";
+
+const mockGetConsentByToken = getConsentByToken as ReturnType<typeof vi.fn>;
 
 describe("ConsentimentoPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   it("estado valid: renderiza ConsentForm com nome do jogador e política", async () => {
-    vi.stubGlobal(
-      "fetch",
-      makeFetchMock({
-        state: "valid",
-        playerName: "Tomás Silva",
-        policyBody: "## Política\n\nTexto da política.",
-        tokenExpiresAt: "2026-08-20T00:00:00Z",
-      })
-    );
+    mockGetConsentByToken.mockResolvedValue({
+      state: "valid",
+      playerName: "Tomás Silva",
+      policyBody: "## Política\n\nTexto da política.",
+      tokenExpiresAt: "2026-08-20T00:00:00Z",
+    });
 
     const jsx = await ConsentimentoPage({ params: Promise.resolve({ token: "valid-token" }) });
     render(jsx);
@@ -57,7 +48,7 @@ describe("ConsentimentoPage", () => {
   });
 
   it("estado expired: renderiza EmptyState com título de link expirado", async () => {
-    vi.stubGlobal("fetch", makeFetchMock({ state: "expired" }));
+    mockGetConsentByToken.mockResolvedValue({ state: "expired" });
 
     const jsx = await ConsentimentoPage({ params: Promise.resolve({ token: "expired-token" }) });
     render(jsx);
@@ -67,7 +58,7 @@ describe("ConsentimentoPage", () => {
   });
 
   it("estado confirmed: renderiza EmptyState com título de consentimento confirmado", async () => {
-    vi.stubGlobal("fetch", makeFetchMock({ state: "confirmed" }));
+    mockGetConsentByToken.mockResolvedValue({ state: "confirmed" });
 
     const jsx = await ConsentimentoPage({ params: Promise.resolve({ token: "confirmed-token" }) });
     render(jsx);
@@ -77,7 +68,7 @@ describe("ConsentimentoPage", () => {
   });
 
   it("estado withdrawn: renderiza EmptyState com título de consentimento recusado", async () => {
-    vi.stubGlobal("fetch", makeFetchMock({ state: "withdrawn" }));
+    mockGetConsentByToken.mockResolvedValue({ state: "withdrawn" });
 
     const jsx = await ConsentimentoPage({ params: Promise.resolve({ token: "withdrawn-token" }) });
     render(jsx);
@@ -87,7 +78,7 @@ describe("ConsentimentoPage", () => {
   });
 
   it("estado invalid: renderiza EmptyState com título de link inválido", async () => {
-    vi.stubGlobal("fetch", makeFetchMock({ state: "invalid" }));
+    mockGetConsentByToken.mockResolvedValue({ state: "invalid" });
 
     const jsx = await ConsentimentoPage({ params: Promise.resolve({ token: "invalid-token" }) });
     render(jsx);
@@ -96,11 +87,8 @@ describe("ConsentimentoPage", () => {
     expect(screen.queryByTestId("consent-form")).toBeNull();
   });
 
-  it("Edge Function não disponível (fetch throw): renderiza EmptyState com link inválido", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockRejectedValue(new Error("Network error"))
-    );
+  it("getConsentByToken falha (throw): renderiza EmptyState com link inválido", async () => {
+    mockGetConsentByToken.mockRejectedValue(new Error("DB error"));
 
     const jsx = await ConsentimentoPage({ params: Promise.resolve({ token: "any-token" }) });
     render(jsx);
@@ -109,13 +97,10 @@ describe("ConsentimentoPage", () => {
   });
 
   it("valid sem playerName: usa fallback 'o seu educando'", async () => {
-    vi.stubGlobal(
-      "fetch",
-      makeFetchMock({
-        state: "valid",
-        policyBody: "Política.",
-      })
-    );
+    mockGetConsentByToken.mockResolvedValue({
+      state: "valid",
+      policyBody: "Política.",
+    });
 
     const jsx = await ConsentimentoPage({ params: Promise.resolve({ token: "valid-token" }) });
     render(jsx);

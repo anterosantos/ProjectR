@@ -1,45 +1,27 @@
 import type { Metadata } from "next";
 import { AlertCircle, CheckCircle, Clock, XCircle } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
+import {
+  getConsentByToken,
+  type ConsentTokenResult,
+  type ConsentTokenState,
+} from "@/lib/actions/consent";
 import { ConsentForm } from "./consent-form";
 
 export const metadata: Metadata = { title: "Confirmação de consentimento parental" };
 
-type ConsentState = "valid" | "expired" | "confirmed" | "withdrawn" | "invalid";
+export const dynamic = "force-dynamic";
 
-interface ConsentValidateResponse {
-  state: ConsentState;
-  playerName?: string;
-  policyBody?: string;
-  tokenExpiresAt?: string;
-}
-
-async function getConsentState(token: string): Promise<ConsentValidateResponse> {
+async function getConsentState(token: string): Promise<ConsentTokenResult> {
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/consent-validate?token=${encodeURIComponent(token)}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-        },
-        cache: "no-store",
-        signal: controller.signal,
-      }
-    );
-    clearTimeout(timeoutId);
-
-    if (!res.ok) return { state: "invalid" };
-    return (await res.json()) as ConsentValidateResponse;
+    return await getConsentByToken(token);
   } catch {
     return { state: "invalid" };
   }
 }
 
 const STATE_CONFIG: Record<
-  Exclude<ConsentState, "valid">,
+  Exclude<ConsentTokenState, "valid">,
   { title: string; description: string; icon: React.ReactNode }
 > = {
   expired: {
