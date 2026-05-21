@@ -10,12 +10,14 @@ function jsonResponse(data: unknown, status = 200): Response {
 }
 
 async function sendConfirmationEmail({
-  resendApiKey,
+  brevoApiKey,
+  brevoSenderEmail,
   parentEmail,
   playerName,
   confirmedAt,
 }: {
-  resendApiKey: string;
+  brevoApiKey: string;
+  brevoSenderEmail: string;
   parentEmail: string;
   playerName: string;
   confirmedAt: string;
@@ -38,20 +40,24 @@ async function sendConfirmationEmail({
 
   const text = `Consentimento registado — SPARTA\n\nO seu consentimento para ${playerName} foi registado em ${confirmedAt}.\n${playerName} pode agora aceder à plataforma.`;
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+
   try {
-    const res = await fetch("https://api.resend.com/emails", {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${resendApiKey}`,
+        "api-key": brevoApiKey,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "SPARTA <noreply@sparta.app>",
-        to: [parentEmail],
+        sender: { name: "SPARTA", email: brevoSenderEmail },
+        to: [{ email: parentEmail }],
         subject: `Consentimento registado em ${confirmedAt}`,
-        html,
-        text,
+        htmlContent: html,
+        textContent: text,
       }),
+      signal: controller.signal,
     });
 
     if (!res.ok) {
@@ -60,6 +66,8 @@ async function sendConfirmationEmail({
     }
   } catch (e) {
     console.error("[consent-validate] sendConfirmationEmail error:", e);
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
@@ -198,12 +206,14 @@ const handler = async (req: Request): Promise<Response> => {
         payload: { consent_id: consent.id, confirmed_ip: ip ?? null },
       });
 
-      const resendApiKey = Deno.env.get("RESEND_API_KEY");
+      const brevoApiKey = Deno.env.get("BREVO_API_KEY");
+      const brevoSenderEmail = Deno.env.get("BREVO_SENDER_EMAIL");
       const confirmedAt = new Date().toLocaleDateString("pt-PT");
       const playerName = player?.full_name ?? "o seu educando";
-      if (resendApiKey) {
+      if (brevoApiKey && brevoSenderEmail) {
         await sendConfirmationEmail({
-          resendApiKey,
+          brevoApiKey,
+          brevoSenderEmail,
           parentEmail: consent.parent_email,
           playerName,
           confirmedAt,

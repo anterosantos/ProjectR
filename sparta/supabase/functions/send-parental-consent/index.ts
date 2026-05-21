@@ -61,18 +61,19 @@ const handler = async (req: Request): Promise<Response> => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const resendApiKey = Deno.env.get("RESEND_API_KEY");
+  const brevoApiKey = Deno.env.get("BREVO_API_KEY");
+  const brevoSenderEmail = Deno.env.get("BREVO_SENDER_EMAIL");
   const siteUrl = Deno.env.get("SITE_URL") ?? "https://sparta.vercel.app";
 
   console.log("[send-parental-consent] env check:", {
     hasSupabaseUrl: !!supabaseUrl,
     hasServiceRoleKey: !!serviceRoleKey,
-    hasResendApiKey: !!resendApiKey,
-    resendKeyPrefix: resendApiKey?.slice(0, 8) ?? "missing",
+    hasBrevoApiKey: !!brevoApiKey,
+    brevoKeyPrefix: brevoApiKey?.slice(0, 8) ?? "missing",
     siteUrl,
   });
 
-  if (!supabaseUrl || !serviceRoleKey || !resendApiKey) {
+  if (!supabaseUrl || !serviceRoleKey || !brevoApiKey || !brevoSenderEmail) {
     return new Response(
       JSON.stringify({ error: "Missing environment variables" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
@@ -163,39 +164,39 @@ const handler = async (req: Request): Promise<Response> => {
 
   const { html, text } = parentalConsentEmailHtml({ playerName, confirmUrl, expiresAt, reminderCopy });
 
-  const fetchResend = fetch("https://api.resend.com/emails", {
+  const fetchBrevo = fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${resendApiKey}`,
+      "api-key": brevoApiKey,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "SPARTA <onboarding@resend.dev>",
-      to: [consent.parent_email],
+      sender: { name: "SPARTA", email: brevoSenderEmail },
+      to: [{ email: consent.parent_email }],
       subject,
-      html,
-      text,
+      htmlContent: html,
+      textContent: text,
     }),
   });
 
   const timeoutPromise = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error("resend_timeout")), 8000)
+    setTimeout(() => reject(new Error("brevo_timeout")), 8000)
   );
 
-  let resendRes: Response;
+  let brevoRes: Response;
   try {
-    resendRes = await Promise.race([fetchResend, timeoutPromise]);
+    brevoRes = await Promise.race([fetchBrevo, timeoutPromise]);
   } catch (e) {
-    console.error("[send-parental-consent] Resend fetch error/timeout:", e);
+    console.error("[send-parental-consent] Brevo fetch error/timeout:", e);
     return new Response(
       JSON.stringify({ error: "Email send timeout" }),
       { status: 504, headers: { "Content-Type": "application/json" } }
     );
   }
 
-  if (!resendRes.ok) {
-    const errBody = await resendRes.text();
-    console.error("[send-parental-consent] Resend error:", errBody);
+  if (!brevoRes.ok) {
+    const errBody = await brevoRes.text();
+    console.error("[send-parental-consent] Brevo error:", errBody);
     return new Response(
       JSON.stringify({ error: "Email send failed" }),
       { status: 502, headers: { "Content-Type": "application/json" } }

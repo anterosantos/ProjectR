@@ -47,9 +47,10 @@ const handler = async (req: Request): Promise<Response> => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const resendApiKey = Deno.env.get("RESEND_API_KEY");
+  const brevoApiKey = Deno.env.get("BREVO_API_KEY");
+  const brevoSenderEmail = Deno.env.get("BREVO_SENDER_EMAIL");
 
-  if (!supabaseUrl || !serviceRoleKey || !resendApiKey) {
+  if (!supabaseUrl || !serviceRoleKey || !brevoApiKey || !brevoSenderEmail) {
     return new Response(
       JSON.stringify({ error: "Missing environment variables" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
@@ -135,20 +136,20 @@ const handler = async (req: Request): Promise<Response> => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-  let resendRes;
+  let brevoRes: Response | undefined;
   try {
-    resendRes = await fetch("https://api.resend.com/emails", {
+    brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${resendApiKey}`,
+        "api-key": brevoApiKey,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "SPARTA <noreply@sparta.app>",
-        to: staffEmails,
+        sender: { name: "SPARTA", email: brevoSenderEmail },
+        to: staffEmails.filter(e => e?.trim()).map((email) => ({ email })),
         subject: "SPARTA — Consentimento parental pendente",
-        html,
-        text,
+        htmlContent: html,
+        textContent: text,
       }),
       signal: controller.signal,
     });
@@ -156,9 +157,9 @@ const handler = async (req: Request): Promise<Response> => {
     clearTimeout(timeoutId);
   }
 
-  if (!resendRes.ok) {
-    const errBody = await resendRes.text();
-    console.error("[staff-alert-consent] Resend error:", errBody);
+  if (!brevoRes?.ok) {
+    const errBody = await brevoRes.text();
+    console.error("[staff-alert-consent] Brevo error:", errBody);
     return new Response(
       JSON.stringify({ error: "Email send failed" }),
       { status: 502, headers: { "Content-Type": "application/json" } }
