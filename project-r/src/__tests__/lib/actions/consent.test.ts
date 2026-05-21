@@ -12,6 +12,16 @@ vi.mock("@/lib/uuid", () => ({
   newId: vi.fn().mockReturnValue("token-uuid-12345"),
 }));
 
+const { mockResendSend } = vi.hoisted(() => ({
+  mockResendSend: vi.fn(),
+}));
+
+vi.mock("resend", () => ({
+  Resend: vi.fn().mockImplementation(function () {
+    return { emails: { send: mockResendSend } };
+  }),
+}));
+
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { createServerClient } from "@/lib/supabase/server";
 import { initiateParentalConsent, resendConsentEmail } from "@/lib/actions/consent";
@@ -197,41 +207,66 @@ describe("initiateParentalConsent", () => {
 // ─── resendConsentEmail ──────────────────────────────────────────────────────
 
 function buildResendServiceRole(consentData: unknown) {
-  const updateChain = {
-    update: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockResolvedValue({ error: null }),
+  const consentRecordData = {
+    data: {
+      token: "tok-abc",
+      token_expires_at: new Date(Date.now() + 86400000).toISOString(),
+      player_id: PLAYER_UUID,
+      parent_email: "mae@mail.com",
+    },
+    error: null,
   };
-  const insertChain = {
-    insert: vi.fn().mockResolvedValue({ error: null }),
-  };
-  const consentChain = {
+  const playerData = { data: { full_name: "João Silva" }, error: null };
+
+  const consentListChain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
     maybeSingle: vi.fn().mockResolvedValue(consentData),
-    update: vi.fn().mockReturnValue(updateChain),
   };
+  const consentSingleChain = {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    single: vi.fn().mockResolvedValue(consentRecordData),
+  };
+  const playerChain = {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    single: vi.fn().mockResolvedValue(playerData),
+  };
+  const insertChain = { insert: vi.fn().mockResolvedValue({ error: null }) };
+  const playersChain = {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockResolvedValue({ data: { club_id: CLUB_UUID }, error: null }),
+    single: vi.fn().mockResolvedValue(playerData),
+  };
+
+  let consentCallCount = 0;
 
   return {
     from: vi.fn((table: string) => {
-      if (table === "parental_consents") return consentChain;
+      if (table === "players") return playersChain;
       if (table === "parental_consent_reminders_log") return insertChain;
-      return consentChain;
+      if (table === "parental_consents") {
+        consentCallCount++;
+        return consentCallCount === 1 ? consentListChain : consentSingleChain;
+      }
+      return insertChain;
     }),
-    _consentChain: consentChain,
   };
 }
 
 describe("resendConsentEmail", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.stubGlobal("fetch", vi.fn());
+    process.env.RESEND_API_KEY = "re_test_key";
   });
 
   afterEach(() => {
-    vi.unstubAllGlobals();
+    delete process.env.RESEND_API_KEY;
   });
 
-  it("chama Edge Function e retorna ok quando registo pending existe", async () => {
+  it("envia email via Resend e retorna ok quando registo pending existe", async () => {
     mockCreateServerClient.mockResolvedValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({ data: { user: { id: "staff-id" } } }),
@@ -239,7 +274,7 @@ describe("resendConsentEmail", () => {
       from: vi.fn().mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: { role: "coach" } }),
+        single: vi.fn().mockResolvedValue({ data: { role: "coach", club_id: CLUB_UUID } }),
       }),
     });
 
@@ -247,10 +282,7 @@ describe("resendConsentEmail", () => {
       data: { id: CONSENT_UUID, last_manual_resend_at: null },
     });
     mockGetServiceRoleClient.mockReturnValue(serviceRole);
-
-    vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ ok: true }), { status: 200 })
-    );
+    mockResendSend.mockResolvedValue({ data: { id: "email-id" }, error: null });
 
     const result = await resendConsentEmail(PLAYER_UUID);
 
@@ -258,13 +290,10 @@ describe("resendConsentEmail", () => {
     if (result.ok) {
       expect(result.data.message).toBe("Email de consentimento reenviado.");
     }
-    expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/functions/v1/send-parental-consent"),
-      expect.objectContaining({ method: "POST" })
-    );
+    expect(mockResendSend).toHaveBeenCalled();
   });
 
-  it("retorna err({ code: 'internal' }) se Edge Function falha", async () => {
+  it("retorna err({ code: 'internal' }) se Resend falha", async () => {
     mockCreateServerClient.mockResolvedValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({ data: { user: { id: "staff-id" } } }),
@@ -272,7 +301,7 @@ describe("resendConsentEmail", () => {
       from: vi.fn().mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: { role: "coach" } }),
+        single: vi.fn().mockResolvedValue({ data: { role: "coach", club_id: CLUB_UUID } }),
       }),
     });
 
@@ -280,10 +309,7 @@ describe("resendConsentEmail", () => {
       data: { id: CONSENT_UUID, last_manual_resend_at: null },
     });
     mockGetServiceRoleClient.mockReturnValue(serviceRole);
-
-    vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ error: "Email send failed" }), { status: 502 })
-    );
+    mockResendSend.mockResolvedValue({ data: null, error: { message: "API error" } });
 
     const result = await resendConsentEmail(PLAYER_UUID);
 
@@ -301,7 +327,7 @@ describe("resendConsentEmail", () => {
       from: vi.fn().mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: { role: "coach" } }),
+        single: vi.fn().mockResolvedValue({ data: { role: "coach", club_id: CLUB_UUID } }),
       }),
     });
 
@@ -339,7 +365,7 @@ describe("resendConsentEmail", () => {
       from: vi.fn().mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: { role: "coach" } }),
+        single: vi.fn().mockResolvedValue({ data: { role: "coach", club_id: CLUB_UUID } }),
       }),
     });
 
@@ -357,8 +383,8 @@ describe("resendConsentEmail", () => {
       expect(result.error.code).toBe("rate_limited");
       expect(result.error.message).toMatch(/reenviar novamente em \d+ minuto/);
     }
-    // fetch NÃO deve ter sido chamado
-    expect(fetch).not.toHaveBeenCalled();
+    // Resend NÃO deve ter sido chamado
+    expect(mockResendSend).not.toHaveBeenCalled();
   });
 
   it("rate-limit: permite reenvio após 5 minutos terem passado", async () => {
@@ -373,6 +399,17 @@ describe("resendConsentEmail", () => {
       }),
     });
 
+    mockCreateServerClient.mockResolvedValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: "staff-id" } } }),
+      },
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { role: "coach", club_id: CLUB_UUID } }),
+      }),
+    });
+
     // Simular último envio há 6 minutos (fora da janela)
     const sixMinutesAgo = new Date(Date.now() - 6 * 60 * 1000).toISOString();
     const serviceRole = buildResendServiceRole({
@@ -380,16 +417,11 @@ describe("resendConsentEmail", () => {
     });
     mockGetServiceRoleClient.mockReturnValue(serviceRole);
 
-    vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ ok: true }), { status: 200 })
-    );
+    mockResendSend.mockResolvedValue({ data: { id: "email-id" }, error: null });
 
     const result = await resendConsentEmail(PLAYER_UUID);
 
     expect(result.ok).toBe(true);
-    expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/functions/v1/send-parental-consent"),
-      expect.objectContaining({ method: "POST" })
-    );
+    expect(mockResendSend).toHaveBeenCalled();
   });
 });

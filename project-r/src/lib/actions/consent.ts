@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { Resend } from "resend";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { createServerClient } from "@/lib/supabase/server";
 import { newId } from "@/lib/uuid";
@@ -192,34 +193,45 @@ export async function resendConsentEmail(
     }
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-  let res: Response;
-  try {
-    res = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-parental-consent`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-        },
-        body: JSON.stringify({ consentId: consent.id }),
-        signal: controller.signal,
-      }
-    );
-  } catch (e) {
-    clearTimeout(timeoutId);
-    console.error("[resendConsentEmail] fetch error or timeout:", e);
-    return err({ code: "internal", message: "Falha ao enviar email de consentimento" });
-  } finally {
-    clearTimeout(timeoutId);
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (!resendApiKey) {
+    return err({ code: "internal", message: "Configuração de email em falta" });
   }
 
-  if (!res.ok) {
-    const errBody = await res.text();
-    console.error(`[resendConsentEmail] Edge Function error: ${res.status} ${errBody}`);
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://project-r-red.vercel.app";
+
+  const { data: consentRecord } = await serviceRole
+    .from("parental_consents")
+    .select("token, token_expires_at, player_id, parent_email")
+    .eq("id", consent.id)
+    .single();
+
+  if (!consentRecord) {
+    return err({ code: "not_found", message: "Registo de consentimento não encontrado" });
+  }
+
+  const { data: playerRecord } = await serviceRole
+    .from("players")
+    .select("full_name")
+    .eq("id", consentRecord.player_id)
+    .single();
+
+  const playerName = playerRecord?.full_name ?? "o seu educando";
+  const confirmUrl = `${siteUrl}/consentimento/${consentRecord.token}`;
+  const expiresAt = new Date(consentRecord.token_expires_at as string).toLocaleDateString("pt-PT");
+
+  const resend = new Resend(resendApiKey);
+  const { error: emailError } = await resend.emails.send({
+    from: "Project R <onboarding@resend.dev>",
+    to: [consentRecord.parent_email as string],
+    subject: "[Lembrete] Consentimento parental — Project R",
+    html: `<p>Caro encarregado de educação,</p>
+<p>Este é um lembrete para confirmar o consentimento parental de <strong>${playerName}</strong>.</p>
+<p><a href="${confirmUrl}">Confirmar consentimento</a> (válido até ${expiresAt})</p>`,
+  });
+
+  if (emailError) {
+    console.error("[resendConsentEmail] Resend error:", emailError);
     return err({ code: "internal", message: "Falha ao enviar email de consentimento" });
   }
 
