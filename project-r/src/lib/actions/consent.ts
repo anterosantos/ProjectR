@@ -192,17 +192,30 @@ export async function resendConsentEmail(
     }
   }
 
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-parental-consent`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-      },
-      body: JSON.stringify({ consentId: consent.id }),
-    }
-  );
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  let res: Response;
+  try {
+    res = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-parental-consent`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+        body: JSON.stringify({ consentId: consent.id }),
+        signal: controller.signal,
+      }
+    );
+  } catch (e) {
+    clearTimeout(timeoutId);
+    console.error("[resendConsentEmail] fetch error or timeout:", e);
+    return err({ code: "internal", message: "Falha ao enviar email de consentimento" });
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!res.ok) {
     const errBody = await res.text();
