@@ -112,7 +112,7 @@ Para que os dados históricos possam ser filtrados pelo período correto sem con
 
 ### AC #7: Cobertura de testes (NFR54)
 
-**Given** os testes correm via `npm run test --run` a partir de `project-r/`
+**Given** os testes correm via `npm run test --run` a partir de `sparta/`
 **When** executados
 **Then** cobertura ≥80% para:
 - Zod schema: `SeasonCreateSchema` (refine end>start, campos obrigatórios), `SeasonUpdateSchema`
@@ -128,7 +128,7 @@ Para que os dados históricos possam ser filtrados pelo período correto sem con
 ## Tasks / Subtasks
 
 - [x] Task 1: Criar migração `000110_seasons.sql` (AC #1)
-  - [x] 1.1 Criar `project-r/supabase/migrations/000110_seasons.sql`
+  - [x] 1.1 Criar `sparta/supabase/migrations/000110_seasons.sql`
   - [x] 1.2 CREATE TABLE seasons com todos os campos
   - [x] 1.3 CREATE UNIQUE INDEX parcial `idx_seasons_one_current`
   - [x] 1.4 CREATE INDEX `idx_seasons_club`
@@ -176,15 +176,15 @@ Para que os dados históricos possam ser filtrados pelo período correto sem con
   - [x] 8.1 Adicionar link para `/configuracoes/epocas` na página de configurações
 
 - [x] Task 9: Escrever testes (AC #7)
-  - [x] 9.1 `project-r/src/__tests__/lib/schemas/seasons.test.ts` — schemas Zod
-  - [x] 9.2 `project-r/src/__tests__/lib/actions/seasons.test.ts` — server actions
-  - [x] 9.3 `project-r/src/__tests__/hooks/useSeasonView.test.ts` — hook localStorage
-  - [x] 9.4 `project-r/src/__tests__/components/season-form.test.tsx` — componente
+  - [x] 9.1 `sparta/src/__tests__/lib/schemas/seasons.test.ts` — schemas Zod
+  - [x] 9.2 `sparta/src/__tests__/lib/actions/seasons.test.ts` — server actions
+  - [x] 9.3 `sparta/src/__tests__/hooks/useSeasonView.test.ts` — hook localStorage
+  - [x] 9.4 `sparta/src/__tests__/components/season-form.test.tsx` — componente
 
 - [x] Task 10: Verificação final (AC #1–#7)
   - [x] 10.1 `npm run lint` — 0 novos erros
   - [x] 10.2 `npm run typecheck` — zero erros
-  - [x] 10.3 `npm run test --run` a partir de `project-r/` — 543 testes ✅ (base: 442 + 101 novos)
+  - [x] 10.3 `npm run test --run` a partir de `sparta/` — 543 testes ✅ (base: 442 + 101 novos)
   - [x] 10.4 `npm run build` — build limpa ✅
 
 ---
@@ -835,7 +835,7 @@ export default async function EpocasPage({
 ### Padrão de Testes
 
 ```ts
-// project-r/src/__tests__/lib/actions/seasons.test.ts
+// sparta/src/__tests__/lib/actions/seasons.test.ts
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { SeasonCreateSchema, SeasonUpdateSchema } from "@/lib/schemas/seasons";
 
@@ -917,20 +917,20 @@ describe("SeasonCreateSchema", () => {
 
 | Ficheiro | Tipo | Mudança |
 |---------|------|---------|
-| `project-r/supabase/migrations/000110_seasons.sql` | NEW | CREATE TABLE seasons + índices + RLS + RPC |
-| `project-r/src/lib/supabase/database.types.ts` | UPDATE | Adicionar tipo `seasons` (Row, Insert, Update, Relationships) |
-| `project-r/src/lib/schemas/seasons.ts` | NEW | SeasonCreateSchema, SeasonUpdateSchema, types |
-| `project-r/src/lib/actions/seasons.ts` | NEW | getSeasonsForClub, getCurrentSeason, createSeason, updateSeason |
-| `project-r/src/hooks/useSeasonView.ts` | NEW | useSeasonView hook (localStorage, SSR-safe) |
-| `project-r/src/components/ui/season-toggle.tsx` | NEW | SeasonToggle client component |
-| `project-r/src/app/configuracoes/epocas/page.tsx` | NEW | Server Component com auth check + lista épocas |
-| `project-r/src/app/configuracoes/epocas/season-form.tsx` | NEW | Client Component: DrillDownSheet + form |
-| `project-r/src/app/configuracoes/epocas/seasons-page-client.tsx` | NEW | Client Component wrapper para state de abertura |
-| `project-r/src/app/configuracoes/page.tsx` | UPDATE | Adicionar link para /configuracoes/epocas |
-| `project-r/src/__tests__/lib/schemas/seasons.test.ts` | NEW | Testes Zod |
-| `project-r/src/__tests__/lib/actions/seasons.test.ts` | NEW | Testes server actions |
-| `project-r/src/__tests__/hooks/useSeasonView.test.ts` | NEW | Testes hook localStorage |
-| `project-r/src/__tests__/components/season-form.test.tsx` | NEW | Testes componente form |
+| `sparta/supabase/migrations/000110_seasons.sql` | NEW | CREATE TABLE seasons + índices + RLS + RPC |
+| `sparta/src/lib/supabase/database.types.ts` | UPDATE | Adicionar tipo `seasons` (Row, Insert, Update, Relationships) |
+| `sparta/src/lib/schemas/seasons.ts` | NEW | SeasonCreateSchema, SeasonUpdateSchema, types |
+| `sparta/src/lib/actions/seasons.ts` | NEW | getSeasonsForClub, getCurrentSeason, createSeason, updateSeason |
+| `sparta/src/hooks/useSeasonView.ts` | NEW | useSeasonView hook (localStorage, SSR-safe) |
+| `sparta/src/components/ui/season-toggle.tsx` | NEW | SeasonToggle client component |
+| `sparta/src/app/configuracoes/epocas/page.tsx` | NEW | Server Component com auth check + lista épocas |
+| `sparta/src/app/configuracoes/epocas/season-form.tsx` | NEW | Client Component: DrillDownSheet + form |
+| `sparta/src/app/configuracoes/epocas/seasons-page-client.tsx` | NEW | Client Component wrapper para state de abertura |
+| `sparta/src/app/configuracoes/page.tsx` | UPDATE | Adicionar link para /configuracoes/epocas |
+| `sparta/src/__tests__/lib/schemas/seasons.test.ts` | NEW | Testes Zod |
+| `sparta/src/__tests__/lib/actions/seasons.test.ts` | NEW | Testes server actions |
+| `sparta/src/__tests__/hooks/useSeasonView.test.ts` | NEW | Testes hook localStorage |
+| `sparta/src/__tests__/components/season-form.test.tsx` | NEW | Testes componente form |
 
 ---
 
@@ -963,7 +963,7 @@ describe("SeasonCreateSchema", () => {
 2. `React 19`: **não** importar `React` em `.tsx`
 3. `noUncheckedIndexedAccess`: `arr?.[0] ?? fallback`
 4. `Zod v4`: `.issues` (não `.errors`)
-5. Testes correm de `project-r/` com `npm run test --run`
+5. Testes correm de `sparta/` com `npm run test --run`
 6. Imports com aliases `@/` (NUNCA caminhos relativos)
 7. `date-fns` com `ptPT` locale para formatação de datas ao utilizador
 
@@ -1021,8 +1021,8 @@ feat(2-5): season management — migration 000110, seasons CRUD, set_current_sea
 ## Project Context Reference
 
 ```
-ProjectR/ (git root)
-├── project-r/
+SPARTA/ (git root)
+├── sparta/
 │   ├── supabase/
 │   │   └── migrations/
 │   │       ├── 000095_players_inactive.sql   (Story 2.4)
@@ -1133,18 +1133,18 @@ claude-sonnet-4-6
 
 ### File List
 
-- `project-r/supabase/migrations/000110_seasons.sql` (NEW)
-- `project-r/src/lib/supabase/database.types.ts` (UPDATE)
-- `project-r/src/lib/schemas/seasons.ts` (NEW)
-- `project-r/src/lib/actions/seasons.ts` (NEW)
-- `project-r/src/hooks/useSeasonView.ts` (NEW)
-- `project-r/src/components/ui/season-toggle.tsx` (NEW)
-- `project-r/src/components/patterns/StickyHeader.tsx` (UPDATE — adicionado prop `backHref`)
-- `project-r/src/app/configuracoes/epocas/page.tsx` (NEW)
-- `project-r/src/app/configuracoes/epocas/season-form.tsx` (NEW)
-- `project-r/src/app/configuracoes/epocas/seasons-page-client.tsx` (NEW)
-- `project-r/src/app/configuracoes/page.tsx` (UPDATE)
-- `project-r/src/__tests__/lib/schemas/seasons.test.ts` (NEW)
-- `project-r/src/__tests__/lib/actions/seasons.test.ts` (NEW)
-- `project-r/src/__tests__/hooks/useSeasonView.test.ts` (NEW)
-- `project-r/src/__tests__/components/season-form.test.tsx` (NEW)
+- `sparta/supabase/migrations/000110_seasons.sql` (NEW)
+- `sparta/src/lib/supabase/database.types.ts` (UPDATE)
+- `sparta/src/lib/schemas/seasons.ts` (NEW)
+- `sparta/src/lib/actions/seasons.ts` (NEW)
+- `sparta/src/hooks/useSeasonView.ts` (NEW)
+- `sparta/src/components/ui/season-toggle.tsx` (NEW)
+- `sparta/src/components/patterns/StickyHeader.tsx` (UPDATE — adicionado prop `backHref`)
+- `sparta/src/app/configuracoes/epocas/page.tsx` (NEW)
+- `sparta/src/app/configuracoes/epocas/season-form.tsx` (NEW)
+- `sparta/src/app/configuracoes/epocas/seasons-page-client.tsx` (NEW)
+- `sparta/src/app/configuracoes/page.tsx` (UPDATE)
+- `sparta/src/__tests__/lib/schemas/seasons.test.ts` (NEW)
+- `sparta/src/__tests__/lib/actions/seasons.test.ts` (NEW)
+- `sparta/src/__tests__/hooks/useSeasonView.test.ts` (NEW)
+- `sparta/src/__tests__/components/season-form.test.tsx` (NEW)

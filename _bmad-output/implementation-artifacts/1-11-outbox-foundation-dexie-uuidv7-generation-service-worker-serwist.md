@@ -22,7 +22,7 @@ so that data is never lost and never duplicated even on flaky networks.
 
 **Given** the Dexie outbox in `lib/outbox/`
 **When** the app loads
-**Then** an IndexedDB database `project-r` is created with stores:
+**Then** an IndexedDB database `sparta` is created with stores:
 - `outbox`: indexed on `id, kind, status, createdAt, retryCount`
 - `cache`: indexed on `key, payload, updatedAt`
 (AR18)
@@ -84,7 +84,7 @@ so that data is never lost and never duplicated even on flaky networks.
 ## Tasks / Subtasks
 
 - [x] Task 1: Install `uuid` package and create `lib/uuid.ts` (AC: #2, #6)
-  - [x] 1.1 Run `npm install uuid && npm install -D @types/uuid` from `project-r/`
+  - [x] 1.1 Run `npm install uuid && npm install -D @types/uuid` from `sparta/`
   - [x] 1.2 Create `src/lib/uuid.ts` exporting `newId(): string` using `import { v7 as uuidv7 } from 'uuid'`
   - [x] 1.3 Write `src/__tests__/lib/uuid.test.ts` — verify UUIDv7 format (regex), time-ordering of successive calls, uniqueness
 
@@ -145,8 +145,8 @@ so that data is never lost and never duplicated even on flaky networks.
 - [x] Task 10: Integrate drain triggers in layout + build verification (AC: #3, #4, #7)
   - [x] 10.1 Call `registerDrainTriggers()` in a root Client Component (e.g., create `src/components/providers/OutboxProvider.tsx`) — `useEffect` on mount, cleanup on unmount
   - [x] 10.2 Add `<OutboxProvider>` to `src/app/layout.tsx` (inside `<BrowserGate>`)
-  - [x] 10.3 Run `npm run build` from `project-r/` — must succeed without errors
-  - [x] 10.4 Run `npm run test` from `project-r/` — all existing 239+ tests pass plus new tests
+  - [x] 10.3 Run `npm run build` from `sparta/` — must succeed without errors
+  - [x] 10.4 Run `npm run test` from `sparta/` — all existing 239+ tests pass plus new tests
 
 ---
 
@@ -157,7 +157,7 @@ so that data is never lost and never duplicated even on flaky networks.
 `uuid` is listed in the architecture's initial install command but was NOT included in the initial project setup. This story must install it:
 
 ```bash
-# From project-r/
+# From sparta/
 npm install uuid
 npm install -D @types/uuid
 ```
@@ -299,7 +299,7 @@ class OutboxDatabase extends Dexie {
   cache!: Table<CacheEntry, string>
 
   constructor() {
-    super('project-r')
+    super('sparta')
     this.version(1).stores({
       outbox: 'id, kind, status, createdAt, retryCount',
       cache: 'key, payload, updatedAt',
@@ -493,8 +493,8 @@ Add to `layout.tsx` inside `<BrowserGate>`:
 
 ```json
 {
-  "name": "Project R",
-  "short_name": "ProjectR",
+  "name": "SPARTA",
+  "short_name": "SPARTA",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
@@ -509,7 +509,7 @@ Add to `layout.tsx` inside `<BrowserGate>`:
 Reference in `layout.tsx` metadata:
 ```typescript
 export const metadata: Metadata = {
-  title: 'Project R',
+  title: 'SPARTA',
   description: '...',
   manifest: '/manifest.webmanifest',
 }
@@ -697,7 +697,7 @@ npx vitest run --coverage
 ## File Structure
 
 ```
-project-r/src/
+sparta/src/
 ├── lib/
 │   ├── uuid.ts                             [NEW] UUIDv7 generation
 │   └── outbox/
@@ -725,12 +725,12 @@ project-r/src/
 │           ├── drain.test.ts               [NEW]
 │           └── status.test.ts              [NEW]
 
-project-r/
+sparta/
 ├── next.config.mjs                         [UPDATE] Serwist plugin
 ├── package.json                            [UPDATE] dev script + uuid deps
 ├── eslint.config.mjs                       [UPDATE] exclude public/sw.js
 
-project-r/public/
+sparta/public/
 ├── manifest.webmanifest                    [NEW] PWA manifest
 └── icons/
     ├── icon-192.png                        [NEW] placeholder PWA icon
@@ -741,7 +741,7 @@ project-r/public/
 
 ## Project Context
 
-- **App root:** `project-r/` (all `npm` commands from `project-r/`)
+- **App root:** `sparta/` (all `npm` commands from `sparta/`)
 - **UI Language:** Portuguese PT-PT (B1) — offline page, orphan dialog copy
 - **Code/APIs:** English
 - **Design system:** Tailwind v4 + shadcn/ui + lucide-react (Story 1.8)
@@ -779,31 +779,31 @@ claude-sonnet-4-6
 
 ### File List
 
-- `project-r/src/lib/uuid.ts` — NEW
-- `project-r/src/lib/outbox/db.ts` — NEW (deleted .gitkeep)
-- `project-r/src/lib/outbox/enqueue.ts` — NEW
-- `project-r/src/lib/outbox/drain.ts` — NEW
-- `project-r/src/lib/outbox/triggers.ts` — NEW
-- `project-r/src/lib/outbox/status.ts` — NEW
-- `project-r/src/components/providers/OutboxProvider.tsx` — NEW
-- `project-r/src/components/auth/logout-button.tsx` — MODIFIED
-- `project-r/src/components/auth/logout-button.test.tsx` — NEW
-- `project-r/src/app/layout.tsx` — MODIFIED
-- `project-r/src/app/sw.ts` — NEW
-- `project-r/src/app/offline/page.tsx` — NEW
-- `project-r/src/__tests__/lib/uuid.test.ts` — NEW
-- `project-r/src/__tests__/lib/outbox/db.test.ts` — NEW
-- `project-r/src/__tests__/lib/outbox/enqueue.test.ts` — NEW
-- `project-r/src/__tests__/lib/outbox/drain.test.ts` — NEW
-- `project-r/src/__tests__/lib/outbox/status.test.ts` — NEW
-- `project-r/next.config.mjs` — MODIFIED
-- `project-r/package.json` — MODIFIED
-- `project-r/package-lock.json` — MODIFIED
-- `project-r/eslint.config.mjs` — MODIFIED
-- `project-r/public/manifest.webmanifest` — NEW
-- `project-r/public/icons/icon-192.png` — NEW
-- `project-r/public/icons/icon-512.png` — NEW
-- `project-r/public/sw.js` — NEW (generated by Serwist build)
+- `sparta/src/lib/uuid.ts` — NEW
+- `sparta/src/lib/outbox/db.ts` — NEW (deleted .gitkeep)
+- `sparta/src/lib/outbox/enqueue.ts` — NEW
+- `sparta/src/lib/outbox/drain.ts` — NEW
+- `sparta/src/lib/outbox/triggers.ts` — NEW
+- `sparta/src/lib/outbox/status.ts` — NEW
+- `sparta/src/components/providers/OutboxProvider.tsx` — NEW
+- `sparta/src/components/auth/logout-button.tsx` — MODIFIED
+- `sparta/src/components/auth/logout-button.test.tsx` — NEW
+- `sparta/src/app/layout.tsx` — MODIFIED
+- `sparta/src/app/sw.ts` — NEW
+- `sparta/src/app/offline/page.tsx` — NEW
+- `sparta/src/__tests__/lib/uuid.test.ts` — NEW
+- `sparta/src/__tests__/lib/outbox/db.test.ts` — NEW
+- `sparta/src/__tests__/lib/outbox/enqueue.test.ts` — NEW
+- `sparta/src/__tests__/lib/outbox/drain.test.ts` — NEW
+- `sparta/src/__tests__/lib/outbox/status.test.ts` — NEW
+- `sparta/next.config.mjs` — MODIFIED
+- `sparta/package.json` — MODIFIED
+- `sparta/package-lock.json` — MODIFIED
+- `sparta/eslint.config.mjs` — MODIFIED
+- `sparta/public/manifest.webmanifest` — NEW
+- `sparta/public/icons/icon-192.png` — NEW
+- `sparta/public/icons/icon-512.png` — NEW
+- `sparta/public/sw.js` — NEW (generated by Serwist build)
 
 ### Change Log
 

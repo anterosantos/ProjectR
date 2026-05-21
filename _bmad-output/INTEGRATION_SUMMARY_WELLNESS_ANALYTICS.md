@@ -7,7 +7,7 @@ status: Complete
 
 # Integração de Requisitos: Wellness & Análise Expandida
 
-**Resumo:** Analisados e integrados 17 novos requisitos (6 Wellness, 11 Analytics) em todos os documentos principais do Project R, mantendo coerência arquitetural e princípios de UX.
+**Resumo:** Analisados e integrados 17 novos requisitos (6 Wellness, 11 Analytics) em todos os documentos principais do SPARTA, mantendo coerência arquitetural e princípios de UX.
 
 ---
 
@@ -30,7 +30,7 @@ status: Complete
 
 ### Documentos Atualizados
 
-1. **docs/projectr.requirements.md**
+1. **docs/SPARTA.requirements.md**
    - Expandida seção "Registo de Fadiga e Bem-estar" com estrutura clara de pré/pós-sessão
    - Adicionados campos e contexto de recolha
 
@@ -68,7 +68,7 @@ status: Complete
 
 ### Documentos Atualizados
 
-1. **docs/projectr.requirements.md**
+1. **docs/SPARTA.requirements.md**
    - Expandida seção "Dados Estatísticos Individuais por Jogador" com categorias claras: Ações Individuais | Ações Táticas | Contexto de Golos | Tempo de Jogo
    - Adicionada nova seção "Registo de Jogos" com detalhe de novos campos
 
@@ -82,7 +82,7 @@ status: Complete
    - Seção "Readiness Intelligence" renomeada → "Readiness Intelligence & Analytics Dashboards"
    - Adicionados FR37a até FR38e para novos dashboards (Growth phase)
 
-4. **docs/projectr.requirements.md - Relatórios & Dashboards**
+4. **docs/SPARTA.requirements.md - Relatórios & Dashboards**
    - Expandida seção de relatórios com 3 subsecções: Prontidão e Fadiga | Performance e Estatísticas | Consolidado
    - Adicionados 8 novos dashboards (7 Growth, 1 MVP — % participação)
 
@@ -159,7 +159,7 @@ Nenhum — todas as novas tabelas herdam `club_id` e seguem RLS existente (`club
 - [x] PRD atualizado com novos requisitos
 - [x] UX Design Specification com considerações de design novo
 - [x] Epics/Functional Requirements atualizados (FR21a-FR21c, FR27a-FR27d, FR31a, FR37a, FR38a-FR38e)
-- [x] Requirements original (docs/projectr.requirements.md) sincronizado
+- [x] Requirements original (docs/SPARTA.requirements.md) sincronizado
 - [x] Relatórios & Dashboards lista expandida
 
 ### Conformidade ✅

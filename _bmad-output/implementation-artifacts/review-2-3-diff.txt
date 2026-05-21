@@ -1,8 +1,8 @@
-diff --git a/project-r/src/__tests__/components/player-metrics-chart.test.tsx b/project-r/src/__tests__/components/player-metrics-chart.test.tsx
+diff --git a/sparta/src/__tests__/components/player-metrics-chart.test.tsx b/sparta/src/__tests__/components/player-metrics-chart.test.tsx
 new file mode 100644
 index 0000000..a7beaec
 --- /dev/null
-+++ b/project-r/src/__tests__/components/player-metrics-chart.test.tsx
++++ b/sparta/src/__tests__/components/player-metrics-chart.test.tsx
 @@ -0,0 +1,109 @@
 +import { describe, it, expect, vi, beforeAll } from "vitest";
 +import { render, screen } from "@testing-library/react";
@@ -113,11 +113,11 @@ index 0000000..a7beaec
 +    expect(screen.queryByText(/Altura actual/i)).not.toBeInTheDocument();
 +  });
 +});
-diff --git a/project-r/src/__tests__/lib/actions/metrics.test.ts b/project-r/src/__tests__/lib/actions/metrics.test.ts
+diff --git a/sparta/src/__tests__/lib/actions/metrics.test.ts b/sparta/src/__tests__/lib/actions/metrics.test.ts
 new file mode 100644
 index 0000000..9ab698d
 --- /dev/null
-+++ b/project-r/src/__tests__/lib/actions/metrics.test.ts
++++ b/sparta/src/__tests__/lib/actions/metrics.test.ts
 @@ -0,0 +1,466 @@
 +import { describe, it, expect, vi, beforeEach } from "vitest";
 +import {
@@ -585,10 +585,10 @@ index 0000000..9ab698d
 +    }
 +  });
 +});
-diff --git a/project-r/src/app/(staff)/plantel/[id]/page.tsx b/project-r/src/app/(staff)/plantel/[id]/page.tsx
+diff --git a/sparta/src/app/(staff)/plantel/[id]/page.tsx b/sparta/src/app/(staff)/plantel/[id]/page.tsx
 index eaa0baa..72ddbf7 100644
---- a/project-r/src/app/(staff)/plantel/[id]/page.tsx
-+++ b/project-r/src/app/(staff)/plantel/[id]/page.tsx
+--- a/sparta/src/app/(staff)/plantel/[id]/page.tsx
++++ b/sparta/src/app/(staff)/plantel/[id]/page.tsx
 @@ -8,8 +8,13 @@ import { Button } from "@/components/ui/button";
  import { CalmConfirmation } from "@/components/ui/calm-confirmation";
  import { SemaforoBadge } from "@/components/ui/semaforo-badge";
@@ -675,11 +675,11 @@ index eaa0baa..72ddbf7 100644
        </div>
      </div>
    );
-diff --git a/project-r/src/components/ui/add-metric-sheet.tsx b/project-r/src/components/ui/add-metric-sheet.tsx
+diff --git a/sparta/src/components/ui/add-metric-sheet.tsx b/sparta/src/components/ui/add-metric-sheet.tsx
 new file mode 100644
 index 0000000..e8de801
 --- /dev/null
-+++ b/project-r/src/components/ui/add-metric-sheet.tsx
++++ b/sparta/src/components/ui/add-metric-sheet.tsx
 @@ -0,0 +1,162 @@
 +"use client";
 +
@@ -843,11 +843,11 @@ index 0000000..e8de801
 +    </>
 +  );
 +}
-diff --git a/project-r/src/components/ui/player-metrics-chart.tsx b/project-r/src/components/ui/player-metrics-chart.tsx
+diff --git a/sparta/src/components/ui/player-metrics-chart.tsx b/sparta/src/components/ui/player-metrics-chart.tsx
 new file mode 100644
 index 0000000..f397f09
 --- /dev/null
-+++ b/project-r/src/components/ui/player-metrics-chart.tsx
++++ b/sparta/src/components/ui/player-metrics-chart.tsx
 @@ -0,0 +1,124 @@
 +"use client";
 +
@@ -973,11 +973,11 @@ index 0000000..f397f09
 +    </div>
 +  );
 +}
-diff --git a/project-r/src/lib/actions/metrics.ts b/project-r/src/lib/actions/metrics.ts
+diff --git a/sparta/src/lib/actions/metrics.ts b/sparta/src/lib/actions/metrics.ts
 new file mode 100644
 index 0000000..2458e85
 --- /dev/null
-+++ b/project-r/src/lib/actions/metrics.ts
++++ b/sparta/src/lib/actions/metrics.ts
 @@ -0,0 +1,152 @@
 +"use server";
 +
@@ -1131,11 +1131,11 @@ index 0000000..2458e85
 +  );
 +  return ok(undefined);
 +}
-diff --git a/project-r/src/lib/schemas/metrics.ts b/project-r/src/lib/schemas/metrics.ts
+diff --git a/sparta/src/lib/schemas/metrics.ts b/sparta/src/lib/schemas/metrics.ts
 new file mode 100644
 index 0000000..63b5463
 --- /dev/null
-+++ b/project-r/src/lib/schemas/metrics.ts
++++ b/sparta/src/lib/schemas/metrics.ts
 @@ -0,0 +1,26 @@
 +import { z } from "zod";
 +

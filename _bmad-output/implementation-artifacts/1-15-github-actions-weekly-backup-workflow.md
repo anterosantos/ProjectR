@@ -30,7 +30,7 @@ Para que possamos recuperar de qualquer perda de dados dentro do historial opera
 **Given** o `pg_dump` executa com sucesso
 **When** o workflow continua
 **Then** o ficheiro é encriptado com `BACKUP_ENCRYPTION_KEY` (AES-256-CBC + PBKDF2)
-**And** pushed para o repositório privado `project-r-backups`
+**And** pushed para o repositório privado `sparta-backups`
 **And** com filename `YYYY-MM-DD-backup.sql.enc`
 
 ### AC #3: Política de Retenção 12 Semanas (NFR51)
@@ -38,7 +38,7 @@ Para que possamos recuperar de qualquer perda de dados dentro do historial opera
 **Given** o workflow termina com sucesso
 **When** os backups são escritos no repositório
 **Then** ficheiros com data anterior a 84 dias são removidos do repositório de backups
-**And** o commit de limpeza é pushed para `project-r-backups`
+**And** o commit de limpeza é pushed para `sparta-backups`
 
 ### AC #4: Alerta Imediato em Falha (FR56)
 
@@ -61,9 +61,9 @@ Para que possamos recuperar de qualquer perda de dados dentro do historial opera
 ## Tasks / Subtasks
 
 - [x] Task 1: Pré-requisitos manuais (AC #5) — executar ANTES de começar a implementação do YAML
-  - [x] 1.1 Criar repositório privado `project-r-backups` no GitHub com README inicial (para que `git clone` funcione em repo não vazio)
+  - [x] 1.1 Criar repositório privado `sparta-backups` no GitHub com README inicial (para que `git clone` funcione em repo não vazio)
   - [x] 1.2 Gerar par de chaves SSH: `ssh-keygen -t ed25519 -f backup_deploy_key -N "" -C "backup-workflow"`
-  - [x] 1.3 Adicionar `backup_deploy_key.pub` como Deploy Key com **write access** em `project-r-backups` (Settings → Deploy keys → Add deploy key → Allow write access)
+  - [x] 1.3 Adicionar `backup_deploy_key.pub` como Deploy Key com **write access** em `sparta-backups` (Settings → Deploy keys → Add deploy key → Allow write access)
   - [x] 1.4 Adicionar `backup_deploy_key` (private key) como secret `BACKUP_REPO_DEPLOY_KEY` no repo principal (Settings → Secrets and variables → Actions → New repository secret)
   - [x] 1.5 Gerar `BACKUP_ENCRYPTION_KEY`: `openssl rand -base64 32` → adicionar como secret `BACKUP_ENCRYPTION_KEY`
   - [x] 1.6 Verificar que `SUPABASE_DB_URL` já existe como secret (da Story 1.14) — não existia, criado nesta story
@@ -86,7 +86,7 @@ Para que possamos recuperar de qualquer perda de dados dentro do historial opera
 - [x] Task 4: Implementar push para repositório de backups via SSH deploy key (AC #2)
   - [x] 4.1 Step `Configure SSH`: escrever `BACKUP_REPO_DEPLOY_KEY` em `~/.ssh/id_ed25519`, `chmod 600`, `ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null`
   - [x] 4.2 Step `Push Backup to Private Repo`:
-    - Clonar `git@github.com:anterosantos/project-r-backups.git /tmp/backups`
+    - Clonar `git@github.com:anterosantos/sparta-backups.git /tmp/backups`
     - Copiar ficheiro `.enc` para `/tmp/backups/`
     - `git config user.name "GitHub Actions"` e `user.email "actions@github.com"`
     - `git add "$BACKUP_FILE" && git commit -m "backup: $(date +%Y-%m-%d)" && git push origin main`
@@ -121,15 +121,15 @@ Para que possamos recuperar de qualquer perda de dados dentro do historial opera
 
 ### Localização e Estrutura de Ficheiros
 
-O workflow backup.yml segue o mesmo padrão que `heartbeat.yml` (Story 1.14) e `ci.yml` (Story 1.13). A localização é **sempre na raiz do repo**, não em `project-r/`:
+O workflow backup.yml segue o mesmo padrão que `heartbeat.yml` (Story 1.14) e `ci.yml` (Story 1.13). A localização é **sempre na raiz do repo**, não em `sparta/`:
 
 ```
-ProjectR/                          ← git root (raiz)
+SPARTA/                          ← git root (raiz)
 ├── .github/workflows/
 │   ├── ci.yml                     ← Story 1.13 (done)
 │   ├── heartbeat.yml              ← Story 1.14 (done) — padrão a seguir
 │   └── backup.yml                 ← a criar nesta story
-├── project-r/
+├── sparta/
 │   └── .env.example               ← adicionar BACKUP_REPO_DEPLOY_KEY
 └── _bmad-output/
 ```
@@ -211,7 +211,7 @@ jobs:
       - name: Push Backup to Private Repo
         run: |
           BACKUP_FILE="${{ steps.dump.outputs.backup_file }}"
-          git clone git@github.com:anterosantos/project-r-backups.git /tmp/backups
+          git clone git@github.com:anterosantos/sparta-backups.git /tmp/backups
           cp "/tmp/$BACKUP_FILE" /tmp/backups/
           cd /tmp/backups
           git config user.name "GitHub Actions"
@@ -261,7 +261,7 @@ jobs:
           Please check:
           1. \`SUPABASE_DB_URL\` secret is valid and database is accessible
           2. \`BACKUP_ENCRYPTION_KEY\` secret is set
-          3. \`BACKUP_REPO_DEPLOY_KEY\` has write access to \`project-r-backups\`"
+          3. \`BACKUP_REPO_DEPLOY_KEY\` has write access to \`sparta-backups\`"
           gh issue create \
             --title "[ALERT] Backup: Failed (Run #${GITHUB_RUN_NUMBER})" \
             --label "backup-failure" \
@@ -303,11 +303,11 @@ openssl enc -d -aes-256-cbc -pbkdf2 -iter 100000 \
 
 ### Setup Manual do Repositório de Backups (Task 1 — prerequisito)
 
-O repositório `anterosantos/project-r-backups` deve existir **antes** da primeira execução do workflow:
+O repositório `anterosantos/sparta-backups` deve existir **antes** da primeira execução do workflow:
 
-1. Criar repositório **privado** `project-r-backups` no GitHub com README inicial (repo não pode estar vazio — `git clone` falha em repos vazios)
+1. Criar repositório **privado** `sparta-backups` no GitHub com README inicial (repo não pode estar vazio — `git clone` falha em repos vazios)
 2. Gerar deploy key: `ssh-keygen -t ed25519 -f backup_deploy_key -N "" -C "backup-workflow"` (cria dois ficheiros: `backup_deploy_key` e `backup_deploy_key.pub`)
-3. `project-r-backups` → Settings → Deploy keys → Add deploy key → colar `backup_deploy_key.pub` → **Allow write access** ✓
+3. `sparta-backups` → Settings → Deploy keys → Add deploy key → colar `backup_deploy_key.pub` → **Allow write access** ✓
 4. Repo principal → Settings → Secrets and variables → Actions → New repository secret → `BACKUP_REPO_DEPLOY_KEY` → colar conteúdo de `backup_deploy_key` (private key)
 5. Deletar os ficheiros `backup_deploy_key` e `backup_deploy_key.pub` localmente após uso
 
@@ -326,7 +326,7 @@ O repositório `anterosantos/project-r-backups` deve existir **antes** da primei
 | Cron | `0 12 */6 * *` (cada 6 dias) | `0 3 * * 0` (domingo semanal) |
 | Secrets | 1 (`SUPABASE_DB_URL`) | 3 (+ `BACKUP_ENCRYPTION_KEY` + `BACKUP_REPO_DEPLOY_KEY`) |
 | Alerta | 2-strike (2 falhas consecutivas em 12 dias) | Imediato (qualquer falha) |
-| Repo externo | N/A | `anterosantos/project-r-backups` via SSH deploy key |
+| Repo externo | N/A | `anterosantos/sparta-backups` via SSH deploy key |
 | Step principal | `psql SELECT NOW()` | `pg_dump` + encrypt + push + retention |
 | Label de alerta | `heartbeat-alert` | `backup-failure` |
 
@@ -336,8 +336,8 @@ Para restaurar um backup:
 
 ```bash
 # 1. Obter ficheiro encriptado do repo de backups
-git clone git@github.com:anterosantos/project-r-backups.git
-cd project-r-backups
+git clone git@github.com:anterosantos/sparta-backups.git
+cd sparta-backups
 
 # 2. Desencriptar (requer BACKUP_ENCRYPTION_KEY)
 export BACKUP_ENCRYPTION_KEY="<valor do secret>"
@@ -352,7 +352,7 @@ psql "$SUPABASE_DB_URL" < backup.sql
 
 ### Considerações de Segurança (AR30)
 
-- **Deploy key sobre PAT:** Least privilege — a chave tem acesso apenas a `project-r-backups`, não ao repo principal
+- **Deploy key sobre PAT:** Least privilege — a chave tem acesso apenas a `sparta-backups`, não ao repo principal
 - **Remoção de plaintext imediata:** `rm /tmp/backup.sql` logo após encriptação
 - **Secrets mascarados:** GitHub Actions mascara automaticamente valores de secrets nos logs
 - **`-pbkdf2 -iter 100000`:** PBKDF2 com SHA-256 e 100k iterações — resistente a ataques de dicionário
@@ -372,7 +372,7 @@ Herdados de stories anteriores, não abordar nesta story:
 
 ### Learnings Críticos de 1.14
 
-1. **Localização:** `.github/workflows/` na **raiz do repo**, nunca em `project-r/`
+1. **Localização:** `.github/workflows/` na **raiz do repo**, nunca em `sparta/`
 2. **`supabase/setup-cli@v1`** foi adicionado na code review — incluir desde o início para evitar patch
 3. **`sudo apt-get`** necessário nos runners (`sudo`, não apenas `apt-get`)
 4. **Secret validation primeiro:** Step dedicado a verificar que secrets não estão vazios antes de qualquer operação
@@ -413,12 +413,12 @@ b07eaeb feat(outbox): implement outbox functionality                  ← 1.11
 ## Project Context Reference
 
 ```
-ProjectR/
+SPARTA/
 ├── .github/workflows/
 │   ├── ci.yml          ← Story 1.13: lint + typecheck + test + build + bundle-size + lighthouse + migration-validate
 │   ├── heartbeat.yml   ← Story 1.14: ping DB cada 6 dias, 2-strike alert
 │   └── backup.yml      ← Story 1.15: pg_dump semanal + encrypt + push + retention
-├── project-r/
+├── sparta/
 │   └── .env.example    ← SUPABASE_DB_URL + BACKUP_ENCRYPTION_KEY (existentes) + BACKUP_REPO_DEPLOY_KEY (a adicionar)
 └── _bmad-output/
 ```
@@ -431,7 +431,7 @@ ProjectR/
 - AR28: Backup encriptado armazenado em repositório privado
 - AR30: Gestão de secrets — nunca plaintext, apenas GitHub Actions secrets
 
-**Backup repo:** `git@github.com:anterosantos/project-r-backups.git` (privado)
+**Backup repo:** `git@github.com:anterosantos/sparta-backups.git` (privado)
 
 ---
 
@@ -443,16 +443,16 @@ ProjectR/
 - `SUPABASE_DB_URL` não existia como secret (não foi adicionado na Story 1.14 como esperado) — adicionado nesta story
 - Par de chaves SSH ed25519 gerado via Bash (PowerShell não suporta `-N ""`) e eliminado após uso
 - `BACKUP_ENCRYPTION_KEY` gerado via `openssl rand -base64 32` (Bash) — PowerShell não tem openssl disponível
-- Todos os 3 secrets confirmados em `ProjectR` → Settings → Secrets and variables → Actions
+- Todos os 3 secrets confirmados em `SPARTA` → Settings → Secrets and variables → Actions
 - YAML validado: todos os campos obrigatórios presentes, secrets apenas via `${{ secrets.* }}`, sem plaintext
 - `.env.example` actualizado com `BACKUP_REPO_DEPLOY_KEY` e comentário explicativo
-- Task 8.3 (teste manual com `workflow_dispatch`) ✅ — backup passou com sucesso: pg_dump OK (272866 bytes), encriptado, pushed para project-r-backups via SSH deploy key
+- Task 8.3 (teste manual com `workflow_dispatch`) ✅ — backup passou com sucesso: pg_dump OK (272866 bytes), encriptado, pushed para sparta-backups via SSH deploy key
 - Fixes aplicados durante testes: PGDG repo + postgresql-client-17 + update-alternatives (pg_dump v17), BACKUP_REPO_DEPLOY_KEY em base64 (evita problemas de formatação PEM), BACKUP_ENCRYPTION_KEY regenerado, Lighthouse CI throttling desativado
 
 ### AC Verification
 
 - AC #1 ✅ `.github/workflows/backup.yml` criado; cron `0 3 * * 0`; `workflow_dispatch`; job `backup` em `ubuntu-latest`
-- AC #2 ✅ `pg_dump` → `openssl enc -aes-256-cbc -pbkdf2 -iter 100000` → `rm plaintext` → push para `anterosantos/project-r-backups` via SSH deploy key; filename `YYYY-MM-DD-backup.sql.enc`
+- AC #2 ✅ `pg_dump` → `openssl enc -aes-256-cbc -pbkdf2 -iter 100000` → `rm plaintext` → push para `anterosantos/sparta-backups` via SSH deploy key; filename `YYYY-MM-DD-backup.sql.enc`
 - AC #3 ✅ Step `Enforce 12-Week Retention`; cutoff 84 dias; comparação lexicográfica ISO 8601; `git rm` + `git push`
 - AC #4 ✅ Step `Create Failure Issue` com `if: failure()`; label `backup-failure` idempotente; título `[ALERT] Backup: Failed (Run #N)`; `continue-on-error: true`
 - AC #5 ✅ Todos os secrets apenas via `${{ secrets.* }}`; `.env.example` documenta os 3 secrets
@@ -462,7 +462,7 @@ ProjectR/
 ## File List
 
 - `.github/workflows/backup.yml` — criado (workflow principal)
-- `project-r/.env.example` — modificado (adicionado `BACKUP_REPO_DEPLOY_KEY`)
+- `sparta/.env.example` — modificado (adicionado `BACKUP_REPO_DEPLOY_KEY`)
 - `_bmad-output/implementation-artifacts/1-15-github-actions-weekly-backup-workflow.md` — actualizado (tasks + status)
 - `_bmad-output/implementation-artifacts/sprint-status.yaml` — actualizado (status: review)
 
@@ -471,7 +471,7 @@ ProjectR/
 ## Change Log
 
 - 2026-05-17: Criado `.github/workflows/backup.yml` — pg_dump semanal domingo 03:00 UTC, AES-256-CBC+PBKDF2, push SSH deploy key, retenção 12 semanas, alerta imediato em falha (Dev Agent)
-- 2026-05-17: Actualizado `project-r/.env.example` — adicionado `BACKUP_REPO_DEPLOY_KEY` com comentário explicativo (Dev Agent)
+- 2026-05-17: Actualizado `sparta/.env.example` — adicionado `BACKUP_REPO_DEPLOY_KEY` com comentário explicativo (Dev Agent)
 
 ---
 
@@ -490,7 +490,7 @@ ProjectR/
 **Esforço estimado:** 3-5 horas (setup manual do repo de backups + YAML + testes)
 
 **Áreas de risco:**
-- Setup manual do repo `project-r-backups` é prerequisito — falhar aqui bloqueia tudo
+- Setup manual do repo `sparta-backups` é prerequisito — falhar aqui bloqueia tudo
 - Deploy key deve ter write access (erro comum: adicionar como read-only)
 - Repo de backups não pode estar vazio ao fazer clone (adicionar README inicial)
 - `pg_dump` de base grande pode demorar (free tier GitHub Actions: 6 horas por job — suficiente)

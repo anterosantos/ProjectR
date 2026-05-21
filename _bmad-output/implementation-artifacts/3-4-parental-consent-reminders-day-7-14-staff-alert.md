@@ -32,7 +32,7 @@ Para que o consentimento não expire silenciosamente e o staff possa intervir ju
 **Given** uma linha em `parental_consents` com `status='pending'` e `created_at` = hoje - 7 dias  
 **When** o job `parental_consent_reminders` corre  
 **Then** a Edge Function `send-parental-consent` é invocada com `{ consentId, includePrefix: true, prefixText: '[Lembrete]' }`  
-**And** o email é reenviado com subject "Lembrete: Consentimento parental — Project R"  
+**And** o email é reenviado com subject "Lembrete: Consentimento parental — SPARTA"  
 **And** o template HTML personaliza a copy com "Se já confirmou, pode ignorar este lembrete"  
 **And** um registo em `parental_consent_reminders_log` marca a tentativa (idempotência 24h)
 
@@ -42,7 +42,7 @@ Para que o consentimento não expire silenciosamente e o staff possa intervir ju
 
 **Given** uma linha em `parental_consents` com `status='pending'` e `created_at` = hoje - 14 dias  
 **When** o job `parental_consent_reminders` corre  
-**Then** a Edge Function `send-parental-consent` é invocada com subject "2º Lembrete: Consentimento parental — Project R"  
+**Then** a Edge Function `send-parental-consent` é invocada com subject "2º Lembrete: Consentimento parental — SPARTA"  
 **And** a copy enfatiza urgência ("Esta é a última tentativa de reenvio automático")  
 **And** um registo em `parental_consent_reminders_log` marca a tentativa
 
@@ -53,7 +53,7 @@ Para que o consentimento não expire silenciosamente e o staff possa intervir ju
 **Given** uma linha em `parental_consents` com `status='pending'` e `created_at` é ≥14 dias atrás  
 **When** o job `parental_consent_reminders` corre E nenhum alerta foi enviado ainda  
 **Then** um email é enviado para os coach + analistas do clube via Resend EU  
-**And** o subject é "Project R — Consentimento parental pendente"  
+**And** o subject é "SPARTA — Consentimento parental pendente"  
 **And** a copy é: "X jogadores têm consentimento parental por confirmar. Contacta as famílias ou rejeita a participação na plataforma."  
 **And** um registo em `parental_consent_reminders_log` com `kind='staff_alert'` marca o envio  
 **And** o template inclui lista de nomes dos jogadores (até 5, depois "... e mais X")
@@ -130,7 +130,7 @@ Para que o consentimento não expire silenciosamente e o staff possa intervir ju
 - [x] **Task 2: Atualizar Edge Function `send-parental-consent`** (AC #2, #3, #4)
   - [x] 2.1 Adicionar parâmetros opcionais ao request: `{ consentId, includePrefix?: boolean, prefixText?: string }`
   - [x] 2.2 Se `includePrefix=true`, personalizar o email:
-    - Subject: `${prefixText} Consentimento parental — Project R`
+    - Subject: `${prefixText} Consentimento parental — SPARTA`
     - Copy adicional: "Se já confirmou, pode ignorar." (day_7) / "última tentativa" (day_14)
   - [x] 2.3 Consent não-pending retorna `{ ok: true, skipped: true, reason: 'not_pending' }`
   - [x] 2.4 Idempotência gerida pela `parental_consent_reminders_log` na função PL/pgSQL
@@ -316,22 +316,22 @@ Target: **796+ testes passing** (atual) + 13 novos = **809+ passing**
 ## File List
 
 ### Novos ficheiros
-- `project-r/supabase/migrations/000172_pg_cron_consent_reminders.sql`
-- `project-r/supabase/migrations/000173_add_resend_tracking.sql`
-- `project-r/supabase/functions/staff-alert-consent/index.ts`
-- `project-r/supabase/functions/staff-alert-consent/deno.json`
-- `project-r/src/lib/cron/parental-consent-reminders.ts`
-- `project-r/src/app/(staff)/plantel/pending-consents-banner.tsx`
-- `project-r/src/app/(staff)/plantel/resend-consent-button.tsx`
-- `project-r/src/__tests__/lib/cron/parental_consent_reminders.test.ts`
-- `project-r/src/__tests__/app/plantel/pending-consents-banner.test.tsx`
+- `sparta/supabase/migrations/000172_pg_cron_consent_reminders.sql`
+- `sparta/supabase/migrations/000173_add_resend_tracking.sql`
+- `sparta/supabase/functions/staff-alert-consent/index.ts`
+- `sparta/supabase/functions/staff-alert-consent/deno.json`
+- `sparta/src/lib/cron/parental-consent-reminders.ts`
+- `sparta/src/app/(staff)/plantel/pending-consents-banner.tsx`
+- `sparta/src/app/(staff)/plantel/resend-consent-button.tsx`
+- `sparta/src/__tests__/lib/cron/parental_consent_reminders.test.ts`
+- `sparta/src/__tests__/app/plantel/pending-consents-banner.test.tsx`
 
 ### Ficheiros modificados
-- `project-r/supabase/functions/send-parental-consent/index.ts` — suporte includePrefix/prefixText
-- `project-r/src/lib/actions/consent.ts` — rate-limit + getPendingConsentsOver14Days
-- `project-r/src/lib/supabase/database.types.ts` — parental_consent_reminders_log + last_manual_resend_at
-- `project-r/src/app/(staff)/plantel/page.tsx` — integração do PendingConsentsBanner
-- `project-r/src/__tests__/lib/actions/consent.test.ts` — 2 novos testes rate-limit + mocks actualizados
+- `sparta/supabase/functions/send-parental-consent/index.ts` — suporte includePrefix/prefixText
+- `sparta/src/lib/actions/consent.ts` — rate-limit + getPendingConsentsOver14Days
+- `sparta/src/lib/supabase/database.types.ts` — parental_consent_reminders_log + last_manual_resend_at
+- `sparta/src/app/(staff)/plantel/page.tsx` — integração do PendingConsentsBanner
+- `sparta/src/__tests__/lib/actions/consent.test.ts` — 2 novos testes rate-limit + mocks actualizados
 
 ---
 

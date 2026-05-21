@@ -8,7 +8,7 @@ JWT missing `user_role` and `club_id` custom claims after user login, causing RL
 ### Step 1: Verify Auth Hook Configuration in Supabase Dashboard
 
 1. Go to [Supabase Dashboard](https://app.supabase.com)
-2. Select your Project R project
+2. Select your SPARTA project
 3. Navigate to **Authentication** → **Hooks** tab (if this tab doesn't exist, the hook may not be configured yet)
 4. Look for **Custom Access Token Hook** section
 5. Verify:
@@ -115,7 +115,7 @@ supabase auth hooks list
 ### If hook needs redeployment:
 
 ```bash
-cd project-r
+cd sparta
 
 # Check if hook is deployed
 supabase functions list

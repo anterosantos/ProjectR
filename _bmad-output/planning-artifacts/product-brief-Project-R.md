@@ -1,24 +1,24 @@
 ---
-document_title: "Product Brief: Project R"
+document_title: "Product Brief: SPARTA"
 status: "draft"
 created: "2026-05-01"
 updated: "2026-05-02"
 inputs:
   - "_bmad-output/planning-artifacts/research/market-solucoes-gratuitas-gestao-performance-futebol-research-2026-05-01.md"
   - "_bmad-output/planning-artifacts/research/domain-metricas-desempenho-atletas-futebol-11-research-2026-05-01.md"
-  - "_bmad-output/planning-artifacts/research/technical-stack-tecnico-project-r-research-2026-05-01.md"
+  - "_bmad-output/planning-artifacts/research/technical-stack-tecnico-sparta-research-2026-05-01.md"
   - "_bmad-output/brainstorming/brainstorming-session-2026-05-01-1000.md"
   - "_bmad-output/brainstorming/brainstorming-session-2026-05-01-1100.md"
-  - "docs/projectr.requirements.md"
+  - "docs/SPARTA.requirements.md"
 ---
 
-# Product Brief: Project R
+# Product Brief: SPARTA
 
 ## Sumário Executivo
 
 As lesões destroem épocas. Um jogador-chave que falha 6 semanas por sobrecarga acumulada não é azar — é informação que não chegou a tempo. A investigação em ciências do desporto demonstra que o risco de lesão aumenta 5 a 7 vezes quando o rácio de carga aguda/crónica de um atleta excede 1.5, e que questionários subjetivos de bem-estar detetam essa sobrecarga dias antes de se tornar visível no campo. Equipas profissionais usam esta metodologia de forma sistemática. Equipas amadoras, sem ferramentas acessíveis, continuam a decidir por intuição.
 
-O Project R é uma plataforma de gestão de performance desportiva, de custo zero, construída especificamente para futebol 11 amador. O seu propósito é simples: dar ao treinador, antes de cada convocatória, uma visão clara e objetiva do estado físico de cada jogador — para que a decisão de poupar ou jogar um atleta seja informada, não uma aposta. A plataforma é acedida pelo browser em qualquer dispositivo, sem instalação, sem custo de licença.
+O SPARTA é uma plataforma de gestão de performance desportiva, de custo zero, construída especificamente para futebol 11 amador. O seu propósito é simples: dar ao treinador, antes de cada convocatória, uma visão clara e objetiva do estado físico de cada jogador — para que a decisão de poupar ou jogar um atleta seja informada, não uma aposta. A plataforma é acedida pelo browser em qualquer dispositivo, sem instalação, sem custo de licença.
 
 A filosofia que orienta o projeto é deliberada: a tecnologia serve a decisão humana, não a substitui. O sistema fornece dados ao staff técnico; é o staff que os usa para ter conversas mais informadas e mais eficazes com os atletas. O contacto humano entre treinador e jogador não é reduzido — é melhorado, porque passa a ser fundamentado.
 
@@ -41,7 +41,7 @@ As alternativas existentes não resolvem o problema. Soluções profissionais co
 
 ## A Solução
 
-O Project R integra três componentes num único sistema acessível via browser:
+O SPARTA integra três componentes num único sistema acessível via browser:
 
 **1. Monitorização de Fadiga**
 Questionário de 5 dimensões (energia muscular, concentração/motivação, qualidade do sono, desconforto músculo-articular, estado emocional) aplicado pré e pós cada sessão. Tempo de preenchimento: menos de 2 minutos. Push notifications automáticas enviam o questionário no momento certo, sem intervenção do staff. Os dados dos jogadores são partilhados com a equipa técnica — que os usa para conduzir conversas individuais mais informadas, em vez de substituir esse contacto por feedback automático.
@@ -58,7 +58,7 @@ O elemento central da plataforma. Um semáforo verde/amarelo/vermelho por jogado
 
 ## O Que Nos Distingue
 
-| Dimensão | Project R | Alternativas gratuitas | Soluções profissionais |
+| Dimensão | SPARTA | Alternativas gratuitas | Soluções profissionais |
 | --- | --- | --- | --- |
 | Custo | €0 | €0 | €500–5.000+/ano |
 | Prevenção de lesões por ACWR | ✅ | ❌ | ✅ |
@@ -68,11 +68,11 @@ O elemento central da plataforma. Um semáforo verde/amarelo/vermelho por jogado
 | Decisão de convocatória em segundos | ✅ | ❌ | Parcial |
 | Filosofia humano-primeiro | ✅ | ❌ | ❌ |
 
-**Zero custo estruturalmente sustentável para o cenário-alvo.** O stack técnico (PWA + Supabase + Vercel) mantém-se integralmente gratuito para deployments de clube individual — o âmbito que o Project R serve. A análise técnica confirma folga confortável até 4 clubes em multi-tenancy partilhada antes de qualquer limite gratuito ser atingido; a partir desse ponto, ou se aceita o plano Pro do Supabase ($25/mês) ou se opta por self-hosting. Ao contrário de plataformas freemium que precisam de converter utilizadores para cobrir infraestrutura, o Project R pode manter o tier gratuito de forma credível para o seu segmento natural.
+**Zero custo estruturalmente sustentável para o cenário-alvo.** O stack técnico (PWA + Supabase + Vercel) mantém-se integralmente gratuito para deployments de clube individual — o âmbito que o SPARTA serve. A análise técnica confirma folga confortável até 4 clubes em multi-tenancy partilhada antes de qualquer limite gratuito ser atingido; a partir desse ponto, ou se aceita o plano Pro do Supabase ($25/mês) ou se opta por self-hosting. Ao contrário de plataformas freemium que precisam de converter utilizadores para cobrir infraestrutura, o SPARTA pode manter o tier gratuito de forma credível para o seu segmento natural.
 
-**Construído com treinadores, para treinadores.** O Project R é co-desenvolvido com a participação ativa de 3 treinadores que testam e validam cada decisão de produto. Não é uma ferramenta tecnológica adaptada ao futebol — é uma ferramenta de futebol construída com quem o pratica.
+**Construído com treinadores, para treinadores.** O SPARTA é co-desenvolvido com a participação ativa de 3 treinadores que testam e validam cada decisão de produto. Não é uma ferramenta tecnológica adaptada ao futebol — é uma ferramenta de futebol construída com quem o pratica.
 
-**Privacidade como princípio, não como checkbox.** Os dados de fadiga e bem-estar são dados de saúde na aceção do GDPR (Art. 9 — categoria especial). O Project R é desenhado com conformidade GDPR desde o primeiro dia, incluindo consentimento parental para atletas menores. Para clubes com exposição legal, esta garantia é um diferenciador real.
+**Privacidade como princípio, não como checkbox.** Os dados de fadiga e bem-estar são dados de saúde na aceção do GDPR (Art. 9 — categoria especial). O SPARTA é desenhado com conformidade GDPR desde o primeiro dia, incluindo consentimento parental para atletas menores. Para clubes com exposição legal, esta garantia é um diferenciador real.
 
 **Construído para todas as faixas etárias, desde os 13 anos.** O sistema aplica limiares ACWR diferenciados para jogadores em desenvolvimento (13–17 anos) versus seniores, com linguagem do questionário de fadiga adaptada para o escalão sub-14. Segue o princípio LTAD (Long-Term Athlete Development) — protocolo de monitorização individualizável e sustentável para jovens atletas, onde complexidade excessiva compromete a adesão.
 
@@ -144,7 +144,7 @@ Preenche o questionário de fadiga em menos de 2 minutos, recebe push notificati
 
 ## Visão
 
-Se o MVP validar a adoção, o Project R evolui em três horizontes:
+Se o MVP validar a adoção, o SPARTA evolui em três horizontes:
 
 **Horizonte 1 (meses 2–6):** Motor de correlação visível — gráficos individuais que ligam padrões de fadiga a desempenho em jogo por jogador. Expansão ao clube completo: múltiplas equipas, múltiplas faixas etárias, relatórios consolidados para direção técnica.
 

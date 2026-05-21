@@ -72,5 +72,5 @@ This folder contains the Test Architect (TEA) workflows converted to skill-drive
 
 - `SKILL.md` is the canonical entrypoint. `instructions.md` is a short summary for quick context.
 - `customize.toml` defines activation hooks, persistent facts, and the optional `on_complete` hook.
-- Output files typically use `{test_artifacts}` or `{project-root}` variables.
+- Output files typically use `{test_artifacts}` or `{spartaoot}` variables.
 - If a workflow produces multiple artifacts (e.g., system-level vs epic-level), the step file will specify which templates and output paths to use.

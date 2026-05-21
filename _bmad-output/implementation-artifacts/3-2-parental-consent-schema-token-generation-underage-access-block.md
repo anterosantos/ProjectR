@@ -138,7 +138,7 @@ Para que nenhum dado de saúde de um jogador de 13–15 anos seja recolhido sem 
 
 ### AC #9: Cobertura de testes (NFR54)
 
-**Given** `npm run test --run` em `project-r/`
+**Given** `npm run test --run` em `sparta/`
 **When** os testes correm
 **Then** cobertura ≥ 80% inclui:
 - `initiateParentalConsent`: token gerado, profiles actualizado, conflict detection
@@ -150,7 +150,7 @@ Para que nenhum dado de saúde de um jogador de 13–15 anos seja recolhido sem 
 ## Tasks / Subtasks
 
 - [x] **Task 1: Migração `000170_parental_consents.sql`** (AC #1, #2)
-  - [x] 1.1 Criar `project-r/supabase/migrations/000170_parental_consents.sql`
+  - [x] 1.1 Criar `sparta/supabase/migrations/000170_parental_consents.sql`
   - [x] 1.2 `CREATE EXTENSION IF NOT EXISTS citext;` (idempotente, necessário para `parent_email citext`)
   - [x] 1.3 `CREATE TABLE public.parental_consents` com todas as colunas e constraints
   - [x] 1.4 `CREATE UNIQUE INDEX idx_parental_consents_active_per_player ON public.parental_consents(player_id) WHERE status IN ('pending','confirmed')`
@@ -166,7 +166,7 @@ Para que nenhum dado de saúde de um jogador de 13–15 anos seja recolhido sem 
   - [x] 2.3 `npm run typecheck` sem erros
 
 - [x] **Task 3: Server action `consent.ts`** (AC #3, #7)
-  - [x] 3.1 Criar `project-r/src/lib/actions/consent.ts` com `"use server"`
+  - [x] 3.1 Criar `sparta/src/lib/actions/consent.ts` com `"use server"`
   - [x] 3.2 Importar `getServiceRoleClient`, `newId`, `createServerClient`
   - [x] 3.3 Definir `ConsentInitiateSchema = z.object({ playerId: z.string().uuid(), parentEmail: z.string().email() })`
   - [x] 3.4 Implementar `initiateParentalConsent` com validação, conflict detection, audit log
@@ -190,7 +190,7 @@ Para que nenhum dado de saúde de um jogador de 13–15 anos seja recolhido sem 
   - [x] 6.3 Bloco de consent gate antes do bloco `ROLE_ALLOWED_ROUTES`
 
 - [x] **Task 7: Página `/aguardar-consentimento`** (AC #7)
-  - [x] 7.1 Criar `project-r/src/app/(player)/aguardar-consentimento/page.tsx` (Server Component async)
+  - [x] 7.1 Criar `sparta/src/app/(player)/aguardar-consentimento/page.tsx` (Server Component async)
   - [x] 7.2 Buscar via `getPlayerConsentStatus` (service-role)
   - [x] 7.3 Mostrar `maskEmail(parentEmail)` e data de expiração formatada PT-PT
   - [x] 7.4 `ResendButton` Client Component stub
@@ -771,8 +771,8 @@ O cliente `SupabaseClient<Database>` criado em `updateSession` tem cookies confi
 ## Project Context Reference
 
 ```
-ProjectR/
-└── project-r/
+SPARTA/
+└── sparta/
     ├── supabase/
     │   ├── migrations/
     │   │   ├── 000160_profiles_updated_at.sql    ← último existente
@@ -839,21 +839,21 @@ claude-sonnet-4-6
 
 ### File List
 
-- `project-r/supabase/migrations/000170_parental_consents.sql` (NEW)
-- `project-r/src/lib/supabase/database.types.ts` (UPDATE — parental_consents + profiles.consent_status)
-- `project-r/src/lib/supabase/middleware.ts` (UPDATE — retornar supabase client)
-- `project-r/src/lib/actions/consent.ts` (NEW)
-- `project-r/src/lib/actions/players.ts` (UPDATE — createPlayer + parent_email hook)
-- `project-r/src/lib/schemas/players.ts` (UPDATE — parent_email ao PlayerCreateSchema)
-- `project-r/src/lib/utils/age.ts` (NEW)
-- `project-r/src/lib/utils/mask-email.ts` (NEW)
-- `project-r/src/app/(player)/aguardar-consentimento/page.tsx` (NEW)
-- `project-r/src/app/(player)/aguardar-consentimento/resend-button.tsx` (NEW)
-- `project-r/src/proxy.ts` (UPDATE — consent gate)
-- `project-r/src/__tests__/lib/actions/consent.test.ts` (NEW)
-- `project-r/src/__tests__/proxy/consent-gate.test.ts` (NEW)
-- `project-r/src/__tests__/lib/utils/age.test.ts` (NEW)
-- `project-r/src/__tests__/middleware.test.ts` (UPDATE — supabase mock para player tests)
+- `sparta/supabase/migrations/000170_parental_consents.sql` (NEW)
+- `sparta/src/lib/supabase/database.types.ts` (UPDATE — parental_consents + profiles.consent_status)
+- `sparta/src/lib/supabase/middleware.ts` (UPDATE — retornar supabase client)
+- `sparta/src/lib/actions/consent.ts` (NEW)
+- `sparta/src/lib/actions/players.ts` (UPDATE — createPlayer + parent_email hook)
+- `sparta/src/lib/schemas/players.ts` (UPDATE — parent_email ao PlayerCreateSchema)
+- `sparta/src/lib/utils/age.ts` (NEW)
+- `sparta/src/lib/utils/mask-email.ts` (NEW)
+- `sparta/src/app/(player)/aguardar-consentimento/page.tsx` (NEW)
+- `sparta/src/app/(player)/aguardar-consentimento/resend-button.tsx` (NEW)
+- `sparta/src/proxy.ts` (UPDATE — consent gate)
+- `sparta/src/__tests__/lib/actions/consent.test.ts` (NEW)
+- `sparta/src/__tests__/proxy/consent-gate.test.ts` (NEW)
+- `sparta/src/__tests__/lib/utils/age.test.ts` (NEW)
+- `sparta/src/__tests__/middleware.test.ts` (UPDATE — supabase mock para player tests)
 
 ## Change Log
 

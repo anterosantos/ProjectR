@@ -7,7 +7,7 @@ visual_tools: intermediate
 
 # Core Configuration Values
 user_name: Antero
-project_name: Project R
+project_name: SPARTA
 communication_language: Portuguese
 document_output_language: Portuguese
-output_folder: "{project-root}/_bmad-output"
+output_folder: "{spartaoot}/_bmad-output"

@@ -78,7 +78,7 @@ So that I can access the system independently and recover from forgotten credent
 
 ### Task 0 — Confirm Supabase Auth baseline
 
-- [x] Verify `project-r/.env.local` contains valid Supabase credentials.
+- [x] Verify `sparta/.env.local` contains valid Supabase credentials.
 - [x] Confirm `NEXT_PUBLIC_SUPABASE_URL` uses a HTTPS origin in production.
 - [x] Confirm `SUPABASE_SERVICE_ROLE_KEY` is present and never exposed to client bundle.
 
@@ -86,7 +86,7 @@ So that I can access the system independently and recover from forgotten credent
 
 **Purpose:** Provide a clean email/password login experience.
 
-**File location:** `project-r/src/app/login/page.tsx` or equivalent auth route.
+**File location:** `sparta/src/app/login/page.tsx` or equivalent auth route.
 
 **Requirements:**
 - [x] Render an accessible form with:
@@ -112,7 +112,7 @@ So that I can access the system independently and recover from forgotten credent
 
 **Purpose:** Revoke active session tokens and redirect to login.
 
-**File location:** `project-r/src/lib/supabase/auth.ts` or shared auth helper.
+**File location:** `sparta/src/lib/supabase/auth.ts` or shared auth helper.
 
 **Requirements:**
 - [x] Expose a `logout()` helper that calls Supabase `signOut()`.
@@ -128,7 +128,7 @@ So that I can access the system independently and recover from forgotten credent
 
 **Purpose:** Allow users to request a recovery email without enumeration leaks.
 
-**File location:** `project-r/src/app/recuperar-password/page.tsx`
+**File location:** `sparta/src/app/recuperar-password/page.tsx`
 
 **Requirements:**
 - [x] Render a single email input and submit button.
@@ -146,7 +146,7 @@ So that I can access the system independently and recover from forgotten credent
 
 **Purpose:** Accept recovery links and let the user choose a new password.
 
-**File location:** `project-r/src/app/reset-password/page.tsx` or `src/app/recuperar-password/[token]/page.tsx`
+**File location:** `sparta/src/app/reset-password/page.tsx` or `src/app/recuperar-password/[token]/page.tsx`
 
 **Requirements:**
 - [x] Detect the Supabase recovery token from the URL query or callback.
@@ -164,7 +164,7 @@ So that I can access the system independently and recover from forgotten credent
 
 **Purpose:** Ensure auth flows respect token expiry and protected routes require login.
 
-**File location:** `project-r/src/lib/supabase/middleware.ts` or `project-r/src/app/(auth)/layout.tsx`
+**File location:** `sparta/src/lib/supabase/middleware.ts` or `sparta/src/app/(auth)/layout.tsx`
 
 **Requirements:**
 - [x] Ensure protected pages redirect unauthenticated users to `/login`.
@@ -180,7 +180,7 @@ So that I can access the system independently and recover from forgotten credent
 
 **Purpose:** Verify auth UX and Supabase interaction.
 
-**File location:** `project-r/__tests__/auth-login.test.ts`
+**File location:** `sparta/__tests__/auth-login.test.ts`
 
 **Test cases:**
 - [x] Successful login redirects to role-specific route.
@@ -225,24 +225,24 @@ So that I can access the system independently and recover from forgotten credent
 
 **Patches:**
 
-- [x] [Review][Patch] P1 [CRITICAL] Middleware completamente inoperacional — reescrever com `createServerClient` de `@supabase/ssr` e cookie helpers; remover `createClient` e leitura manual de cookie `sb-auth-token` [`project-r/middleware.ts`]
-- [x] [Review][Patch] P2 [CRITICAL] `getCurrentUserWithRole` lê claim errado — substituir por `user.app_metadata?.user_role`; verificar nome exato do claim no auth hook; sem fallback em `user_metadata` [`project-r/src/lib/supabase/client.ts:1162–1165`]
-- [x] [Review][Patch] P3 [HIGH] Recovery link quebrado em PKCE — substituir validação `window.location.hash` por listener `onAuthStateChange` aguardando evento `PASSWORD_RECOVERY` [`project-r/src/app/reset-password/reset-password-form.tsx:662–665`]
-- [x] [Review][Patch] P4 [HIGH] `updatePassword` silencia erros de `signOut` — verificar resultado de `signOut({ scope: "global" })` e devolver erro se falhar (NFR18) [`project-r/src/lib/supabase/client.ts:1033–1040`]
-- [x] [Review][Patch] P5 [HIGH] `useProtectedSession` subscrição nunca limpa — mover cleanup `subscription?.unsubscribe()` para nível síncrono do `useEffect` [`project-r/src/hooks/useProtectedSession.ts:940–944`]
-- [x] [Review][Patch] P6 [HIGH] `NEXT_PUBLIC_APP_URL` ausente → `redirectTo` relativa — adicionar a `.env.example`; lançar erro se ausente em produção ou usar `window.location.origin` como fallback [`project-r/src/lib/supabase/client.ts:1062`]
-- [x] [Review][Patch] P7 [MEDIUM] AC #2 violado — mensagem "Email ou password são obrigatórios" → "Email ou password incorretos" na validação de campos vazios [`project-r/src/app/login/page.tsx:364–367`]
-- [x] [Review][Patch] P8 [MEDIUM] `LogoutButton` não redireciona se logout falhar — mover `router.push("/login")` para `finally` [`project-r/src/components/auth/logout-button.tsx:812–815`]
-- [x] [Review][Patch] P9 [MEDIUM] Recovery page: email vazio não mostra confirmação — chamar `setSubmitted(true)` sempre, independente da validação [`project-r/src/app/recuperar-password/page.tsx:498–501`]
-- [x] [Review][Patch] P10 [MEDIUM] Null-role após login não mostra erro — mostrar mensagem explícita quando role é null após autenticação bem-sucedida [`project-r/src/app/login/page.tsx:380–389`]
+- [x] [Review][Patch] P1 [CRITICAL] Middleware completamente inoperacional — reescrever com `createServerClient` de `@supabase/ssr` e cookie helpers; remover `createClient` e leitura manual de cookie `sb-auth-token` [`sparta/middleware.ts`]
+- [x] [Review][Patch] P2 [CRITICAL] `getCurrentUserWithRole` lê claim errado — substituir por `user.app_metadata?.user_role`; verificar nome exato do claim no auth hook; sem fallback em `user_metadata` [`sparta/src/lib/supabase/client.ts:1162–1165`]
+- [x] [Review][Patch] P3 [HIGH] Recovery link quebrado em PKCE — substituir validação `window.location.hash` por listener `onAuthStateChange` aguardando evento `PASSWORD_RECOVERY` [`sparta/src/app/reset-password/reset-password-form.tsx:662–665`]
+- [x] [Review][Patch] P4 [HIGH] `updatePassword` silencia erros de `signOut` — verificar resultado de `signOut({ scope: "global" })` e devolver erro se falhar (NFR18) [`sparta/src/lib/supabase/client.ts:1033–1040`]
+- [x] [Review][Patch] P5 [HIGH] `useProtectedSession` subscrição nunca limpa — mover cleanup `subscription?.unsubscribe()` para nível síncrono do `useEffect` [`sparta/src/hooks/useProtectedSession.ts:940–944`]
+- [x] [Review][Patch] P6 [HIGH] `NEXT_PUBLIC_APP_URL` ausente → `redirectTo` relativa — adicionar a `.env.example`; lançar erro se ausente em produção ou usar `window.location.origin` como fallback [`sparta/src/lib/supabase/client.ts:1062`]
+- [x] [Review][Patch] P7 [MEDIUM] AC #2 violado — mensagem "Email ou password são obrigatórios" → "Email ou password incorretos" na validação de campos vazios [`sparta/src/app/login/page.tsx:364–367`]
+- [x] [Review][Patch] P8 [MEDIUM] `LogoutButton` não redireciona se logout falhar — mover `router.push("/login")` para `finally` [`sparta/src/components/auth/logout-button.tsx:812–815`]
+- [x] [Review][Patch] P9 [MEDIUM] Recovery page: email vazio não mostra confirmação — chamar `setSubmitted(true)` sempre, independente da validação [`sparta/src/app/recuperar-password/page.tsx:498–501`]
+- [x] [Review][Patch] P10 [MEDIUM] Null-role após login não mostra erro — mostrar mensagem explícita quando role é null após autenticação bem-sucedida [`sparta/src/app/login/page.tsx:380–389`]
 - [x] [Review][Patch] P11 [MEDIUM] `AGENTS.md` e integration test referenciam `SUPABASE_ANON_KEY` (nome antigo) — atualizar para `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` [`AGENTS.md:149`, `__tests__/auth-hook.integration.test.ts:15`]
-- [x] [Review][Patch] P12 [LOW] Testes apenas verificam existência de funções — substituir por testes com Supabase mockado com cobertura comportamental real [`project-r/__tests__/auth-logout.test.ts`, `auth-protected.test.ts`, `auth-recovery.test.ts`, `auth-reset.test.ts`]
-- [x] [Review][Patch] P13 [LOW] `dotenv` não está em `devDependencies` — adicionar explicitamente [`project-r/package.json`]
-- [x] [Review][Patch] P14 [LOW] Reset de password sem mensagem de sucesso — mostrar confirmação antes de `router.push("/login")` [`project-r/src/app/reset-password/reset-password-form.tsx:702`]
-- [x] [Review][Patch] P15 [LOW] `isValidating: false` + erro mostrados simultaneamente — não renderizar inputs quando token é inválido [`project-r/src/app/reset-password/reset-password-form.tsx:666`]
+- [x] [Review][Patch] P12 [LOW] Testes apenas verificam existência de funções — substituir por testes com Supabase mockado com cobertura comportamental real [`sparta/__tests__/auth-logout.test.ts`, `auth-protected.test.ts`, `auth-recovery.test.ts`, `auth-reset.test.ts`]
+- [x] [Review][Patch] P13 [LOW] `dotenv` não está em `devDependencies` — adicionar explicitamente [`sparta/package.json`]
+- [x] [Review][Patch] P14 [LOW] Reset de password sem mensagem de sucesso — mostrar confirmação antes de `router.push("/login")` [`sparta/src/app/reset-password/reset-password-form.tsx:702`]
+- [x] [Review][Patch] P15 [LOW] `isValidating: false` + erro mostrados simultaneamente — não renderizar inputs quando token é inválido [`sparta/src/app/reset-password/reset-password-form.tsx:666`]
 
 **Deferred:**
 
-- [x] [Review][Defer] Rota `/` pública sem redirect para utilizadores autenticados [`project-r/src/app/page.tsx`] — deferred, TODO já documentado no código, abordado em story futura de navegação
+- [x] [Review][Defer] Rota `/` pública sem redirect para utilizadores autenticados [`sparta/src/app/page.tsx`] — deferred, TODO já documentado no código, abordado em story futura de navegação
 - [x] [Review][Defer] NFR17/NFR14 (1h expiry e HTTPS) não configurados em código — deferred, dependem de configuração Supabase dashboard e plataforma de deploy
-- [x] [Review][Defer] Alert `success` variant sobrescrito se shadcn for atualizado [`project-r/src/components/ui/alert.tsx:847`] — deferred, concern de Design System, não bug funcional
+- [x] [Review][Defer] Alert `success` variant sobrescrito se shadcn for atualizado [`sparta/src/components/ui/alert.tsx:847`] — deferred, concern de Design System, não bug funcional

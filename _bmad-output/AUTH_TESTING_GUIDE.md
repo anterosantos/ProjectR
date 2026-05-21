@@ -37,7 +37,7 @@ Tests the entire login flow and related functions.
 
 ### Run all tests
 ```bash
-cd project-r
+cd sparta
 npm run test
 ```
 

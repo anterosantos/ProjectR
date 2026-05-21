@@ -7,17 +7,17 @@
 # 2026-05-17: 1-15 → review (dev-story complete; backup.yml criado; AES-256-CBC+PBKDF2; SSH deploy key; retenção 12 semanas; alerta imediato; SUPABASE_DB_URL adicionado; AC #1-#5 verificados)
 # 2026-05-17: 1-16 → review (dev-story complete; lang=pt-PT; skip link; id=main-content em staff/player/login/recuperar-password/reset-password/offline; --focus-ring token; :focus-visible 2px; prefers-reduced-motion; 8 testes axe; 338/338 testes ✅; lint 0 erros; build ✅; AC #1-#7 verificados)
 # 2026-05-17: 1-16 → ready-for-dev (bmad-create-story: lang=pt-PT, skip link, id=main-content, --focus-ring token, :focus-visible, prefers-reduced-motion, vitest-axe testes)
-# 2026-05-17: 1-15 → ready-for-dev (bmad-create-story: pg_dump semanal domingo 03:00 UTC, AES-256-CBC+PBKDF2, SSH deploy key para project-r-backups, retenção 12 semanas por nome de ficheiro, alerta imediato em falha)
+# 2026-05-17: 1-15 → ready-for-dev (bmad-create-story: pg_dump semanal domingo 03:00 UTC, AES-256-CBC+PBKDF2, SSH deploy key para sparta-backups, retenção 12 semanas por nome de ficheiro, alerta imediato em falha)
 # 2026-05-17: 1-14 → done (code-review complete; 5 patches aplicados: supabase/setup-cli@v1 AC#5, workflow_dispatch, DATABASE_URL scoped, continue-on-error check-failures, FAILURES comment; 2 decisions descartadas; 2 deferred; todos os ACs verificados ✅)
 # 2026-05-17: 1-14 → review (dev-story complete; heartbeat.yml criado com psql+cron 6d, 2-strike detection via gh run list, issue creation com label heartbeat-alert; YAML validado; AC #1-#5 verificados)
 # 2026-05-17: 1-14 → ready-for-dev (bmad-create-story: PostgreSQL heartbeat pings every 6 days, 2-strike failure detection with GitHub issue, secure secrets management)
 # 2026-05-17: 1-13 → done (code-review complete; 1 decision-needed resolved (PWA ≥ 1.0 HTTP limitation documented), 5 patches applied (JWT validation, error handling, artifact retention, bundle validation already in place); all 8 ACs verified ✅; build ✅; ready for main)
 # 2026-05-16: 1-13 → ready-for-dev (bmad-create-story: ci.yml + bundle-size script + @lhci/cli + .lighthouserc.json + coverage thresholds + migration-validate via supabase/setup-cli; typecheck script; .github/workflows/ na raiz do repo)
 # 2026-05-16: 1-12 → done (code-review complete; 4 decisions resolved (2 accepted, 2 dismissed) + 9 patches applied: actor_id ON DELETE SET NULL nullable, regex validation domain.verb/snake_case, authenticated INSERT RLS policy, trackAppInitialized await, pg_cron idempotent DO block + no CREATE EXTENSION, logger stdout, context type, TelemetryPayloadSchema z.custom JSON, simple.test.ts import schemas; build ✅; 317/335 tests passing; 3 proxy pre-existing failures)
-# project: Project R
+# project: SPARTA
 # project_key: NOKEY
 # tracking_system: file-system
-# story_location: {project-root}/_bmad-output/implementation-artifacts
+# story_location: {spartaoot}/_bmad-output/implementation-artifacts
 
 # STATUS DEFINITIONS:
 # ==================
@@ -102,7 +102,7 @@ last_updated: "2026-05-21 (3-5 → done: code-review complete; 16 patches aplica
 # 2026-05-15: 1-6 → review (all 15 tasks done; 71/71 tests passing; build ✅; lint 0 errors; AC #1-#7 verified)
 # 2026-05-15: 1-6 → done (code review passed; merged & deployed to Vercel; multi-tenant RLS foundation live)
 # 2026-05-15: 1-8 → ready-for-dev (bmad-create-story analysis completed; comprehensive story file with 10 ACs, 7 pattern components, token system, button hierarchy)
-project: Project R
+project: SPARTA
 project_key: NOKEY
 tracking_system: file-system
 story_location: _bmad-output/implementation-artifacts

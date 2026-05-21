@@ -474,8 +474,8 @@ b07eaeb feat(outbox): implement outbox functionality...               ← padrõ
 ## Project Context Reference
 
 ```
-ProjectR/ (git root)
-├── project-r/                    ← Next.js app (working directory para npm commands)
+SPARTA/ (git root)
+├── sparta/                    ← Next.js app (working directory para npm commands)
 │   ├── src/
 │   │   ├── app/
 │   │   │   ├── layout.tsx        ← UPDATE: lang + skip link

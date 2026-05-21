@@ -39,21 +39,21 @@ so that the foundation is consistent, AI-implementable, and provider-agnostic fr
 
 5. **Zero acoplamento a Vercel (NFR58)**
    **Given** the provider-agnostic constraint (NFR58)
-   **When** o comando `rg "from ['\"]@vercel/" project-r/src/` é executado
+   **When** o comando `rg "from ['\"]@vercel/" sparta/src/` é executado
    **Then** não retorna resultados (exit code 1)
-   **And** dependências `@vercel/*` (analytics, speed-insights, og, etc.) não estão em `project-r/package.json`.
+   **And** dependências `@vercel/*` (analytics, speed-insights, og, etc.) não estão em `sparta/package.json`.
 
 ## Tasks / Subtasks
 
 - [x] **Task 0 — Preparar local do scaffold (Opção B confirmada)** ⚠️ FAZER PRIMEIRO (AC: #1)
-  - [x] **Decisão arquitetural (locked-in 2026-05-08, Antero):** o scaffold vive em subpasta `project-r/` (kebab-case, conforme [architecture.md#L997](_bmad-output/planning-artifacts/architecture.md#L997)). Os artefactos BMad (`_bmad-output/`, `.claude/`, etc.) ficam na raiz, separados do código aplicacional. Todas as paths nas stories futuras são relativas a `project-r/` (e.g., `project-r/src/app/`, `project-r/supabase/migrations/`).
-  - [x] **Estado actual do repo (verificado em 2026-05-08):** raiz contém `_bmad/`, `_bmad-output/`, `_bmad-cache/`, `.claude/`, e uma pasta `ProjectR/` (nome legacy, capital) que contém APENAS um `.git/` aninhado (sem package.json nem código).
+  - [x] **Decisão arquitetural (locked-in 2026-05-08, Antero):** o scaffold vive em subpasta `sparta/` (kebab-case, conforme [architecture.md#L997](_bmad-output/planning-artifacts/architecture.md#L997)). Os artefactos BMad (`_bmad-output/`, `.claude/`, etc.) ficam na raiz, separados do código aplicacional. Todas as paths nas stories futuras são relativas a `sparta/` (e.g., `sparta/src/app/`, `sparta/supabase/migrations/`).
+  - [x] **Estado actual do repo (verificado em 2026-05-08):** raiz contém `_bmad/`, `_bmad-output/`, `_bmad-cache/`, `.claude/`, e uma pasta `SPARTA/` (nome legacy, capital) que contém APENAS um `.git/` aninhado (sem package.json nem código).
   - [x] **Limpeza pré-scaffold:**
-    - [x] Remover a pasta `ProjectR/` legacy completa (apenas tem `.git/` aninhado vazio): `Remove-Item -Recurse -Force ProjectR` (PowerShell). O repo git principal está em `c:\Users\anter\Documents\GitHub\ProjectR\.git` e não é afectado.
+    - [x] Remover a pasta `SPARTA/` legacy completa (apenas tem `.git/` aninhado vazio): `Remove-Item -Recurse -Force SPARTA` (PowerShell). O repo git principal está em `c:\Users\anter\Documents\GitHub\SPARTA\.git` e não é afectado.
     - [x] Confirmar `git status` continua a mostrar repo principal saudável.
-  - [x] **Executar scaffold:** a partir da raiz do repositório, `npx create-next-app@latest project-r --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm`. Cria `project-r/` como subdiretório isolado.
-  - [x] **Não criar git aninhado:** o `create-next-app` pode tentar inicializar git em `project-r/.git/`. Se acontecer, eliminar `project-r/.git/` — o repo único é o da raiz.
-  - [x] **Todos os comandos `npm`/`npx` das tasks seguintes correm a partir de `project-r/`** (não da raiz). Considerar `cd project-r` no início da sessão dev.
+  - [x] **Executar scaffold:** a partir da raiz do repositório, `npx create-next-app@latest sparta --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm`. Cria `sparta/` como subdiretório isolado.
+  - [x] **Não criar git aninhado:** o `create-next-app` pode tentar inicializar git em `sparta/.git/`. Se acontecer, eliminar `sparta/.git/` — o repo único é o da raiz.
+  - [x] **Todos os comandos `npm`/`npx` das tasks seguintes correm a partir de `sparta/`** (não da raiz). Considerar `cd sparta` no início da sessão dev.
 
 - [x] **Task 1 — Scaffold base Next.js** (AC: #1, #5)
   - [x] Executar o `create-next-app` com as flags exatas conforme a opção escolhida em Task 0.
@@ -110,7 +110,7 @@ so that the foundation is consistent, AI-implementable, and provider-agnostic fr
 
 ### Files to CREATE (esta história)
 
-> **Convenção de paths (Opção B):** todos os caminhos abaixo são relativos a `project-r/` (subpasta do scaffold). A estrutura completa em [architecture.md#L996-L1132](_bmad-output/planning-artifacts/architecture.md#L996) (incluindo `docs/`, `.github/workflows/`, `supabase/`, `scripts/`) vive dentro de `project-r/`. Apenas `_bmad/`, `_bmad-output/`, `_bmad-cache/`, `.claude/` permanecem na raiz do repo (tooling BMad, não aplicação).
+> **Convenção de paths (Opção B):** todos os caminhos abaixo são relativos a `sparta/` (subpasta do scaffold). A estrutura completa em [architecture.md#L996-L1132](_bmad-output/planning-artifacts/architecture.md#L996) (incluindo `docs/`, `.github/workflows/`, `supabase/`, `scripts/`) vive dentro de `sparta/`. Apenas `_bmad/`, `_bmad-output/`, `_bmad-cache/`, `.claude/` permanecem na raiz do repo (tooling BMad, não aplicação).
 
 - `package.json` (gerado + editado — engines + script `dev`)
 - `tsconfig.json` (gerado + editado — `noUncheckedIndexedAccess: true`)
@@ -127,9 +127,9 @@ so that the foundation is consistent, AI-implementable, and provider-agnostic fr
 - [x] `npm run dev` arranca em <30s sem warnings críticos.
 - [x] `npm run build` exit 0.
 - [x] `npx vitest run` exit 0.
-- [x] `rg "from ['\"]@vercel/" project-r/src/` retorna 0 matches.
-- [x] Pasta legacy `ProjectR/` removida; `project-r/` criada na raiz com scaffold válido (Opção B).
-- [x] Nenhum `.git` aninhado em `project-r/`.
+- [x] `rg "from ['\"]@vercel/" sparta/src/` retorna 0 matches.
+- [x] Pasta legacy `SPARTA/` removida; `sparta/` criada na raiz com scaffold válido (Opção B).
+- [x] Nenhum `.git` aninhado em `sparta/`.
 - [x] Sprint-status atualizado: `1-1-...: done`, `epic-1: in-progress`.
 
 ### Files NOT to create (deferir para outras stories)
@@ -194,12 +194,12 @@ claude-opus-4-7 (Claude Code CLI · 2026-05-08)
 - ✅ AC #1 — `create-next-app` corrido com flags exatas; `tsconfig.json` tem `strict: true` + `noUncheckedIndexedAccess: true`; `package.json` declara `"engines": { "node": ">=22 <23" }`; `.nvmrc` = `22`.
 - ✅ AC #2 — Sequência AR2 honrada (7 grupos `npm install` em ordem, mais shadcn init e dev deps). Todas as 13 deps runtime + 7 dev deps presentes em `package.json` (ver File List abaixo).
 - ✅ AC #3 — `npm run dev` (script `next dev --webpack`) arrancou em 607ms; `curl http://localhost:3000/` → HTTP 200 (5.3s primeiro hit, normal para JIT inicial); homepage demo do create-next-app renderizou.
-- ✅ AC #4 — `globals.css` declara `@theme inline { ... }` com tokens shadcn defaults (background, foreground, primary, secondary, muted, accent, destructive, border, input, ring, etc.). Tokens canónicos Project R (`signal-{ready,caution,alert,info,neutral}`) ficam para Story 1.8 (UX-DR1–UX-DR4) — registado em `docs/architecture/violations.md` como deferred-to-1.8.
-- ✅ AC #5 — `rg "from ['\"]@vercel/" project-r/src/` → 0 matches; `@vercel/*` ausente de `package.json`.
+- ✅ AC #4 — `globals.css` declara `@theme inline { ... }` com tokens shadcn defaults (background, foreground, primary, secondary, muted, accent, destructive, border, input, ring, etc.). Tokens canónicos SPARTA (`signal-{ready,caution,alert,info,neutral}`) ficam para Story 1.8 (UX-DR1–UX-DR4) — registado em `docs/architecture/violations.md` como deferred-to-1.8.
+- ✅ AC #5 — `rg "from ['\"]@vercel/" sparta/src/` → 0 matches; `@vercel/*` ausente de `package.json`.
 - ✅ Build limpo: `npm run build` → exit 0, página `/` prerendered como static.
 - ✅ Lint limpo: `npm run lint` → exit 0.
 - ✅ Vitest: `npx vitest run` → exit 0 (zero testes, runner OK).
-- ✅ Pasta legacy `ProjectR/` removida; `project-r/` criada na raiz; nenhum `.git` aninhado.
+- ✅ Pasta legacy `SPARTA/` removida; `sparta/` criada na raiz; nenhum `.git` aninhado.
 - ✅ Estrutura de pastas com `.gitkeep` criada conforme [architecture.md#L996-L1132](../planning-artifacts/architecture.md#L996).
 - ✅ `src/app/page.tsx` marcado com `// TODO(story-1.9): replace with role-based redirect`.
 - ✅ `docs/architecture/violations.md` criado com 3 entradas (Base UI vs Radix resolvido; Button 6→3 variantes deferred 1.8; token vocabulary deferred 1.8).
@@ -209,76 +209,76 @@ claude-opus-4-7 (Claude Code CLI · 2026-05-08)
 
 **Created (story-owned):**
 
-- `project-r/.editorconfig`
-- `project-r/.nvmrc`
-- `project-r/.prettierrc.json`
-- `project-r/vitest.config.ts`
-- `project-r/vitest.setup.ts`
-- `project-r/docs/architecture/violations.md`
-- `project-r/src/components/patterns/.gitkeep`
-- `project-r/src/components/domain/.gitkeep`
-- `project-r/src/lib/supabase/.gitkeep`
-- `project-r/src/lib/outbox/.gitkeep`
-- `project-r/src/lib/readiness/.gitkeep`
-- `project-r/src/lib/tokens/.gitkeep`
-- `project-r/src/lib/actions/.gitkeep`
-- `project-r/src/lib/schemas/.gitkeep`
-- `project-r/src/lib/i18n/pt-PT/.gitkeep`
-- `project-r/src/lib/push/.gitkeep`
-- `project-r/src/lib/pwa/.gitkeep`
-- `project-r/src/hooks/.gitkeep`
-- `project-r/src/stores/.gitkeep`
-- `project-r/src/types/.gitkeep`
-- `project-r/src/emails/.gitkeep`
-- `project-r/__fixtures__/.gitkeep`
-- `project-r/__tests__/.gitkeep`
-- `project-r/supabase/migrations/.gitkeep`
-- `project-r/supabase/functions/.gitkeep`
-- `project-r/scripts/.gitkeep`
-- `project-r/docs/architecture/.gitkeep`
-- `project-r/docs/architecture/runbooks/.gitkeep`
-- `project-r/docs/architecture/adr/.gitkeep`
-- `project-r/docs/compliance/.gitkeep`
-- `project-r/docs/compliance/policies/.gitkeep`
-- `project-r/public/icons/.gitkeep`
-- `project-r/public/animations/.gitkeep`
-- `project-r/public/illustrations/.gitkeep`
+- `sparta/.editorconfig`
+- `sparta/.nvmrc`
+- `sparta/.prettierrc.json`
+- `sparta/vitest.config.ts`
+- `sparta/vitest.setup.ts`
+- `sparta/docs/architecture/violations.md`
+- `sparta/src/components/patterns/.gitkeep`
+- `sparta/src/components/domain/.gitkeep`
+- `sparta/src/lib/supabase/.gitkeep`
+- `sparta/src/lib/outbox/.gitkeep`
+- `sparta/src/lib/readiness/.gitkeep`
+- `sparta/src/lib/tokens/.gitkeep`
+- `sparta/src/lib/actions/.gitkeep`
+- `sparta/src/lib/schemas/.gitkeep`
+- `sparta/src/lib/i18n/pt-PT/.gitkeep`
+- `sparta/src/lib/push/.gitkeep`
+- `sparta/src/lib/pwa/.gitkeep`
+- `sparta/src/hooks/.gitkeep`
+- `sparta/src/stores/.gitkeep`
+- `sparta/src/types/.gitkeep`
+- `sparta/src/emails/.gitkeep`
+- `sparta/__fixtures__/.gitkeep`
+- `sparta/__tests__/.gitkeep`
+- `sparta/supabase/migrations/.gitkeep`
+- `sparta/supabase/functions/.gitkeep`
+- `sparta/scripts/.gitkeep`
+- `sparta/docs/architecture/.gitkeep`
+- `sparta/docs/architecture/runbooks/.gitkeep`
+- `sparta/docs/architecture/adr/.gitkeep`
+- `sparta/docs/compliance/.gitkeep`
+- `sparta/docs/compliance/policies/.gitkeep`
+- `sparta/public/icons/.gitkeep`
+- `sparta/public/animations/.gitkeep`
+- `sparta/public/illustrations/.gitkeep`
 
 **Created by `create-next-app` / shadcn (kept as scaffolded, modified where noted):**
 
-- `project-r/package.json` (modified: engines, scripts.dev `--webpack`, scripts.test/test:watch)
-- `project-r/package-lock.json`
-- `project-r/tsconfig.json` (modified: `noUncheckedIndexedAccess: true`)
-- `project-r/eslint.config.mjs` (modified: comment explaining no jsx-a11y duplicate)
-- `project-r/next.config.ts`
-- `project-r/postcss.config.mjs`
-- `project-r/components.json`
-- `project-r/AGENTS.md`
-- `project-r/CLAUDE.md`
-- `project-r/README.md`
-- `project-r/next-env.d.ts`
-- `project-r/.gitignore` (modified: `!.env.example` re-include)
-- `project-r/src/app/globals.css` (modified: header comment + shadcn-managed tokens)
-- `project-r/src/app/layout.tsx`
-- `project-r/src/app/page.tsx` (modified: TODO comment for Story 1.9)
-- `project-r/src/components/ui/button.tsx` (shadcn Radix preset Nova)
-- `project-r/src/lib/utils.ts` (shadcn `cn()`)
-- `project-r/public/favicon.ico`, `public/next.svg`, `public/vercel.svg` (template assets)
+- `sparta/package.json` (modified: engines, scripts.dev `--webpack`, scripts.test/test:watch)
+- `sparta/package-lock.json`
+- `sparta/tsconfig.json` (modified: `noUncheckedIndexedAccess: true`)
+- `sparta/eslint.config.mjs` (modified: comment explaining no jsx-a11y duplicate)
+- `sparta/next.config.ts`
+- `sparta/postcss.config.mjs`
+- `sparta/components.json`
+- `sparta/AGENTS.md`
+- `sparta/CLAUDE.md`
+- `sparta/README.md`
+- `sparta/next-env.d.ts`
+- `sparta/.gitignore` (modified: `!.env.example` re-include)
+- `sparta/src/app/globals.css` (modified: header comment + shadcn-managed tokens)
+- `sparta/src/app/layout.tsx`
+- `sparta/src/app/page.tsx` (modified: TODO comment for Story 1.9)
+- `sparta/src/components/ui/button.tsx` (shadcn Radix preset Nova)
+- `sparta/src/lib/utils.ts` (shadcn `cn()`)
+- `sparta/public/favicon.ico`, `public/next.svg`, `public/vercel.svg` (template assets)
 
 **Removed:**
 
-- `ProjectR/` (legacy folder containing nested empty `.git/`)
+- `SPARTA/` (legacy folder containing nested empty `.git/`)
 
 **Out of scope for this story (created by other stories):**
 
-- `project-r/src/middleware.ts` → Story 1.6/1.9
-- `project-r/.env.example` → Story 1.2
-- `project-r/.github/workflows/{ci,heartbeat,backup}.yml` → Stories 1.13/1.14/1.15
-- `project-r/src/app/sw.ts` → Story 1.11
-- `project-r/supabase/migrations/*.sql` → Stories 1.2/1.3+
+- `sparta/src/middleware.ts` → Story 1.6/1.9
+- `sparta/.env.example` → Story 1.2
+- `sparta/.github/workflows/{ci,heartbeat,backup}.yml` → Stories 1.13/1.14/1.15
+- `sparta/src/app/sw.ts` → Story 1.11
+- `sparta/supabase/migrations/*.sql` → Stories 1.2/1.3+
 
 ### Change Log
 
 | Date | Author | Change |
 | --- | --- | --- |
-| 2026-05-08 | dev-story (claude-opus-4-7) | Story 1.1 implementada: scaffold `project-r/` (Opção B), Next.js 16.2.6 + React 19.2.4 + Tailwind v4 + shadcn (Radix preset Nova) + Supabase + Serwist + Dexie + TanStack + Zustand + RHF + Zod + date-fns + recharts; Vitest + RTL + axe; tsconfig strict + noUncheckedIndexedAccess; engines Node 22 LTS; `next dev --webpack` (não Turbopack); estrutura de pastas com `.gitkeep`; violations log iniciado. AC #1–#5 verificados. Status → review. |
+| 2026-05-08 | dev-story (claude-opus-4-7) | Story 1.1 implementada: scaffold `sparta/` (Opção B), Next.js 16.2.6 + React 19.2.4 + Tailwind v4 + shadcn (Radix preset Nova) + Supabase + Serwist + Dexie + TanStack + Zustand + RHF + Zod + date-fns + recharts; Vitest + RTL + axe; tsconfig strict + noUncheckedIndexedAccess; engines Node 22 LTS; `next dev --webpack` (não Turbopack); estrutura de pastas com `.gitkeep`; violations log iniciado. AC #1–#5 verificados. Status → review. |

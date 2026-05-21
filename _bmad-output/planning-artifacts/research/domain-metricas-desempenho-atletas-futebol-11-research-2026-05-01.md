@@ -22,7 +22,7 @@ source_verification: true
 
 ## Research Overview
 
-A monitorização de atletas baseada em dados deixou de ser exclusividade dos clubes de elite. Em 2026, a evidência científica é inequívoca: equipas que integram métricas de fadiga, carga de treino e performance estatística tomam decisões mais proativas, reduzem lesões e maximizam o rendimento individual e coletivo. Esta pesquisa examina o domínio na sua totalidade — do impacto fisiológico das métricas ao quadro regulatório para menores — e fornece recomendações estratégicas concretas para o Project R.
+A monitorização de atletas baseada em dados deixou de ser exclusividade dos clubes de elite. Em 2026, a evidência científica é inequívoca: equipas que integram métricas de fadiga, carga de treino e performance estatística tomam decisões mais proativas, reduzem lesões e maximizam o rendimento individual e coletivo. Esta pesquisa examina o domínio na sua totalidade — do impacto fisiológico das métricas ao quadro regulatório para menores — e fornece recomendações estratégicas concretas para o SPARTA.
 
 A análise cobre quatro categorias fundamentais de métricas (físicas/GPS, fisiológicas, técnico-táticas e bem-estar subjetivo), as metodologias científicas estabelecidas (ACWR, Session-RPE, xG, PPDA), os requisitos legais críticos do RGPD para dados de saúde e menores em Portugal, e as tendências tecnológicas que irão remodelar a monitorização nos próximos 3-5 anos. A faixa etária coberta parte dos 13 anos, incluindo escalões de formação, o que introduz obrigações regulatórias específicas (consentimento parental) e considerações de adaptação de métricas para atletas em desenvolvimento.
 
@@ -179,7 +179,7 @@ O **Acute:Chronic Workload Ratio (ACWR)** é a metodologia mais utilizada para m
 - Recomendação prática: aumentos semanais de carga ≤ 10% para minimizar risco de lesão
 - **EWMA** (Exponentially Weighted Moving Average) é mais sensível a variações dia-a-dia do que o método de Rolling Average
 
-O ACWR é o fundamento científico direto para o **Índice de Carga Acumulada** do Project R (janelas de 7 e 30 dias, semáforo verde/amarelo/vermelho).
+O ACWR é o fundamento científico direto para o **Índice de Carga Acumulada** do SPARTA (janelas de 7 e 30 dias, semáforo verde/amarelo/vermelho).
 
 _Confiança: Alta — revisão sistemática com meta-análise em múltiplos estudos_
 _Fonte: [PMC — ACWR Systematic Review and Meta-Analysis](https://pmc.ncbi.nlm.nih.gov/articles/PMC12487117/) · [PubMed — Premier League ACWR Study](https://pubmed.ncbi.nlm.nih.gov/30792258/)_
@@ -197,7 +197,7 @@ O **Session-RPE** (Rating of Perceived Exertion × duração da sessão) é o m�
 
 **Limitação:** Não existe ainda consenso sobre "boas práticas" na sua aplicação em futebol profissional — o método é válido mas a implementação é heterogénea.
 
-**Relevância para o Project R:** O Session-RPE complementa os questionários de fadiga de 5 dimensões — a perceção de esforço pós-sessão é a ponte entre o esforço físico objetivo e o estado subjetivo do atleta.
+**Relevância para o SPARTA:** O Session-RPE complementa os questionários de fadiga de 5 dimensões — a perceção de esforço pós-sessão é a ponte entre o esforço físico objetivo e o estado subjetivo do atleta.
 
 _Confiança: Alta — evidência acumulada em décadas de investigação_
 _Fonte: [PMC — Session-RPE Validity and Ecological Usefulness](https://pmc.ncbi.nlm.nih.gov/articles/PMC5673663/) · [PubMed — RPE-based Training Load in Soccer](https://pubmed.ncbi.nlm.nih.gov/15179175/)_
@@ -239,7 +239,7 @@ Os questionários de bem-estar são a metodologia mais acessível e a segunda ma
 - Dor muscular / desconforto articular
 - Concentração / motivação
 
-Cada dimensão pontuada numa escala de 5 pontos. O Project R cobre exatamente estas 5 dimensões, alinhado com a prática científica estabelecida.
+Cada dimensão pontuada numa escala de 5 pontos. O SPARTA cobre exatamente estas 5 dimensões, alinhado com a prática científica estabelecida.
 
 **O que a evidência diz sobre o valor preditivo:**
 
@@ -248,7 +248,7 @@ Cada dimensão pontuada numa escala de 5 pontos. O Project R cobre exatamente es
 - A utilidade real está no **padrão individual ao longo do tempo** — não num valor isolado — e na **identificação de desvios** face à norma do atleta
 - **Fadiga elevada correlaciona-se com risco aumentado de lesão não-contacto** — este é o indicador de alerta mais valioso
 
-**Implicação direta para o Project R:** A Correlação Fadiga × Performance e a Curva de Recuperação Individual ganham valor precisamente porque analisam padrões ao longo do tempo para cada atleta, não métricas isoladas — alinhado com a melhor evidência científica disponível.
+**Implicação direta para o SPARTA:** A Correlação Fadiga × Performance e a Curva de Recuperação Individual ganham valor precisamente porque analisam padrões ao longo do tempo para cada atleta, não métricas isoladas — alinhado com a melhor evidência científica disponível.
 
 _Confiança: Alta — múltiplas revisões sistemáticas_
 _Fonte: [PMC — Subjective Self-Report Measures in Team Sports](https://pmc.ncbi.nlm.nih.gov/articles/PMC7534939/) · [PMC — Subjective vs Objective Measures](https://pmc.ncbi.nlm.nih.gov/articles/PMC4789708/) · [PLOS One — Wellness and Training Load in Professional Soccer](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0289374)_
@@ -261,7 +261,7 @@ Mais de 80% dos clubes profissionais utilizam uma ou mais formas de tecnologia d
 **Clubes Amadores/Semi-Profissionais:**
 Continuam a depender maioritariamente de observação e intuição. As barreiras são: custo das plataformas, complexidade técnica e falta de literacia de dados nos treinadores. A grande maioria não recolhe dados de bem-estar de forma sistemática e raramente integra estatísticas de jogo com dados físicos.
 
-**O gap que o Project R endereça:** Oferecer a equipas amadoras a integração de dados que hoje só existe em clubes profissionais, a custo zero.
+**O gap que o SPARTA endereça:** Oferecer a equipas amadoras a integração de dados que hoje só existe em clubes profissionais, a custo zero.
 
 _Fonte: [Tandfonline — Data Analytics in Football Industry Survey](https://www.tandfonline.com/doi/full/10.1080/24733938.2024.2341837) · [ISSPF — Performance Tracking in Professional Football](https://www.isspf.com/articles/performance-tracking-in-professional-football/)_
 
@@ -273,7 +273,7 @@ _Fonte: [Tandfonline — Data Analytics in Football Industry Survey](https://www
 
 A recolha de dados de fadiga, bem-estar e métricas físicas de atletas constitui processamento de **dados de categorias especiais** ao abrigo do Regulamento Geral de Proteção de Dados (RGPD / GDPR). O Artigo 9.º do RGPD proíbe o processamento desta categoria de dados salvo em situações excecionais específicas.
 
-**O que qualifica como dados de categoria especial no contexto do Project R:**
+**O que qualifica como dados de categoria especial no contexto do SPARTA:**
 
 - Dados de questionários de fadiga (estado de saúde, bem-estar físico e emocional)
 - Peso e altura com histórico temporal (dados de saúde)
@@ -308,7 +308,7 @@ Portugal fixou a **idade de consentimento em 13 anos** — entre os limites mais
 - Direito de oposição a qualquer momento pelo próprio ou pelo responsável parental
 
 **Risco de consentimento em contexto de equipa:**
-A Autoridade reguladora europeia alerta que em contexto desportivo coletivo, o consentimento pode não ser considerado **livre** — atletas podem sentir pressão para consentir para não prejudicar a equipa. O Project R deve ponderar bases legítimas alternativas ao consentimento puro (ex.: interesse legítimo com análise de impacto).
+A Autoridade reguladora europeia alerta que em contexto desportivo coletivo, o consentimento pode não ser considerado **livre** — atletas podem sentir pressão para consentir para não prejudicar a equipa. O SPARTA deve ponderar bases legítimas alternativas ao consentimento puro (ex.: interesse legítimo com análise de impacto).
 
 _Confiança: Alta — posição estabelecida das autoridades de proteção de dados_
 _Fonte: [Recording Law — Portugal Data Privacy Laws 2026](https://www.recordinglaw.com/world-laws/world-data-privacy-laws/portugal-data-privacy-laws/) · [Architecture & Governance — Biometric Data and Athletes](https://www.architectureandgovernance.com/applications-technology/biometric-data-and-athletes-privacy-law-and-compliance-implications/) · [Brodies — Sports Technology and GDPR](https://brodies.com/insights/media-broadcasting-and-sports/sports-technology-and-the-gdpr-data-privacy-concerns-in-sports-analysis/)_
@@ -317,7 +317,7 @@ _Fonte: [Recording Law — Portugal Data Privacy Laws 2026](https://www.recordin
 
 A **Comissão Nacional de Proteção de Dados (CNPD)** é a autoridade supervisora em Portugal. Em 2025, a CNPD anunciou intenção de **aumentar a eficiência das suas ações sancionatórias** — sinal claro de fiscalização mais ativa, incluindo em contextos desportivos.
 
-**Obrigações práticas para o Project R:**
+**Obrigações práticas para o SPARTA:**
 
 | Obrigação | Descrição | Prioridade |
 | --------- | --------- | ---------- |
@@ -332,7 +332,7 @@ _Fonte: [CMS — GDPR Enforcement in Portugal](https://cms.law/en/swe/publicatio
 
 ### Normas de Desenvolvimento de Atletas Jovens — LTAD
 
-O modelo **Long-Term Athlete Development (LTAD)** é o quadro científico de referência para monitorização de atletas jovens. Para atletas masculinos dos 12 aos 16 anos (faixa etária crítica coberta pelo Project R), as boas práticas são:
+O modelo **Long-Term Athlete Development (LTAD)** é o quadro científico de referência para monitorização de atletas jovens. Para atletas masculinos dos 12 aos 16 anos (faixa etária crítica coberta pelo SPARTA), as boas práticas são:
 
 **Princípios de monitorização em jovens atletas:**
 
@@ -342,7 +342,7 @@ O modelo **Long-Term Athlete Development (LTAD)** é o quadro científico de ref
 - O GPS tracking e o TRIMP são os métodos externos mais comuns — mas dependem de equipamento
 - Os **limiares de carga segura são distintos dos adultos** — jovens em fase de crescimento têm maior vulnerabilidade a sobrecarga
 
-**Implicação para o Project R:**
+**Implicação para o SPARTA:**
 Os questionários de fadiga de 5 dimensões são adequados para atletas jovens. No entanto, a linguagem deve ser **testada e validada para faixas etárias a partir dos 13 anos** — o vocabulário de "desconforto articular" ou "estado emocional" pode precisar de simplificação para sub-14.
 
 _Fonte: [MDPI — Training, Wellbeing and Recovery Load Monitoring in Female Youth Athletes](https://www.mdpi.com/1660-4601/19/18/11463) · [Complementary Training — LTAD Framework for Academy Football](https://complementarytraining.com/a-comprehensive-framework-for-academy-football-development-introducing-the-long-term-athletic-development-resource/)_
@@ -357,7 +357,7 @@ A investigação recente sublinha a necessidade de estabelecer uma **soberania d
 
 _Fonte: [Frontiers — Athlete Data Sovereignty](https://www.frontiersin.org/journals/sports-and-active-living/articles/10.3389/fspor.2025.1742484/full)_
 
-### Avaliação de Risco Regulatório para o Project R
+### Avaliação de Risco Regulatório para o SPARTA
 
 | Risco | Probabilidade | Impacto | Mitigação |
 | ----- | ------------- | ------- | --------- |
@@ -416,7 +416,7 @@ O mercado de wearables desportivos atingiu **USD 94,17 mil milhões em 2025** (e
 - **Monitorização de ativação muscular** — identificação de grupos musculares em sobrecarga
 
 **Barreira crítica para equipas amadoras e jovens:**
-O custo dos sistemas de wearables de alta performance continua elevado, criando uma **barreira de acessibilidade** para equipas de menor dimensão e escalões jovens. Esta barreira valida a abordagem do Project R: questionários subjetivos como substituto viável e de custo zero para clubes sem orçamento para GPS.
+O custo dos sistemas de wearables de alta performance continua elevado, criando uma **barreira de acessibilidade** para equipas de menor dimensão e escalões jovens. Esta barreira valida a abordagem do SPARTA: questionários subjetivos como substituto viável e de custo zero para clubes sem orçamento para GPS.
 
 _Fonte: [Frontiers — Performance Tracking in Female Youth Soccer with Wearables](https://www.frontiersin.org/journals/sports-and-active-living/articles/10.3389/fspor.2025.1627820/full) · [Mordor Intelligence — Wearable Devices in Sports Market](https://www.mordorintelligence.com/industry-reports/wearable-devices-in-sports-market) · [Catapult — Wearable Technology in Sports](https://www.catapult.com/blog/wearable-technology-in-sports)_
 
@@ -431,8 +431,8 @@ A visão computacional está a democratizar a recolha de estatísticas de jogo �
 - **SkillCorner** opera em 150+ competições com 250+ clubes, ligas e federações — demonstra escala comercial da tecnologia
 - **Footovision** extrai dados de tracking a partir de transmissões de vídeo standard — sem câmeras dedicadas
 
-**Implicação para o Project R (médio prazo):**
-A tendência aponta para que nos próximos 2-4 anos seja possível obter estatísticas automáticas de jogo a partir de vídeo de smartphone, eliminando o registo manual por analistas. O Project R deve ser desenhado com uma arquitetura que permita esta integração futura sem reescrever o núcleo do sistema.
+**Implicação para o SPARTA (médio prazo):**
+A tendência aponta para que nos próximos 2-4 anos seja possível obter estatísticas automáticas de jogo a partir de vídeo de smartphone, eliminando o registo manual por analistas. O SPARTA deve ser desenhado com uma arquitetura que permita esta integração futura sem reescrever o núcleo do sistema.
 
 **Desafios atuais:**
 
@@ -466,7 +466,7 @@ Mais de **80% dos clubes profissionais** utilizam uma ou mais formas de tecnolog
 
 _Fonte: [Journal of Medical Society — Next-Generation Wearables 2025](https://journals.lww.com/jmso/fulltext/2025/01000/revolutionizing_sports__the_impact_of.3.aspx) · [YSBR — NCAA Wearables Guidelines for Youth Sports](https://youthsportsbusinessreport.com/what-ncaas-new-wearables-and-tracking-guidelines-mean-for-youth-sports/)_
 
-### Recomendações Tecnológicas para o Project R
+### Recomendações Tecnológicas para o SPARTA
 
 **Adoção imediata (custo zero, maturidade alta):**
 
@@ -496,7 +496,7 @@ O futebol amador e semi-profissional encontra-se numa janela de oportunidade rar
 
 A pesquisa confirma que nenhuma equipa amadora consegue otimizar performance sem dados estruturados. A fadiga não monitorizada é o principal preditor de lesões não-contacto e de degradação técnica: jogadores com carga acumulada elevada (ACWR > 1,5) têm risco de lesão 5-7x superior; sob fadiga mental, os atletas cometem mais erros táticos e tomam decisões piores. A monitorização muda isto — mas apenas se os dados forem consistentes, integrados e interpretados.
 
-O Project R propõe exatamente a integração que o mercado não oferece gratuitamente: fadiga + performance + dashboards de decisão, numa plataforma acessível a qualquer clube com smartphone.
+O SPARTA propõe exatamente a integração que o mercado não oferece gratuitamente: fadiga + performance + dashboards de decisão, numa plataforma acessível a qualquer clube com smartphone.
 
 **Principais conclusões consolidadas:**
 
@@ -521,7 +521,7 @@ Atletas em desenvolvimento (13-17 anos) têm limiares de carga seguros distintos
 AI e computer vision estão a automatizar a recolha de dados, mas a interpretação e a decisão permanecem humanas. Dashboards que transformam dados em sinais claros (verde/amarelo/vermelho) são o mecanismo que torna a tecnologia útil para treinadores sem formação em ciências do desporto.
 
 **Convergência 4: Arquitetura aberta é vantagem estratégica**
-O Project R deve ser construído para integrar, no futuro, GPS e computer vision sem reescrever o núcleo. A modularidade hoje poupa meses de desenvolvimento amanhã.
+O SPARTA deve ser construído para integrar, no futuro, GPS e computer vision sem reescrever o núcleo. A modularidade hoje poupa meses de desenvolvimento amanhã.
 
 ### Recomendações Estratégicas por Horizonte
 
@@ -535,7 +535,7 @@ O Project R deve ser construído para integrar, no futuro, GPS e computer vision
 
 #### Iniciativas Estratégicas (6-18 meses)
 
-1. **Dashboard de Correlação Fadiga × Performance** — o diferenciador central do Project R; requer histórico mínimo de 4-6 semanas de dados
+1. **Dashboard de Correlação Fadiga × Performance** — o diferenciador central do SPARTA; requer histórico mínimo de 4-6 semanas de dados
 2. **Painel de Prontidão do Plantel** por escalão etário — limiares diferenciados para seniores vs. formação
 3. **Exportação PDF por jogador** — mecanismo de feedback controlado para partilha pela equipa técnica
 4. **Curva de Recuperação Individual** — perfil de recuperação por atleta, especialmente valioso para gestão de carga em jovens
@@ -563,7 +563,7 @@ O Project R deve ser construído para integrar, no futuro, GPS e computer vision
 ### Horizonte 1-2 Anos (2026-2027)
 
 - **AI preditivo de lesões** acessível em plataformas SaaS de baixo custo — equipas amadoras com histórico de 1+ época poderão usar modelos de previsão de risco
-- **Consolidação do mercado** de apps desportivas — espera-se que 1-2 players integrem wellness monitoring no plano gratuito, aumentando a pressão competitiva sobre o Project R
+- **Consolidação do mercado** de apps desportivas — espera-se que 1-2 players integrem wellness monitoring no plano gratuito, aumentando a pressão competitiva sobre o SPARTA
 - **Computer vision via smartphone** em fase beta — primeiros produtos de análise automática de vídeo a custos acessíveis a chegar ao mercado
 
 ### Horizonte 3-5 Anos (2027-2031)
@@ -572,9 +572,9 @@ O Project R deve ser construído para integrar, no futuro, GPS e computer vision
 - **Dados de menores** sob regulamentação crescentemente rigorosa — a CNPD e autoridades europeias aumentarão fiscalização de apps desportivas com dados de jovens atletas
 - **Modelos de recuperação individualizados** por AI — previsão de prontidão com 48-72h de antecedência baseada em histórico individual
 
-### Implicação para o Project R
+### Implicação para o SPARTA
 
-O Project R deve ser lançado antes que os players existentes (Spond, Mingle Sport) adicionem wellness monitoring aos seus planos gratuitos — a janela de vantagem informacional é de 12-24 meses. A prioridade é construir histórico de dados: cada época adicional de dados aumenta exponencialmente o valor dos dashboards analíticos.
+O SPARTA deve ser lançado antes que os players existentes (Spond, Mingle Sport) adicionem wellness monitoring aos seus planos gratuitos — a janela de vantagem informacional é de 12-24 meses. A prioridade é construir histórico de dados: cada época adicional de dados aumenta exponencialmente o valor dos dashboards analíticos.
 
 ---
 
@@ -594,7 +594,7 @@ Os cinco resultados mais importantes desta investigação:
 
 4. **Atletas jovens (13-17 anos) exigem adaptação** — limiares de carga distintos, linguagem adaptada, e consentimento parental obrigatório entre os 13-15 anos em Portugal.
 
-5. **A janela de oportunidade é agora** — nenhuma solução gratuita integra fadiga + performance. O Project R tem 12-24 meses antes de este gap ser fechado pelos players existentes.
+5. **A janela de oportunidade é agora** — nenhuma solução gratuita integra fadiga + performance. O SPARTA tem 12-24 meses antes de este gap ser fechado pelos players existentes.
 
 ### Próximos Passos Recomendados
 
@@ -651,4 +651,4 @@ Os cinco resultados mais importantes desta investigação:
 **Nível de Confiança:** Alto — baseado em múltiplas fontes científicas peer-reviewed e de mercado verificadas
 **Cobertura de Fontes:** 24 fontes verificadas em 6 áreas temáticas
 
-_Este documento serve como referência de domínio para o Project R e fundamenta as decisões de produto, arquitetura e conformidade legal da solução._
+_Este documento serve como referência de domínio para o SPARTA e fundamenta as decisões de produto, arquitetura e conformidade legal da solução._

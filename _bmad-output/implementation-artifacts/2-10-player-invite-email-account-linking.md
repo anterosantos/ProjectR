@@ -147,7 +147,7 @@ Para que o jogador receba as credenciais de acesso à app e fique ligado ao regi
 ### AC #9: Cobertura de testes (NFR54)
 
 **Given** os testes de integração correm
-**When** `npm run test --run` executa em `project-r/`
+**When** `npm run test --run` executa em `sparta/`
 **Then** os fluxos de `invitePlayer` e `resendPlayerInvite` têm ≥80% de cobertura incluindo:
 - Happy path: convite enviado, perfil criado, players atualizado
 - Email duplicado no sistema
@@ -223,7 +223,7 @@ Para que o jogador receba as credenciais de acesso à app e fique ligado ao regi
   - [ ] 8.6 Formatar `invite_sent_at`: `format(new Date(player.invite_sent_at), "d 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: pt })`
 
 - [ ] **Task 9: Template PT-PT do email de convite** (AC #7)
-  - [ ] 9.1 Criar `project-r/supabase/templates/invite.html` com conteúdo PT-PT (ver Dev Notes para template)
+  - [ ] 9.1 Criar `sparta/supabase/templates/invite.html` com conteúdo PT-PT (ver Dev Notes para template)
   - [ ] 9.2 Descomentar e configurar `[auth.email.template.invite]` no `supabase/config.toml`
 
 - [ ] **Task 10: Testes de integração** (AC #9)
@@ -460,7 +460,7 @@ export async function invitePlayer(
 
 ### Template PT-PT do email de convite
 
-Criar `project-r/supabase/templates/invite.html`:
+Criar `sparta/supabase/templates/invite.html`:
 
 ```html
 <h2>Convite para a app do clube</h2>
@@ -631,7 +631,7 @@ vi.mock("next/navigation", () => ({
 ### Estrutura de ficheiros
 
 ```text
-project-r/
+sparta/
 ├── supabase/
 │   ├── migrations/
 │   │   └── 000095_player_invite.sql        ← NEW
@@ -759,8 +759,8 @@ await serviceRoleClient.auth.admin.deleteUser(userId);
 ## Project Context Reference
 
 ```
-ProjectR/
-└── project-r/                             ← working directory para npm commands
+SPARTA/
+└── sparta/                             ← working directory para npm commands
     ├── supabase/
     │   ├── migrations/
     │   │   ├── 000010–000090_*.sql        ← existentes
@@ -807,16 +807,16 @@ claude-sonnet-4-6
 
 ### File List
 
-- `project-r/supabase/migrations/000095_player_invite.sql` (NEW)
-- `project-r/supabase/templates/invite.html` (NEW)
-- `project-r/supabase/config.toml` (UPDATE — descomenta template invite)
-- `project-r/src/lib/supabase/database.types.ts` (UPDATE — email, invite_sent_at em players)
-- `project-r/src/lib/schemas/players.ts` (UPDATE — InvitePlayerSchema, ResendInviteSchema)
-- `project-r/src/lib/actions/players.ts` (UPDATE — invitePlayer, resendPlayerInvite, PlayerWithPositions, getPlayer select)
-- `project-r/src/app/(staff)/plantel/[id]/page.tsx` (UPDATE — secção Acesso à app, invited/resent searchParams)
-- `project-r/src/app/(staff)/plantel/[id]/invite-player-sheet.tsx` (NEW)
-- `project-r/src/app/(staff)/plantel/[id]/resend-invite-button.tsx` (NEW)
-- `project-r/src/__tests__/lib/actions/invite.test.ts` (NEW)
+- `sparta/supabase/migrations/000095_player_invite.sql` (NEW)
+- `sparta/supabase/templates/invite.html` (NEW)
+- `sparta/supabase/config.toml` (UPDATE — descomenta template invite)
+- `sparta/src/lib/supabase/database.types.ts` (UPDATE — email, invite_sent_at em players)
+- `sparta/src/lib/schemas/players.ts` (UPDATE — InvitePlayerSchema, ResendInviteSchema)
+- `sparta/src/lib/actions/players.ts` (UPDATE — invitePlayer, resendPlayerInvite, PlayerWithPositions, getPlayer select)
+- `sparta/src/app/(staff)/plantel/[id]/page.tsx` (UPDATE — secção Acesso à app, invited/resent searchParams)
+- `sparta/src/app/(staff)/plantel/[id]/invite-player-sheet.tsx` (NEW)
+- `sparta/src/app/(staff)/plantel/[id]/resend-invite-button.tsx` (NEW)
+- `sparta/src/__tests__/lib/actions/invite.test.ts` (NEW)
 
 ---
 
@@ -828,7 +828,7 @@ claude-sonnet-4-6
 
 - [ ] [Review][Decision] **Component pattern consistency** — `InvitePlayerSheet` currently uses `<DrillDownSheet>` with separate open state management. The spec template (Dev Notes line 526-531) shows `<DrillDownSheet ... trigger={<Button>} />` declarative pattern. **Decision:** Refactor to match pattern, or accept current implementation? `src/app/(staff)/plantel/[id]/invite-player-sheet.tsx:43-92`
 
-- [ ] [Review][Decision] **Race condition on email uniqueness** — Current code checks email uniqueness in application logic (line 556-562) but the database index is non-unique. A concurrent request to `invitePlayer` can bypass the check and create duplicates. **Decision:** Add `UNIQUE(club_id, email)` constraint to migration, or accept app-level checking with RLS enforcement as sufficient? `project-r/supabase/migrations/000095_player_invite.sql:10-12` + `src/lib/actions/players.ts:556-562`
+- [ ] [Review][Decision] **Race condition on email uniqueness** — Current code checks email uniqueness in application logic (line 556-562) but the database index is non-unique. A concurrent request to `invitePlayer` can bypass the check and create duplicates. **Decision:** Add `UNIQUE(club_id, email)` constraint to migration, or accept app-level checking with RLS enforcement as sufficient? `sparta/supabase/migrations/000095_player_invite.sql:10-12` + `src/lib/actions/players.ts:556-562`
 
 ### Patches (Applied)
 

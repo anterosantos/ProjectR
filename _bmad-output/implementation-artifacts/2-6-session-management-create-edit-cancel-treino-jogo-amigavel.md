@@ -168,7 +168,7 @@ Para que o calendário seja um plano preciso que os fluxos subsequentes (fadiga,
 
 ### AC #8: Cobertura de testes (NFR54)
 
-**Given** os testes correm via `npm run test --run` a partir de `project-r/`
+**Given** os testes correm via `npm run test --run` a partir de `sparta/`
 **When** executados
 **Then** cobertura ≥80% para:
 - Zod schema: `SessionCreateSchema` (validação de data, duração, tipo, timezone), `SessionUpdateSchema`
@@ -185,7 +185,7 @@ Para que o calendário seja um plano preciso que os fluxos subsequentes (fadiga,
 ## Tasks / Subtasks
 
 - [x] Task 1: Criar migração `000120_sessions.sql` (AC #1)
-  - [x] 1.1 Criar `project-r/supabase/migrations/000120_sessions.sql`
+  - [x] 1.1 Criar `sparta/supabase/migrations/000120_sessions.sql`
   - [x] 1.2 CREATE TABLE sessions com todos os campos e constraints (type CHECK, status CHECK, duration_min CHECK)
   - [x] 1.3 CREATE INDEX `idx_sessions_club`, `idx_sessions_season`, `idx_sessions_scheduled`
   - [x] 1.4 ALTER TABLE ENABLE ROW LEVEL SECURITY + 3 policies (SELECT, INSERT, UPDATE)
@@ -207,7 +207,7 @@ Para que o calendário seja um plano preciso que os fluxos subsequentes (fadiga,
   - [x] 4.5 `cancelSession(sessionId)`: UPDATE status='cancelled' + audit log action='session.cancelled'
 
 - [x] Task 5: Criar `<SessionForm>` component (AC #2, #3)
-  - [x] 5.1 Criar `project-r/src/app/(staff)/calendario/session-form.tsx` ("use client")
+  - [x] 5.1 Criar `sparta/src/app/(staff)/calendario/session-form.tsx` ("use client")
   - [x] 5.2 `<DrillDownSheet>` com react-hook-form + zodResolver
   - [x] 5.3 Campos: type (select), scheduledAt (datetime-local), durationMin (number, default 90), location (text), notes (textarea)
   - [x] 5.4 Alerta visível quando hasSeason=false, formulário desabilitado
@@ -216,38 +216,38 @@ Para que o calendário seja um plano preciso que os fluxos subsequentes (fadiga,
   - [x] 5.7 Modo edit: desabilita formulário quando status='cancelled'/'completed'
 
 - [x] Task 6: Criar página `/calendario/nova` para criar sessão (AC #2)
-  - [x] 6.1 Server Component `project-r/src/app/(staff)/calendario/nova/page.tsx`
+  - [x] 6.1 Server Component `sparta/src/app/(staff)/calendario/nova/page.tsx`
   - [x] 6.2 Auth check: role = 'coach', redirect senão
   - [x] 6.3 Renderizar `<SessionForm mode="create" hasSeason={hasSeason} />`
 
 - [x] Task 7: Criar página `/calendario` para listar sessões (AC #6)
-  - [x] 7.1 Server Component `project-r/src/app/(staff)/calendario/page.tsx`
+  - [x] 7.1 Server Component `sparta/src/app/(staff)/calendario/page.tsx`
   - [x] 7.2 Auth check: role in ('coach', 'analyst')
   - [x] 7.3 `getSessionsForClub()` + agrupamento por semana
   - [x] 7.4 Lista `<SessionCard>` por grupo semanal
   - [x] 7.5 Botão "Nova sessão" (apenas coach) + `<EmptyState>` + `<StickyHeader>`
 
 - [x] Task 8: Criar page `/sessoes/[id]` para visualizar detalhes (AC #7)
-  - [x] 8.1 Server Component `project-r/src/app/(staff)/sessoes/[id]/page.tsx`
+  - [x] 8.1 Server Component `sparta/src/app/(staff)/sessoes/[id]/page.tsx`
   - [x] 8.2 Auth check + RLS check (getSessionById)
   - [x] 8.3 Detalhes: tipo (ícone), data/hora PT-PT, duração, local, notas, status badge
   - [x] 8.4 `<SessionDetailActions>` (coach only): Editar + Cancelar sessão (apenas se scheduled)
   - [x] 8.5 `<StickyHeader backHref="/calendario" />`
 
 - [x] Task 9: Criar page `/sessoes/[id]/editar` (AC #3)
-  - [x] 9.1 Server Component `project-r/src/app/(staff)/sessoes/[id]/editar/page.tsx`
+  - [x] 9.1 Server Component `sparta/src/app/(staff)/sessoes/[id]/editar/page.tsx`
   - [x] 9.2 Auth check: role = 'coach'
   - [x] 9.3 `<SessionForm mode="edit" session={session} />` — bloqueado se cancelled/completed
   - [x] 9.4 `notFound()` quando sessão não existe
 
 - [x] Task 10: Criar `<SessionCard>` component (AC #6, #7)
-  - [x] 10.1 Criar `project-r/src/components/ui/session-card.tsx`
+  - [x] 10.1 Criar `sparta/src/components/ui/session-card.tsx`
   - [x] 10.2 data PT-PT (date-fns), ícone por tipo (Dumbbell/Trophy/Handshake), local, badge "Cancelada"
   - [x] 10.3 Touch target min-h-[44px] (NFR40)
   - [x] 10.4 Link → `/sessoes/[id]`
 
 - [x] Task 11: Criar `<CancelSessionDialog>` para cancelamento (AC #4)
-  - [x] 11.1 Criar `project-r/src/components/dialogs/cancel-session-dialog.tsx`
+  - [x] 11.1 Criar `sparta/src/components/dialogs/cancel-session-dialog.tsx`
   - [x] 11.2 `<Dialog>` com cópia destrutiva + confirmação
   - [x] 11.3 Botão destrutivo "Cancelar sessão" + "Fechar"
   - [x] 11.4 `cancelSession()` + `<CalmConfirmation message="Sessão cancelada">` + navigate
@@ -286,7 +286,7 @@ Para que o calendário seja um plano preciso que os fluxos subsequentes (fadiga,
 A Story 2.5 seguiu este padrão:
 
 ```
-project-r/
+sparta/
 ├── supabase/migrations/
 │   └── 000110_seasons.sql  ← Story 2.5
 │   └── 000120_sessions.sql ← Story 2.6 (TU)
@@ -478,7 +478,7 @@ Para MVP: não há código de notificação ainda. A note é placeholder para qu
 - **Architecture:** `_bmad-output/planning-artifacts/architecture.md` (database schema, RLS patterns, file structure)
 - **Story 2.5 (previous):** `_bmad-output/implementation-artifacts/2-5-season-management-epocas.md` (patterns, testing, form components)
 - **UX Design:** `_bmad-output/planning-artifacts/ux-design-specification.md` (for component hierarchy, locale, touch targets)
-- **Memory:** `[[App lives in project-r/ subfolder]]`, `[[nextjs16-proxy-breaking-change]]`
+- **Memory:** `[[App lives in sparta/ subfolder]]`, `[[nextjs16-proxy-breaking-change]]`
 
 ---
 
@@ -521,22 +521,22 @@ Seguiu os padrões estabelecidos pela Story 2.5 (seasons):
 
 ### File List
 
-- `project-r/supabase/migrations/000120_sessions.sql` (novo)
-- `project-r/src/lib/supabase/database.types.ts` (actualizado — sessions table)
-- `project-r/src/lib/schemas/sessions.ts` (novo)
-- `project-r/src/lib/actions/sessions.ts` (novo)
-- `project-r/src/app/(staff)/calendario/session-form.tsx` (novo)
-- `project-r/src/app/(staff)/calendario/nova/page.tsx` (novo)
-- `project-r/src/app/(staff)/calendario/page.tsx` (substituído placeholder)
-- `project-r/src/app/(staff)/sessoes/[id]/page.tsx` (novo)
-- `project-r/src/app/(staff)/sessoes/[id]/session-detail-actions.tsx` (novo)
-- `project-r/src/app/(staff)/sessoes/[id]/editar/page.tsx` (novo)
-- `project-r/src/components/ui/session-card.tsx` (novo)
-- `project-r/src/components/dialogs/cancel-session-dialog.tsx` (novo)
-- `project-r/src/__tests__/lib/schemas/sessions.test.ts` (novo)
-- `project-r/src/__tests__/lib/actions/sessions.test.ts` (novo)
-- `project-r/src/__tests__/components/session-form.test.tsx` (novo)
-- `project-r/src/__tests__/components/session-card.test.tsx` (novo)
+- `sparta/supabase/migrations/000120_sessions.sql` (novo)
+- `sparta/src/lib/supabase/database.types.ts` (actualizado — sessions table)
+- `sparta/src/lib/schemas/sessions.ts` (novo)
+- `sparta/src/lib/actions/sessions.ts` (novo)
+- `sparta/src/app/(staff)/calendario/session-form.tsx` (novo)
+- `sparta/src/app/(staff)/calendario/nova/page.tsx` (novo)
+- `sparta/src/app/(staff)/calendario/page.tsx` (substituído placeholder)
+- `sparta/src/app/(staff)/sessoes/[id]/page.tsx` (novo)
+- `sparta/src/app/(staff)/sessoes/[id]/session-detail-actions.tsx` (novo)
+- `sparta/src/app/(staff)/sessoes/[id]/editar/page.tsx` (novo)
+- `sparta/src/components/ui/session-card.tsx` (novo)
+- `sparta/src/components/dialogs/cancel-session-dialog.tsx` (novo)
+- `sparta/src/__tests__/lib/schemas/sessions.test.ts` (novo)
+- `sparta/src/__tests__/lib/actions/sessions.test.ts` (novo)
+- `sparta/src/__tests__/components/session-form.test.tsx` (novo)
+- `sparta/src/__tests__/components/session-card.test.tsx` (novo)
 
 ### Change Log
 

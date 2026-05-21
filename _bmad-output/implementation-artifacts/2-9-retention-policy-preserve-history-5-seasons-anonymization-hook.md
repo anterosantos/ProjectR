@@ -280,7 +280,7 @@ export function PlayerDetailsHeader({ player }) {
 
 ### AC #8: Teste Unitário — `anonymize_archived_player` Function
 
-**Given** testes via `npm run test --run` em `project-r/`  
+**Given** testes via `npm run test --run` em `sparta/`  
 **When** executados  
 **Then** cobertura ≥80% para:
 
@@ -681,21 +681,21 @@ Implementada política de retenção de 5 épocas com anonimização automática
 
 **Novos ficheiros:**
 
-- `project-r/supabase/migrations/000140_players_archived_at.sql`
-- `project-r/supabase/migrations/000141_anonymize_archived_players_function.sql`
-- `project-r/supabase/migrations/000142_pg_cron_anonymize_job.sql`
-- `project-r/supabase/functions/anonymize-player-photos/index.ts`
-- `project-r/supabase/functions/anonymize-player-photos/deno.json`
-- `project-r/__tests__/lib/anonymize-player.test.ts`
-- `project-r/__tests__/lib/retention-statistics.test.ts`
-- `project-r/__tests__/lib/anonymization-date.test.ts`
+- `sparta/supabase/migrations/000140_players_archived_at.sql`
+- `sparta/supabase/migrations/000141_anonymize_archived_players_function.sql`
+- `sparta/supabase/migrations/000142_pg_cron_anonymize_job.sql`
+- `sparta/supabase/functions/anonymize-player-photos/index.ts`
+- `sparta/supabase/functions/anonymize-player-photos/deno.json`
+- `sparta/__tests__/lib/anonymize-player.test.ts`
+- `sparta/__tests__/lib/retention-statistics.test.ts`
+- `sparta/__tests__/lib/anonymization-date.test.ts`
 
 **Ficheiros modificados:**
 
-- `project-r/src/lib/actions/players.ts` — `archived_at` em `PlayerWithPositions`, `getPlayer` select, `archivePlayer` update, novo `anonymizePlayer` action
-- `project-r/src/lib/supabase/database.types.ts` — `archived_at` em players Row/Insert/Update, `anonymize_archived_player` em Functions
-- `project-r/src/app/(staff)/plantel/[id]/page.tsx` — `calculateAnonymizationDate`, metadados de arquivo, `CircleDashed` para foto anonimizada
-- `project-r/src/__tests__/lib/actions/players.test.ts` — Actualizado teste `archivePlayer` para reflectir novo campo `archived_at`
+- `sparta/src/lib/actions/players.ts` — `archived_at` em `PlayerWithPositions`, `getPlayer` select, `archivePlayer` update, novo `anonymizePlayer` action
+- `sparta/src/lib/supabase/database.types.ts` — `archived_at` em players Row/Insert/Update, `anonymize_archived_player` em Functions
+- `sparta/src/app/(staff)/plantel/[id]/page.tsx` — `calculateAnonymizationDate`, metadados de arquivo, `CircleDashed` para foto anonimizada
+- `sparta/src/__tests__/lib/actions/players.test.ts` — Actualizado teste `archivePlayer` para reflectir novo campo `archived_at`
 - `_bmad-output/implementation-artifacts/sprint-status.yaml` — status 2-9 → review
 
 ---
@@ -710,15 +710,15 @@ Implementada política de retenção de 5 épocas com anonimização automática
 
 ### Patch Items (Actionable)
 
-- [x] [Review][Patch] Data de anonimização — usar `parseISO` em vez de `new Date()` para explicitamente respeitar ISO strings [project-r/src/app/(staff)/plantel/[id]/page.tsx:36-38] ✅ APLICADO
-- [x] [Review][Patch] Edge Function logging — adicionar logs para cada skip e delete de photo_path [project-r/supabase/functions/anonymize-player-photos/index.ts:34-37] ✅ APLICADO
-- [x] [Review][Patch] Server Action com retry — `triggerPhotoCleanup` com exponential backoff, max 3 tentativas [project-r/src/lib/actions/players.ts:750-796] ✅ APLICADO
+- [x] [Review][Patch] Data de anonimização — usar `parseISO` em vez de `new Date()` para explicitamente respeitar ISO strings [sparta/src/app/(staff)/plantel/[id]/page.tsx:36-38] ✅ APLICADO
+- [x] [Review][Patch] Edge Function logging — adicionar logs para cada skip e delete de photo_path [sparta/supabase/functions/anonymize-player-photos/index.ts:34-37] ✅ APLICADO
+- [x] [Review][Patch] Server Action com retry — `triggerPhotoCleanup` com exponential backoff, max 3 tentativas [sparta/src/lib/actions/players.ts:750-796] ✅ APLICADO
 
 ### Deferred Items (Pre-existing, Not Blocking)
 
-- [x] [Review][Defer] AC #4 — Comportamento de NULL photo_path sem diferença visível; player sem foto no início vs anonimizado mantêm NULL [project-r/src/app/(staff)/plantel/[id]/page.tsx:119-130] — deferred, design-level issue
-- [x] [Review][Defer] AC #1 — Índice sparse sem constraint NOT NULL; se alguém deixa `archived_at` incorrectamente setado, índice não apanha [project-r/supabase/migrations/000140_players_archived_at.sql:8-9] — deferred, pre-existing pattern
-- [x] [Review][Defer] AC #3 — Cron job schedule é UTC hardcoded; sem validação de Supabase timezone [project-r/supabase/migrations/000142_pg_cron_anonymize_job.sql:21] — deferred, operational concern
+- [x] [Review][Defer] AC #4 — Comportamento de NULL photo_path sem diferença visível; player sem foto no início vs anonimizado mantêm NULL [sparta/src/app/(staff)/plantel/[id]/page.tsx:119-130] — deferred, design-level issue
+- [x] [Review][Defer] AC #1 — Índice sparse sem constraint NOT NULL; se alguém deixa `archived_at` incorrectamente setado, índice não apanha [sparta/supabase/migrations/000140_players_archived_at.sql:8-9] — deferred, pre-existing pattern
+- [x] [Review][Defer] AC #3 — Cron job schedule é UTC hardcoded; sem validação de Supabase timezone [sparta/supabase/migrations/000142_pg_cron_anonymize_job.sql:21] — deferred, operational concern
 
 ### Dismissed as Handled
 

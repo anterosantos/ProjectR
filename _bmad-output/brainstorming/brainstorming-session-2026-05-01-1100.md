@@ -1,21 +1,21 @@
 ---
 stepsCompleted: [1, 2, 3, 4]
-inputDocuments: ['docs/projectr.requirements.md']
-session_topic: 'Checklist de stakeholders do Project R'
+inputDocuments: ['docs/SPARTA.requirements.md']
+session_topic: 'Checklist de stakeholders do SPARTA'
 session_goals: 'Responder às 7 questões estratégicas que alinham a visão do projeto — o que queremos, porquê, como medimos, e quem é responsável'
 selected_approach: 'ai-recommended'
 techniques_used: ['Values Archaeology', 'Five Whys', 'Question Storming']
 ideas_generated: [7]
-context_file: 'docs/projectr.requirements.md'
+context_file: 'docs/SPARTA.requirements.md'
 session_active: false
 workflow_completed: true
 ---
 
-# Brainstorming Session — Project R
+# Brainstorming Session — SPARTA
 
 **Facilitador:** Antero
 **Data:** 2026-05-01
-**Tópico:** Checklist de stakeholders do Project R
+**Tópico:** Checklist de stakeholders do SPARTA
 **Técnicas:** Values Archaeology · Five Whys · Question Storming
 
 ---
@@ -49,7 +49,7 @@ Proatividade e exatidão nas decisões
         ↑
 Prever picos, perceber rendimento, conhecer disponibilidade
         ↑
-Project R
+SPARTA
 ```
 
 ### Five Whys — Cadeia Causal
@@ -72,7 +72,7 @@ Decisões menos proativas e exatas
 
 ### Question Storming — Métricas de Sucesso
 
-Indicadores de que o Project R está a funcionar:
+Indicadores de que o SPARTA está a funcionar:
 
 - Adesão dos jogadores aos questionários
 - Utilização dos dashboards pela equipa técnica antes das convocatórias

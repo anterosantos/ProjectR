@@ -134,7 +134,7 @@ Para que o plantel fique comprometido antes do apito inicial e fluxos a jusante 
 
 ### AC #7: Cobertura de Testes
 
-**Given** testes via `npm run test --run` em `project-r/`  
+**Given** testes via `npm run test --run` em `sparta/`  
 **When** executados  
 **Then** cobertura ≥80% para:
 - Migração `000130`: coluna types, unique constraint, RLS (integração)
@@ -148,7 +148,7 @@ Para que o plantel fique comprometido antes do apito inicial e fluxos a jusante 
 ## Tasks / Subtasks
 
 - [ ] **Task 1: Criar migração `000130_match_lineups.sql`**
-  - [ ] 1.1 Ficheiro `project-r/supabase/migrations/000130_match_lineups.sql`
+  - [ ] 1.1 Ficheiro `sparta/supabase/migrations/000130_match_lineups.sql`
   - [ ] 1.2 CREATE TABLE `match_lineups` com esquema AC#1
   - [ ] 1.3 Índices em `(session_id, role)` para queries eficientes
   - [ ] 1.4 RLS:
@@ -163,7 +163,7 @@ Para que o plantel fique comprometido antes do apito inicial e fluxos a jusante 
 ---
 
 - [ ] **Task 2: Criar componente `<LineupToggle>`**
-  - [ ] 2.1 Ficheiro `project-r/src/components/patterns/LineupToggle.tsx` ("use client")
+  - [ ] 2.1 Ficheiro `sparta/src/components/patterns/LineupToggle.tsx` ("use client")
   - [ ] 2.2 Props: `{ player, selected, onChange }` — selected é `'starter' | 'bench' | null`
   - [ ] 2.3 Render: grupo de 3 botões/toggles (Não seleccionado | Titular | Banco)
   - [ ] 2.4 Min touch target 44px (NFR40)
@@ -173,7 +173,7 @@ Para que o plantel fique comprometido antes do apito inicial e fluxos a jusante 
 ---
 
 - [ ] **Task 3: Criar componente `<ConvocacaoForm>`**
-  - [ ] 3.1 Ficheiro `project-r/src/components/ConvocacaoForm.tsx` (Server Component — "use client" não precisa)
+  - [ ] 3.1 Ficheiro `sparta/src/components/ConvocacaoForm.tsx` (Server Component — "use client" não precisa)
   - [ ] 3.2 Props: `{ session, existingLineup }`
   - [ ] 3.3 Estado cliente via `<ClientConvocacaoEditor>` sub-componente ("use client"):
     - [ ] 3.3a Mantém `{ [playerId]: 'starter' | 'bench' | null }` no estado
@@ -187,7 +187,7 @@ Para que o plantel fique comprometido antes do apito inicial e fluxos a jusante 
 ---
 
 - [ ] **Task 4: Criar server action `submitLineup`**
-  - [ ] 4.1 Ficheiro `project-r/src/lib/actions/lineups.ts`
+  - [ ] 4.1 Ficheiro `sparta/src/lib/actions/lineups.ts`
   - [ ] 4.2 Schema Zod:
     ```ts
     const SubmitLineupSchema = z.object({
@@ -214,7 +214,7 @@ Para que o plantel fique comprometido antes do apito inicial e fluxos a jusante 
 ---
 
 - [ ] **Task 5: Implementar página `/sessoes/[id]/convocatoria`**
-  - [ ] 5.1 Ficheiro `project-r/src/app/(staff)/sessoes/[id]/convocatoria/page.tsx` (Server Component)
+  - [ ] 5.1 Ficheiro `sparta/src/app/(staff)/sessoes/[id]/convocatoria/page.tsx` (Server Component)
   - [ ] 5.2 Props: `{ params: Promise<{ id: string }> }`
   - [ ] 5.3 Auth check: `role in ['coach', 'analyst']` (AC desc diz Treinador, mas analista pode ver)
   - [ ] 5.4 Carregar sessão + validar `type in ('match', 'friendly')`
@@ -230,7 +230,7 @@ Para que o plantel fique comprometido antes do apito inicial e fluxos a jusante 
 ---
 
 - [ ] **Task 6: Escrever testes de integração — Migração RLS**
-  - [ ] 6.1 Ficheiro `project-r/src/__tests__/db/migrations/000130-match-lineups.test.ts`
+  - [ ] 6.1 Ficheiro `sparta/src/__tests__/db/migrations/000130-match-lineups.test.ts`
   - [ ] 6.2 RLS SELECT: coach de clube A pode ver `match_lineups` de sessão do clube A; não vê sessões clube B
   - [ ] 6.3 RLS INSERT: coach pode inserir; analyst bloqueia (403)
   - [ ] 6.4 Unique constraint: inserir duplicado (session_id, player_id) falha
@@ -238,7 +238,7 @@ Para que o plantel fique comprometido antes do apito inicial e fluxos a jusante 
 ---
 
 - [ ] **Task 7: Escrever testes — Server Action `submitLineup`**
-  - [ ] 7.1 Ficheiro `project-r/src/__tests__/lib/actions/lineups.test.ts`
+  - [ ] 7.1 Ficheiro `sparta/src/__tests__/lib/actions/lineups.test.ts`
   - [ ] 7.2 Validação Zod: <11, exactly 11, >11 starters → reject
   - [ ] 7.3 Upsert logic: insere novos, atualiza existentes, deleta antigos
   - [ ] 7.4 Multi-tenant: coach de clube A não consegue modificar convocatória de sessão clube B
@@ -248,10 +248,10 @@ Para que o plantel fique comprometido antes do apito inicial e fluxos a jusante 
 ---
 
 - [ ] **Task 8: Escrever testes — UI e Página**
-  - [ ] 8.1 Ficheiro `project-r/src/__tests__/components/lineup-toggle.test.tsx`
+  - [ ] 8.1 Ficheiro `sparta/src/__tests__/components/lineup-toggle.test.tsx`
     - [ ] Render: 3 botões, um selected por vez
     - [ ] onChange callback chamado quando toggled
-  - [ ] 8.2 Ficheiro `project-r/src/__tests__/app/convocatoria.test.tsx`
+  - [ ] 8.2 Ficheiro `sparta/src/__tests__/app/convocatoria.test.tsx`
     - [ ] Mock auth (coach role)
     - [ ] Mock session (match type) + mock players
     - [ ] Verificar toggles renderizam, contador actualiza
@@ -521,7 +521,7 @@ export function ClientConvocacaoEditor({
 ### 📂 Estrutura de Ficheiros
 
 ```
-project-r/
+sparta/
 ├── supabase/
 │   └── migrations/
 │       └── 000130_match_lineups.sql            ← NOVO (Task 1)
@@ -701,10 +701,10 @@ AC diz treinos respondem 404. **Implementar:** redirect para `/sessoes/[id]` com
 
 ## Ficheiros Chave Existentes
 
-- [sessions.ts](project-r/src/lib/actions/sessions.ts) — getSessionsForClub, útil para referência
-- [players.ts](project-r/src/lib/actions/players.ts) — getPlayersForClub (usar em Task 5)
-- [2-6-session-management.md](project-r/_bmad-output/implementation-artifacts/2-6-session-management-create-edit-cancel-treino-jogo-amigavel.md) — padrões de form, server actions
-- [2-7-calendar-view.md](project-r/_bmad-output/implementation-artifacts/2-7-calendar-view-per-role.md) — padrões de página, URL params (não necessário aqui)
+- [sessions.ts](sparta/src/lib/actions/sessions.ts) — getSessionsForClub, útil para referência
+- [players.ts](sparta/src/lib/actions/players.ts) — getPlayersForClub (usar em Task 5)
+- [2-6-session-management.md](sparta/_bmad-output/implementation-artifacts/2-6-session-management-create-edit-cancel-treino-jogo-amigavel.md) — padrões de form, server actions
+- [2-7-calendar-view.md](sparta/_bmad-output/implementation-artifacts/2-7-calendar-view-per-role.md) — padrões de página, URL params (não necessário aqui)
 
 ---
 

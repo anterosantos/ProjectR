@@ -24,7 +24,7 @@
 ### 1️⃣ [CRITICAL] Club Isolation Bypass in resendConsentEmail
 - **Source:** Blind Hunter (HIGH)
 - **Classification:** 🔧 **PATCH**
-- **Location:** `project-r/src/lib/actions/consent.ts:128-199`
+- **Location:** `sparta/src/lib/actions/consent.ts:128-199`
 - **Issue:** `resendConsentEmail()` checks `staffProfile.role` against ["coach", "analyst"] but **never validates `club_id`**. A coach from Club A can resend emails for players at Club B.
 - **Evidence:** Role check at line 176, but no club_id comparison before proceeding.
 - **Fix:**
@@ -40,7 +40,7 @@
 ### 2️⃣ [CRITICAL] Club Authorization Missing in staff-alert-consent
 - **Source:** Blind Hunter (HIGH)
 - **Classification:** 🔧 **PATCH**
-- **Location:** `project-r/supabase/functions/staff-alert-consent/index.ts:43-160`
+- **Location:** `sparta/supabase/functions/staff-alert-consent/index.ts:43-160`
 - **Issue:** Function accepts `clubId` from request body with **no validation that caller is authorized for that club**. Any authenticated system caller can enumerate player names and staff email addresses for any club.
 - **Evidence:** Lines 43-50 parse `clubId` without authorization check.
 - **Fix:** Require that caller (authenticated user or service role) is authorized for the club:
@@ -65,7 +65,7 @@
 ### 3️⃣ [CRITICAL] Race Condition in Rate Limiting
 - **Source:** Blind Hunter (MEDIUM) + Edge Case Hunter
 - **Classification:** 🔧 **PATCH**
-- **Location:** `project-r/src/lib/actions/consent.ts:158-190`
+- **Location:** `sparta/src/lib/actions/consent.ts:158-190`
 - **Issue:** read-check-update pattern without atomic lock. Two concurrent requests within 5-minute window can both pass check and send duplicate emails.
 - **Evidence:** Lines 158-161 read `last_manual_resend_at`, line 160 checks elapsed time, line 189-190 updates. No atomic guarantee.
 - **Fix:** Use atomic UPDATE with RETURNING:
@@ -88,7 +88,7 @@
 ### 4️⃣ [CRITICAL] Missing club_id Filter in PendingConsentsBanner Query
 - **Source:** Edge Case Hunter (HIGH)
 - **Classification:** 🔧 **PATCH**
-- **Location:** `project-r/src/lib/actions/consent.ts` (getPendingConsentsOver14Days function)
+- **Location:** `sparta/src/lib/actions/consent.ts` (getPendingConsentsOver14Days function)
 - **Issue:** `getPendingConsentsOver14Days()` uses `serviceRole` client and **doesn't filter by `club_id`**. If service-role key leaks, banner displays pending consents from ALL clubs.
 - **Evidence:** Function does not include `.eq('club_id', staffClubId)` filter.
 - **Fix:**
@@ -113,7 +113,7 @@
 ### 5️⃣ [CRITICAL] Timezone Mismatch in Day-7/Day-14 Calculation
 - **Source:** Edge Case Hunter (CRITICAL)
 - **Classification:** 🔧 **PATCH**
-- **Location:** `project-r/supabase/migrations/000172_pg_cron_consent_reminders.sql:83, 128, 171`
+- **Location:** `sparta/supabase/migrations/000172_pg_cron_consent_reminders.sql:83, 128, 171`
 - **Issue:** Queries use `CURRENT_DATE - INTERVAL '7 days'` with `created_at::date`, which silently converts UTC timestamp to server's local timezone before comparison. If server in different timezone than parents, dates may be off by 1 day.
 - **Example:** Server UTC-5, parent UTC+0, consent created 2024-01-15 23:00 local (2024-01-16 04:00 UTC). When job runs at 08:00 UTC on 2024-01-23, `CURRENT_DATE` is 2024-01-23, but `created_at::date` converts to 2024-01-23 local time (which is 2024-01-22 for UTC parent). Mismatch!
 - **Fix:** Normalize both to UTC:
@@ -133,7 +133,7 @@
 ### 6️⃣ [HIGH] Email Sent Before Resend Timestamp Updated
 - **Source:** Edge Case Hunter (CRITICAL)
 - **Classification:** 🔧 **PATCH**
-- **Location:** `project-r/src/lib/actions/consent.ts:173-190`
+- **Location:** `sparta/src/lib/actions/consent.ts:173-190`
 - **Issue:** Edge Function succeeds (line 181) but database UPDATE (line 189-190) fails → email sent to parent, but `last_manual_resend_at` not updated. Staff can immediately click "Reenviar" without hitting rate limit, sending duplicate emails.
 - **Fix:** Update timestamp BEFORE sending email (or wrap in transaction):
   ```typescript
@@ -158,7 +158,7 @@
 ### 7️⃣ [HIGH] Missing Token Expiry Validation
 - **Source:** Blind Hunter (MEDIUM)
 - **Classification:** 🔧 **PATCH**
-- **Location:** `project-r/supabase/functions/send-parental-consent/index.ts:94-107`
+- **Location:** `sparta/supabase/functions/send-parental-consent/index.ts:94-107`
 - **Issue:** Function fetches consent by `consentId` and checks `status !== "pending"`, but **does NOT validate `token_expires_at`**. An expired token can still trigger email resend if status is pending.
 - **Evidence:** Status check at line 107, no expiry check.
 - **Fix:**
@@ -178,7 +178,7 @@
 ### 8️⃣ [HIGH] Network Timeout on Resend API Calls
 - **Source:** Edge Case Hunter (CRITICAL)
 - **Classification:** 🔧 **PATCH**
-- **Location:** `project-r/supabase/functions/staff-alert-consent/index.ts:139` and `project-r/supabase/functions/send-parental-consent/index.ts:181`
+- **Location:** `sparta/supabase/functions/staff-alert-consent/index.ts:139` and `sparta/supabase/functions/send-parental-consent/index.ts:181`
 - **Issue:** `fetch()` calls lack timeout. If Resend API is unresponsive, requests hang indefinitely, blocking staff alerts and manual resends.
 - **Fix:** Add timeout signal:
   ```typescript
@@ -200,7 +200,7 @@
 ### 9️⃣ [MEDIUM] HTML Injection via prefixText Parameter
 - **Source:** Blind Hunter (MEDIUM)
 - **Classification:** 🔧 **PATCH**
-- **Location:** `project-r/supabase/functions/send-parental-consent/index.ts:128-135`
+- **Location:** `sparta/supabase/functions/send-parental-consent/index.ts:128-135`
 - **Issue:** `prefixText` parameter is directly interpolated into email subject and copy without HTML escaping. If a caller provides malicious HTML/script, it will be injected into the email body.
 - **Evidence:** Lines 128-135 use `${prefixText}` in template without sanitization.
 - **Mitigation Note:** Currently, `prefixText` is hardcoded to only '[Lembrete]' or '[2º Lembrete]' from pg_cron, so this is NOT exploitable in practice. However, code is not defensive.
@@ -218,7 +218,7 @@
 ### 🔟 [MEDIUM] Rate-Limit Boundary at Exactly 5 Minutes
 - **Source:** Edge Case Hunter (MEDIUM)
 - **Classification:** 🔧 **PATCH**
-- **Location:** `project-r/src/lib/actions/consent.ts:160`
+- **Location:** `sparta/src/lib/actions/consent.ts:160`
 - **Issue:** Uses `elapsed < RATE_LIMIT_MS` (strict less-than). If staff clicks at exactly T=5:00.000, `elapsed === 300000` passes the check and allows resend. Creates 1ms window for bypass.
 - **Fix:** Clarify intent with consistent operator:
   ```typescript
@@ -235,7 +235,7 @@
 ### 1️⃣1️⃣ [MEDIUM] Service-Role INSERT May Fail with RLS Error
 - **Source:** Edge Case Hunter (MEDIUM)
 - **Classification:** 🔧 **PATCH**
-- **Location:** `project-r/supabase/migrations/000172_pg_cron_consent_reminders.sql:30-42`
+- **Location:** `sparta/supabase/migrations/000172_pg_cron_consent_reminders.sql:30-42`
 - **Issue:** RLS policy on `parental_consent_reminders_log` has auth.jwt() -&gt;&gt; 'role' NOT IN ('service_role'), but pg_cron function runs as `postgres` role, which may not match policy expectations. INSERT may silently fail.
 - **Evidence:** Lines 30-42 define policy; may block postgres role.
 - **Fix:** Ensure RLS policy explicitly allows postgres role:
@@ -250,7 +250,7 @@
 ### 1️⃣2️⃣ [MEDIUM] Staff Alert Email List Empty After Profile Deletion
 - **Source:** Edge Case Hunter (MEDIUM)
 - **Classification:** 🔧 **PATCH**
-- **Location:** `project-r/supabase/functions/staff-alert-consent/index.ts:110-130`
+- **Location:** `sparta/supabase/functions/staff-alert-consent/index.ts:110-130`
 - **Issue:** Staff emails fetched at line 110. If all coaches/analysts are deleted during execution before Resend API call (line 139), `staffEmails` is empty. Email sent with `to: []`, Resend returns 200 but sends to no one (silent failure).
 - **Fix:** Check staffEmails length before API call:
   ```typescript
@@ -268,7 +268,7 @@
 ### 1️⃣3️⃣ [MEDIUM] No Idempotency Key for pg_net HTTP Calls
 - **Source:** Blind Hunter (LOW)
 - **Classification:** 🔧 **PATCH**
-- **Location:** `project-r/supabase/migrations/000172_pg_cron_consent_reminders.sql:103-114, 145-156, 199-206`
+- **Location:** `sparta/supabase/migrations/000172_pg_cron_consent_reminders.sql:103-114, 145-156, 199-206`
 - **Issue:** `pg_net.http_post()` calls lack request IDs or idempotency keys. If job retries due to network failure, Edge Function may send duplicate emails (mitigated only by `parental_consent_reminders_log` dedup, but not ideal).
 - **Fix:** Include `X-Idempotency-Key` header:
   ```sql
@@ -288,7 +288,7 @@
 ### 1️⃣4️⃣ [MEDIUM] Consent Status Flipped Before Email Function Runs
 - **Source:** Edge Case Hunter (MEDIUM)
 - **Classification:** 🔧 **PATCH**
-- **Location:** `project-r/supabase/migrations/000172_pg_cron_consent_reminders.sql:94-98`
+- **Location:** `sparta/supabase/migrations/000172_pg_cron_consent_reminders.sql:94-98`
 - **Issue:** Log entry inserted at line 94-98, but pg_net HTTP call is async and may be delayed. Parent confirms consent between insert and HTTP call. When function runs, status is 'confirmed', returns skip response, but reminder was logged as "sent" (idempotence broken).
 - **Evidence:** Log INSERT happens before HTTP call.
 - **Fix:** Include `status` in pg_net payload and let Edge Function decide whether to log:
@@ -307,7 +307,7 @@
 ### 1️⃣5️⃣ [LOW] Consent Status Changed After Log Insert but Before Email Send
 - **Source:** Edge Case Hunter (MEDIUM)
 - **Classification:** ⚠️ **DECISION_NEEDED**
-- **Location:** `project-r/supabase/migrations/000172_pg_cron_consent_reminders.sql:85-115` and `project-r/supabase/functions/send-parental-consent/index.ts:107-109`
+- **Location:** `sparta/supabase/migrations/000172_pg_cron_consent_reminders.sql:85-115` and `sparta/supabase/functions/send-parental-consent/index.ts:107-109`
 - **Issue:** Log entry is persisted BEFORE Edge Function confirms status. If parent confirms consent between log insert and function execution, function skips but log row persists, causing idempotence issues on retry.
 - **Decision Required:** Should log entry be inserted:
   - **Option A:** BEFORE email send (current) — simpler, but idempotence breaks if status flips

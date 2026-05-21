@@ -30,9 +30,9 @@ Items deferred from code reviews — pre-existing issues, out-of-scope work, or 
 
 ## Deferred from: code review of story-1.5 (2026-05-12)
 
-- **Rota `/` pública sem redirect para utilizadores autenticados** (`project-r/src/app/page.tsx`): TODO já documentado no código; homepage mostra scaffold Next.js em vez de redirecionar para a home do role. Abordado em story futura de navegação/shell.
+- **Rota `/` pública sem redirect para utilizadores autenticados** (`sparta/src/app/page.tsx`): TODO já documentado no código; homepage mostra scaffold Next.js em vez de redirecionar para a home do role. Abordado em story futura de navegação/shell.
 - **NFR17/NFR14 (1h token expiry e HTTPS) não configurados em código**: Dependem de configuração no dashboard Supabase e plataforma de deploy (Vercel/Cloudflare). Não são responsabilidade desta story; verificar antes do go-live.
-- **Alert `success` variant não é standard shadcn/ui** (`project-r/src/components/ui/alert.tsx:847`): Variant custom adicionada. Se `npx shadcn@latest add alert` for executado, será sobrescrita silenciosamente. Extrair para design token ou documentar como override quando o Design System for formalizado (Story 1.8).
+- **Alert `success` variant não é standard shadcn/ui** (`sparta/src/components/ui/alert.tsx:847`): Variant custom adicionada. Se `npx shadcn@latest add alert` for executado, será sobrescrita silenciosamente. Extrair para design token ou documentar como override quando o Design System for formalizado (Story 1.8).
 
 ## Deferred from: code review of 2-2-player-photo-upload (2026-05-17)
 
@@ -51,11 +51,11 @@ Items deferred from code reviews — pre-existing issues, out-of-scope work, or 
 
 ## Deferred from: code review of 1-17-design-token-font-system-alignment-visual-look-feel-baseline (2026-05-20)
 
-- **`--font-mono` declarado duas vezes em `@theme inline`** [project-r/src/app/globals.css]: Redundância pré-existente — linhas ~17 e ~66 do bloco `@theme inline` declaram `--font-mono` com o mesmo valor. CSS last-write-wins; harmless mas confuso para manutenção. Limpar numa passagem de consolidação do globals.css.
-- **Sem nonce/CSP para o script de dark mode inline** [project-r/src/app/layout.tsx]: O `<script dangerouslySetInnerHTML>` não tem nonce. Se o projecto adoptar uma Content Security Policy restrita (`script-src 'nonce-...'`), o script será bloqueado. Endereçar numa story dedicada de security hardening com headers de CSP.
-- **`Datum` com `value=""` (string vazia) produz layout quebrado** [project-r/src/components/ui/datum.tsx]: Quando `value` é string vazia e `unit` está presente, o unit é renderizado sem número. Responsabilidade do caller por agora; adicionar validação se o componente for reutilizado em contextos dinâmicos.
-- **`Datum` com `valueSize` ≤ 0 torna o texto invisível** [project-r/src/components/ui/datum.tsx]: Prop sem validação de mínimo — `valueSize={0}` ou negativo produz `fontSize: 0` que browsers ignoram. Adicionar `Math.max(1, valueSize)` se callers externos não controlarem o valor.
-- **`Eyebrow` com `children` null/false renderiza apenas traço decorativo** [project-r/src/components/ui/eyebrow.tsx]: `React.ReactNode` aceita null/false; resulta em `<div>` com apenas `<span>` decorativo sem texto. Sem impacto no MVP — componente é primitivo interno; adicionar guard se tornar público.
+- **`--font-mono` declarado duas vezes em `@theme inline`** [sparta/src/app/globals.css]: Redundância pré-existente — linhas ~17 e ~66 do bloco `@theme inline` declaram `--font-mono` com o mesmo valor. CSS last-write-wins; harmless mas confuso para manutenção. Limpar numa passagem de consolidação do globals.css.
+- **Sem nonce/CSP para o script de dark mode inline** [sparta/src/app/layout.tsx]: O `<script dangerouslySetInnerHTML>` não tem nonce. Se o projecto adoptar uma Content Security Policy restrita (`script-src 'nonce-...'`), o script será bloqueado. Endereçar numa story dedicada de security hardening com headers de CSP.
+- **`Datum` com `value=""` (string vazia) produz layout quebrado** [sparta/src/components/ui/datum.tsx]: Quando `value` é string vazia e `unit` está presente, o unit é renderizado sem número. Responsabilidade do caller por agora; adicionar validação se o componente for reutilizado em contextos dinâmicos.
+- **`Datum` com `valueSize` ≤ 0 torna o texto invisível** [sparta/src/components/ui/datum.tsx]: Prop sem validação de mínimo — `valueSize={0}` ou negativo produz `fontSize: 0` que browsers ignoram. Adicionar `Math.max(1, valueSize)` se callers externos não controlarem o valor.
+- **`Eyebrow` com `children` null/false renderiza apenas traço decorativo** [sparta/src/components/ui/eyebrow.tsx]: `React.ReactNode` aceita null/false; resulta em `<div>` com apenas `<span>` decorativo sem texto. Sem impacto no MVP — componente é primitivo interno; adicionar guard se tornar público.
 - **Contagem de testes no AC #10 obsoleta** [1-17-design-token-font-system-alignment-visual-look-feel-baseline.md]: AC #10 refere "≥ 384 testes anteriores" mas a baseline real é ~748. Actualizar a spec da próxima story que referir contagem de testes.
 
 ## Deferred from: code review of 3-1-privacy-policy-versioning-sub-14-adapted-copy (2026-05-20)

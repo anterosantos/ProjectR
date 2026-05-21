@@ -20,17 +20,17 @@ Para que nenhuma PR possa ser mergeada se violar os invariantes do projeto.
 
 ### AC #1: Workflow ci.yml Activo (AR29)
 
-**Given** `.github/workflows/ci.yml` na raiz do repositório (não em `project-r/`)
+**Given** `.github/workflows/ci.yml` na raiz do repositório (não em `sparta/`)
 **When** triggered em `pull_request` (qualquer branch) e `push` para `main`
 **Then** executa jobs: `lint`, `typecheck`, `test`, `build`, `bundle-size`, `lighthouse-ci`, `migration-validate`
 **And** cada job faz checkout do repositório e configura Node.js 22.x
-**And** o working directory padrão dos jobs de app é `project-r/`
+**And** o working directory padrão dos jobs de app é `sparta/`
 **And** se qualquer job falhar, o PR não pode ser mergeado (GitHub branch protection)
 
 ### AC #2: Bundle Size ≤ 200 KB gzipado (NFR11)
 
 **Given** o job `bundle-size` após o `build` completar
-**When** `scripts/check-bundle-size.mjs` é executado dentro de `project-r/`
+**When** `scripts/check-bundle-size.mjs` é executado dentro de `sparta/`
 **Then** lê os chunks do First Load JS a partir de `.next/` (App Router build manifest)
 **And** calcula o tamanho gzipado total dos chunks iniciais
 **And** falha com código de saída 1 e mensagem clara se o total > 200 KB gzipado
@@ -41,7 +41,7 @@ Para que nenhuma PR possa ser mergeada se violar os invariantes do projeto.
 **Given** o job `lighthouse-ci` após o `build` completar
 **When** `lhci autorun` corre contra `next start` em CI
 **Then** Performance ≥ 85, Accessibility ≥ 90, Best Practices ≥ 95, PWA ≥ 100 ou o job falha
-**And** a config `.lighthouserc.json` na raiz de `project-r/` define os thresholds e a URL de destino (`http://localhost:3000`)
+**And** a config `.lighthouserc.json` na raiz de `sparta/` define os thresholds e a URL de destino (`http://localhost:3000`)
 **And** `@lhci/cli` é usado como ferramenta (não o pacote `lighthouse` standalone)
 
 ### AC #4: Migration Validate via Supabase CLI (AR7)
@@ -49,7 +49,7 @@ Para que nenhuma PR possa ser mergeada se violar os invariantes do projeto.
 **Given** o job `migration-validate`
 **When** Supabase CLI é instalado via `supabase/setup-cli@v1` e Docker está disponível (ubuntu-latest)
 **Then** `supabase db reset --no-seed` corre sem erros na instância local do Docker
-**And** o job faz `cd project-r && supabase db reset --no-seed`
+**And** o job faz `cd sparta && supabase db reset --no-seed`
 **And** exit 0 indica que todas as migrations são aplicadas com sucesso
 
 ### AC #5: Coverage ≥ 80% nas Funções Críticas (NFR54)
@@ -88,56 +88,56 @@ Para que nenhuma PR possa ser mergeada se violar os invariantes do projeto.
 ## Tasks / Subtasks
 
 - [x] Task 1: Adicionar scripts em falta ao `package.json` (AC #1, #6)
-  - [x] 1.1 Adicionar `"typecheck": "tsc --noEmit -p tsconfig.typecheck.json"` aos scripts de `project-r/package.json`
+  - [x] 1.1 Adicionar `"typecheck": "tsc --noEmit -p tsconfig.typecheck.json"` aos scripts de `sparta/package.json`
   - [x] 1.2 Adicionar `"test:coverage": "vitest run --coverage"` (alias explícito para CI)
   - [x] 1.3 Verificar que `"lint"` já aponta para `eslint` (sem flags desnecessárias) — ✅ já existe
   - [x] 1.4 Verificar que `"build"` usa `--webpack` flag — ✅ já existe (`next build --webpack`)
 
-- [x] Task 2: Instalar dependências novas em `project-r/` (AC #2, #3)
+- [x] Task 2: Instalar dependências novas em `sparta/` (AC #2, #3)
   - [x] 2.1 Instalar `@lhci/cli` como devDependency: `npm install -D @lhci/cli`
   - [x] 2.2 NÃO instalar `@next/bundle-analyzer` — o script de bundle usa apenas built-ins Node.js
   - [x] 2.3 Verificar que `@vitest/coverage-v8` já está instalado — ✅ consta em `package.json`
 
 - [x] Task 3: Configurar coverage thresholds em `vitest.config.ts` (AC #5)
-  - [x] 3.1 Adicionar bloco `coverage` ao `defineConfig` em `project-r/vitest.config.ts`
+  - [x] 3.1 Adicionar bloco `coverage` ao `defineConfig` em `sparta/vitest.config.ts`
   - [x] 3.2 Definir `provider: 'v8'`
   - [x] 3.3 Definir `thresholds` para `'src/lib/outbox/**'` e `'src/lib/uuid.ts'` com ≥ 80% em statements, branches, functions, lines
   - [x] 3.4 NÃO adicionar threshold para `src/lib/readiness/**` ainda — diretório está vazio
   - [x] 3.5 Definir `include: ['src/**']` e `exclude: ['src/**/*.test.*', 'src/**/*.spec.*']` no bloco `coverage`
 
 - [x] Task 4: Criar `scripts/check-bundle-size.mjs` (AC #2)
-  - [x] 4.1 Criar `project-r/scripts/check-bundle-size.mjs` usando apenas Node.js built-ins
+  - [x] 4.1 Criar `sparta/scripts/check-bundle-size.mjs` usando apenas Node.js built-ins
   - [x] 4.2 Ler `build-manifest.json` (rootMainFiles) para obter chunks iniciais do App Router
   - [x] 4.3 Calcular tamanho gzipado de cada chunk em `.next/static/chunks/`
   - [x] 4.4 Somar apenas os chunks listados como "initial" (carregados em todas as páginas)
   - [x] 4.5 Falhar com exit 1 e mensagem clara se total > 200 KB; sucesso com mensagem de confirmação
   - [x] 4.6 Adicionar `"check-bundle-size": "node scripts/check-bundle-size.mjs"` ao `package.json`
 
-- [x] Task 5: Criar `.lighthouserc.json` em `project-r/` (AC #3)
-  - [x] 5.1 Criar `project-r/.lighthouserc.json` com URL `http://localhost:3000`
+- [x] Task 5: Criar `.lighthouserc.json` em `sparta/` (AC #3)
+  - [x] 5.1 Criar `sparta/.lighthouserc.json` com URL `http://localhost:3000`
   - [x] 5.2 Definir `ci.collect.numberOfRuns: 1` (CI — velocidade sobre precisão)
   - [x] 5.3 Definir `ci.assert.assertions` com thresholds: `performance ≥ 0.85`, `accessibility ≥ 0.90`, `best-practices ≥ 0.95`, `pwa ≥ 1.0`
   - [x] 5.4 Definir `ci.upload.target: 'temporary-public-storage'` para relatórios públicos temporários
   - [x] 5.5 Adicionar `.lighthouserc.json` ao `.gitignore`? — NÃO, está em git (é config, não output)
 
 - [x] Task 6: Criar `scripts/lighthouse-check.mjs` referenciado na arquitectura (AC #3)
-  - [x] 6.1 Criar `project-r/scripts/lighthouse-check.mjs` que serve como wrapper local para `lhci autorun`
+  - [x] 6.1 Criar `sparta/scripts/lighthouse-check.mjs` que serve como wrapper local para `lhci autorun`
   - [x] 6.2 Adicionar `"lighthouse": "node scripts/lighthouse-check.mjs"` ao `package.json`
   - [x] 6.3 O script faz `npx lhci autorun` com `execSync` e propaga exit code
 
 - [x] Task 7: Criar `.github/workflows/ci.yml` (AC #1, #2, #3, #4, #7, #8)
-  - [x] 7.1 Criar directório `.github/workflows/` na raiz do repositório (não dentro de `project-r/`)
+  - [x] 7.1 Criar directório `.github/workflows/` na raiz do repositório (não dentro de `sparta/`)
   - [x] 7.2 Criar `.github/workflows/ci.yml` com trigger `on: [pull_request, push: {branches: [main]}]`
-  - [x] 7.3 Definir `defaults.run.working-directory: project-r` para todos os jobs de app
+  - [x] 7.3 Definir `defaults.run.working-directory: sparta` para todos os jobs de app
   - [x] 7.4 Job `lint`: `npm ci && npm run lint`
   - [x] 7.5 Job `typecheck`: `npm ci && npm run typecheck`
   - [x] 7.6 Job `test`: `npm ci && npm run test:coverage` com `env: CI: 'true'`
   - [x] 7.7 Job `build`: `npm ci && npm run build` — output `.next/` em artifact para jobs dependentes
   - [x] 7.8 Job `bundle-size`: depende de `build`, descarrega artifact `.next/`, corre `npm run check-bundle-size`
   - [x] 7.9 Job `lighthouse-ci`: depende de `build`, descarrega artifact `.next/`, corre `npx lhci autorun`
-  - [x] 7.10 Job `migration-validate`: usa `supabase/setup-cli@v1`, corre `supabase db reset --no-seed` em `project-r/`
+  - [x] 7.10 Job `migration-validate`: usa `supabase/setup-cli@v1`, corre `supabase db reset --no-seed` em `sparta/`
   - [x] 7.11 Todos os jobs usam Node.js 22.x (`actions/setup-node@v4` com `node-version: '22'`)
-  - [x] 7.12 Cache de `npm` com `actions/setup-node` usando `cache-dependency-path: project-r/package-lock.json`
+  - [x] 7.12 Cache de `npm` com `actions/setup-node` usando `cache-dependency-path: sparta/package-lock.json`
   - [x] 7.13 Secrets configurados: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` para build; sem plaintext
 
 - [x] Task 8: Actualizar `.env.example` com secrets de CI (AC #8)
@@ -161,9 +161,9 @@ Para que nenhuma PR possa ser mergeada se violar os invariantes do projeto.
 O repositório é um monorepo com esta estrutura:
 
 ```
-ProjectR/                    ← raiz do repositório (git root)
+SPARTA/                    ← raiz do repositório (git root)
 ├── .github/workflows/       ← CI/CD aqui (a criar nesta story)
-├── project-r/               ← toda a app Next.js (working directory dos jobs)
+├── sparta/               ← toda a app Next.js (working directory dos jobs)
 │   ├── package.json
 │   ├── vitest.config.ts
 │   ├── tsconfig.json
@@ -179,7 +179,7 @@ ProjectR/                    ← raiz do repositório (git root)
 └── _bmad-output/
 ```
 
-**CRÍTICO:** `.github/workflows/ci.yml` vai na **raiz do repositório** (`ProjectR/`), não em `project-r/`. O GitHub Actions requer que os workflows estejam na raiz do repo. Todos os comandos `npm` correm em `project-r/` via `working-directory`.
+**CRÍTICO:** `.github/workflows/ci.yml` vai na **raiz do repositório** (`SPARTA/`), não em `sparta/`. O GitHub Actions requer que os workflows estejam na raiz do repo. Todos os comandos `npm` correm em `sparta/` via `working-directory`.
 
 ### Estado Actual dos Scripts em `package.json`
 
@@ -302,7 +302,7 @@ console.log(`✅ Bundle size OK: ${totalKB} KB ≤ 200 KB`);
 
 ### Configuração Lighthouse CI
 
-**`.lighthouserc.json`** (em `project-r/`, commitado em git):
+**`.lighthouserc.json`** (em `sparta/`, commitado em git):
 
 ```json
 {
@@ -350,7 +350,7 @@ on:
 
 defaults:
   run:
-    working-directory: project-r
+    working-directory: sparta
 
 jobs:
   lint:
@@ -361,7 +361,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: project-r/package-lock.json
+          cache-dependency-path: sparta/package-lock.json
       - run: npm ci
       - run: npm run lint
 
@@ -373,7 +373,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: project-r/package-lock.json
+          cache-dependency-path: sparta/package-lock.json
       - run: npm ci
       - run: npm run typecheck
 
@@ -387,7 +387,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: project-r/package-lock.json
+          cache-dependency-path: sparta/package-lock.json
       - run: npm ci
       - run: npm run test:coverage
 
@@ -403,13 +403,13 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: project-r/package-lock.json
+          cache-dependency-path: sparta/package-lock.json
       - run: npm ci
       - run: npm run build
       - uses: actions/upload-artifact@v4
         with:
           name: next-build
-          path: project-r/.next/
+          path: sparta/.next/
           retention-days: 1
 
   bundle-size:
@@ -421,12 +421,12 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: project-r/package-lock.json
+          cache-dependency-path: sparta/package-lock.json
       - run: npm ci
       - uses: actions/download-artifact@v4
         with:
           name: next-build
-          path: project-r/.next/
+          path: sparta/.next/
       - run: npm run check-bundle-size
 
   lighthouse-ci:
@@ -442,12 +442,12 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: project-r/package-lock.json
+          cache-dependency-path: sparta/package-lock.json
       - run: npm ci
       - uses: actions/download-artifact@v4
         with:
           name: next-build
-          path: project-r/.next/
+          path: sparta/.next/
       - run: npx lhci autorun
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
@@ -460,20 +460,20 @@ jobs:
         with:
           version: latest
       - run: supabase db reset --no-seed
-        working-directory: project-r
+        working-directory: sparta
 ```
 
 **IMPORTANTE sobre working-directory no YAML:**
-- `defaults.run.working-directory: project-r` aplica-se a `run` steps mas **não** a `uses` steps
-- Cada step `uses` com `with.path` deve usar `project-r/` como prefixo explícito
-- O step `supabase db reset` usa `working-directory: project-r` explícito (override do default) para garantir que o Supabase CLI encontra o `supabase/config.toml`
+- `defaults.run.working-directory: sparta` aplica-se a `run` steps mas **não** a `uses` steps
+- Cada step `uses` com `with.path` deve usar `sparta/` como prefixo explícito
+- O step `supabase db reset` usa `working-directory: sparta` explícito (override do default) para garantir que o Supabase CLI encontra o `supabase/config.toml`
 
 ### Migration Validate — Supabase CLI em CI
 
 O job `migration-validate` usa `supabase/setup-cli@v1` que instala o Supabase CLI. Em seguida:
 
 1. `supabase db reset --no-seed` inicia os containers Docker locais (PostgreSQL, GoTrue, etc.)
-2. Aplica todas as migrations em `project-r/supabase/migrations/` por ordem numérica
+2. Aplica todas as migrations em `sparta/supabase/migrations/` por ordem numérica
 3. Faz exit 0 se bem-sucedido, exit 1 caso contrário
 
 **ATENÇÃO:** O job `migration-validate` é demorado (~60-90s) porque inicia Docker. Pode ser paralelizado com outros jobs para não atrasar o pipeline. Na estrutura acima, corre em paralelo com `lint`, `typecheck`, `test` e `build`.
@@ -524,7 +524,7 @@ try {
 
 ### Compatibilidade ESLint + jsx-a11y
 
-Conforme documentado em `project-r/eslint.config.mjs`:
+Conforme documentado em `sparta/eslint.config.mjs`:
 - `eslint-config-next/core-web-vitals` já inclui `eslint-plugin-jsx-a11y`
 - **NÃO registar** `jsx-a11y` separadamente
 - Em caso de upgrade do Next.js: verificar com `npx eslint --debug | grep jsx-a11y`
@@ -532,7 +532,7 @@ Conforme documentado em `project-r/eslint.config.mjs`:
 ### Learnings da Story 1.12
 
 - **`passWithNoTests: !process.env.CI`** já está configurado em `vitest.config.ts` — em CI (`CI=true`) o Vitest falha se não houver testes, o que é o comportamento correcto
-- O comando `npm run lint` usa flat ESLint config — correr de dentro de `project-r/` para que o `eslint.config.mjs` seja encontrado correctamente
+- O comando `npm run lint` usa flat ESLint config — correr de dentro de `sparta/` para que o `eslint.config.mjs` seja encontrado correctamente
 - O `next build --webpack` é necessário (não Turbopack) devido ao Serwist PWA — ver `next.config.mjs`
 
 ### Branching Protection (Pós-Implementação)
@@ -553,7 +553,7 @@ Esta configuração é manual (não automatizável pelo dev agent sem token de a
 - [ ] `vitest.config.ts` tem coverage thresholds para `outbox` e `uuid.ts`
 - [ ] `scripts/check-bundle-size.mjs` criado e funcional após `npm run build`
 - [ ] `scripts/lighthouse-check.mjs` criado como wrapper local
-- [ ] `.lighthouserc.json` criado em `project-r/` com thresholds correctos
+- [ ] `.lighthouserc.json` criado em `sparta/` com thresholds correctos
 - [ ] `.env.example` actualizado com `SUPABASE_DB_URL`
 - [ ] YAML do workflow validado com `actionlint`
 - [ ] `npm run typecheck` passa localmente com 0 erros
@@ -582,19 +582,19 @@ Esta configuração é manual (não automatizável pelo dev agent sem token de a
 
 ### Decision-Needed (Resolvido)
 
-- [x] **Lighthouse PWA score ≥ 1.0 em HTTP localhost** — Testado localmente: PWA score = 0 em HTTP (confirmado que HTTPS é requerido). **Decisão:** Manter threshold 1.0 em `.lighthouserc.json`; documentar como limitação conhecida que CI pode falhar em PWA até que HTTPS esteja disponível (Story 1.14+). Aprovado para deferred. [`project-r/.lighthouserc.json:322`]
+- [x] **Lighthouse PWA score ≥ 1.0 em HTTP localhost** — Testado localmente: PWA score = 0 em HTTP (confirmado que HTTPS é requerido). **Decisão:** Manter threshold 1.0 em `.lighthouserc.json`; documentar como limitação conhecida que CI pode falhar em PWA até que HTTPS esteja disponível (Story 1.14+). Aprovado para deferred. [`sparta/.lighthouserc.json:322`]
 
 ### Patches (Aplicados)
 
-- [x] **Database insert error handling em testes** — ✅ APLICADO. Adicionado check de `profileError2` em `auth-hook.integration.test.ts` line 155-162 para validar insert de perfil. [`project-r/__tests__/auth-hook.integration.test.ts:155-162`]
+- [x] **Database insert error handling em testes** — ✅ APLICADO. Adicionado check de `profileError2` em `auth-hook.integration.test.ts` line 155-162 para validar insert de perfil. [`sparta/__tests__/auth-hook.integration.test.ts:155-162`]
 
-- [x] **JWT null coalescing sem validação de estrutura** — ✅ APLICADO. Adicionado validação `if (parts.length !== 3)` em `auth-hook-unit.test.ts` lines 20-25 e 38-41 para garantir JWT válido antes de decode. [`project-r/__tests__/auth-hook-unit.test.ts:20-41`]
+- [x] **JWT null coalescing sem validação de estrutura** — ✅ APLICADO. Adicionado validação `if (parts.length !== 3)` em `auth-hook-unit.test.ts` lines 20-25 e 38-41 para garantir JWT válido antes de decode. [`sparta/__tests__/auth-hook-unit.test.ts:20-41`]
 
-- [x] **Build artifact retention expiration race** — ✅ APLICADO. Adicionado `if-no-files-found: error` em `.github/workflows/ci.yml` bundle-size job (line 87) e lighthouse-ci job (line 117) para falhar loudly se artifact expirou. [`project-r/.github/workflows/ci.yml:87,117`]
+- [x] **Build artifact retention expiration race** — ✅ APLICADO. Adicionado `if-no-files-found: error` em `.github/workflows/ci.yml` bundle-size job (line 87) e lighthouse-ci job (line 117) para falhar loudly se artifact expirou. [`sparta/.github/workflows/ci.yml:87,117`]
 
-- [x] **Bundle size script — chunks missing em rootMainFiles** — ✅ VERIFICADO. Guard `if (initialFiles.size === 0)` já implementado em `scripts/check-bundle-size.mjs` lines 21-24. [`project-r/scripts/check-bundle-size.mjs:21-24`]
+- [x] **Bundle size script — chunks missing em rootMainFiles** — ✅ VERIFICADO. Guard `if (initialFiles.size === 0)` já implementado em `scripts/check-bundle-size.mjs` lines 21-24. [`sparta/scripts/check-bundle-size.mjs:21-24`]
 
-- [x] **Coverage thresholds — documentação** — ✅ VERIFICADO. Comentário já presente em `vitest.config.ts` line 33 explicando que threshold de `src/lib/readiness/` é deferred. [`project-r/vitest.config.ts:33`]
+- [x] **Coverage thresholds — documentação** — ✅ VERIFICADO. Comentário já presente em `vitest.config.ts` line 33 explicando que threshold de `src/lib/readiness/` é deferred. [`sparta/vitest.config.ts:33`]
 
 ### Deferred (Pré-Existentes, Não Acionáveis Agora)
 
@@ -627,26 +627,26 @@ Esta configuração é manual (não automatizável pelo dev agent sem token de a
 ### File List
 
 - `.github/workflows/ci.yml` (criado)
-- `project-r/.lighthouserc.json` (criado)
-- `project-r/scripts/check-bundle-size.mjs` (criado)
-- `project-r/scripts/lighthouse-check.mjs` (criado)
-- `project-r/tsconfig.typecheck.json` (criado)
-- `project-r/vitest.d.ts` (criado)
-- `project-r/src/__tests__/lib/outbox/triggers.test.ts` (criado)
-- `project-r/package.json` (modificado — scripts + @lhci/cli)
-- `project-r/vitest.config.ts` (modificado — coverage block)
-- `project-r/eslint.config.mjs` (modificado — test overrides, coverage ignore, scripts override)
-- `project-r/__tests__/proxy.test.ts` (modificado — claims em mocks)
-- `project-r/__tests__/auth-hook-unit.test.ts` (modificado — TypeScript fixes)
-- `project-r/__tests__/auth-hook.integration.test.ts` (modificado — TypeScript fixes)
-- `project-r/__tests__/components/ui/button-hierarchy.test.tsx` (modificado — @ts-expect-error)
-- `project-r/__tests__/components/ui/haptic-button.test.tsx` (modificado — @ts-ignore → @ts-expect-error)
-- `project-r/__tests__/mfa-unit.test.ts` (modificado — TypeScript fixes)
-- `project-r/src/__tests__/lib/actions/telemetry.test.ts` (modificado — Result discriminated union)
-- `project-r/src/__tests__/lib/outbox/status.test.ts` (modificado — useOutboxStatus hook tests)
-- `project-r/src/components/patterns/BottomTabNav.test.tsx` (modificado — noUncheckedIndexedAccess fix)
-- `project-r/src/app/(staff)/layout.tsx` (modificado — JSX fora try/catch)
-- `project-r/src/app/login/page.tsx` (modificado — let→const, eslint-disable)
-- `project-r/src/components/providers/OutboxProvider.tsx` (modificado — eslint-disable)
-- `project-r/.env.example` (modificado — SUPABASE_DB_URL)
+- `sparta/.lighthouserc.json` (criado)
+- `sparta/scripts/check-bundle-size.mjs` (criado)
+- `sparta/scripts/lighthouse-check.mjs` (criado)
+- `sparta/tsconfig.typecheck.json` (criado)
+- `sparta/vitest.d.ts` (criado)
+- `sparta/src/__tests__/lib/outbox/triggers.test.ts` (criado)
+- `sparta/package.json` (modificado — scripts + @lhci/cli)
+- `sparta/vitest.config.ts` (modificado — coverage block)
+- `sparta/eslint.config.mjs` (modificado — test overrides, coverage ignore, scripts override)
+- `sparta/__tests__/proxy.test.ts` (modificado — claims em mocks)
+- `sparta/__tests__/auth-hook-unit.test.ts` (modificado — TypeScript fixes)
+- `sparta/__tests__/auth-hook.integration.test.ts` (modificado — TypeScript fixes)
+- `sparta/__tests__/components/ui/button-hierarchy.test.tsx` (modificado — @ts-expect-error)
+- `sparta/__tests__/components/ui/haptic-button.test.tsx` (modificado — @ts-ignore → @ts-expect-error)
+- `sparta/__tests__/mfa-unit.test.ts` (modificado — TypeScript fixes)
+- `sparta/src/__tests__/lib/actions/telemetry.test.ts` (modificado — Result discriminated union)
+- `sparta/src/__tests__/lib/outbox/status.test.ts` (modificado — useOutboxStatus hook tests)
+- `sparta/src/components/patterns/BottomTabNav.test.tsx` (modificado — noUncheckedIndexedAccess fix)
+- `sparta/src/app/(staff)/layout.tsx` (modificado — JSX fora try/catch)
+- `sparta/src/app/login/page.tsx` (modificado — let→const, eslint-disable)
+- `sparta/src/components/providers/OutboxProvider.tsx` (modificado — eslint-disable)
+- `sparta/.env.example` (modificado — SUPABASE_DB_URL)
 - `_bmad-output/implementation-artifacts/sprint-status.yaml` (modificado — status)

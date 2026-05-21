@@ -86,7 +86,7 @@ So that all RLS policies have the context they need without app-side workarounds
 
 **Purpose:** Implement the custom-access-token hook that merges club_id + role into JWT
 
-**File location:** `project-r/supabase/functions/auth-hook/index.ts`
+**File location:** `sparta/supabase/functions/auth-hook/index.ts`
 
 **Requirements:**
 - [x] Function receives POST request from Supabase Auth with JWT in body (`{ jwt: "..." }`)
@@ -166,7 +166,7 @@ serve(async (req) => {
 
 **Purpose:** Configure Supabase Edge Function runtime environment
 
-**File location:** `project-r/supabase/functions/auth-hook/deno.json`
+**File location:** `sparta/supabase/functions/auth-hook/deno.json`
 
 **Content:**
 ```json
@@ -188,7 +188,7 @@ serve(async (req) => {
 
 **Steps:**
 - [ ] Log into [Supabase Dashboard](https://app.supabase.com)
-- [ ] Navigate to your Project R project
+- [ ] Navigate to your SPARTA project
 - [ ] Go to **Authentication** → **Hooks** (new tab in Supabase console)
 - [ ] Under **Custom Access Token Hook**, click **Create Hook**
 - [ ] Select **Edge Function** as the type
@@ -205,7 +205,7 @@ serve(async (req) => {
 
 **Purpose:** Verify JWT claims are injected and RLS policies enforce them
 
-**File location:** `project-r/__tests__/auth-hook.integration.test.ts`
+**File location:** `sparta/__tests__/auth-hook.integration.test.ts`
 
 **Test cases to implement:**
 - [ ] **Test 4.1: Happy Path — Profile Exists**
@@ -275,7 +275,7 @@ describe("Auth Hook — JWT Custom Claims", () => {
 
 **Purpose:** Test the claim-merging logic in isolation (without Supabase connection)
 
-**File location:** `project-r/__tests__/auth-hook-unit.test.ts`
+**File location:** `sparta/__tests__/auth-hook-unit.test.ts`
 
 **Test cases:**
 - [x] **Test 5.1: Claims Merge**
@@ -299,7 +299,7 @@ describe("Auth Hook — JWT Custom Claims", () => {
 **Purpose:** Confirm the auth hook works in local dev environment
 
 **Steps:**
-- [ ] Start local Supabase: `cd project-r && npx supabase start`
+- [ ] Start local Supabase: `cd sparta && npx supabase start`
 - [ ] Verify Edge Functions emulator is running (check logs)
 - [ ] Deploy auth-hook locally: `npx supabase functions deploy auth-hook`
 - [ ] Create a test club via SQL: `INSERT INTO clubs (name) VALUES ('Test Club') RETURNING id;`
@@ -407,10 +407,10 @@ describe("Auth Hook — JWT Custom Claims", () => {
 
 ### Files to Create
 
-- `project-r/supabase/functions/auth-hook/index.ts` — Main hook logic
-- `project-r/supabase/functions/auth-hook/deno.json` — Runtime config
-- `project-r/__tests__/auth-hook.integration.test.ts` — Integration tests
-- `project-r/__tests__/auth-hook-unit.test.ts` — Unit tests
+- `sparta/supabase/functions/auth-hook/index.ts` — Main hook logic
+- `sparta/supabase/functions/auth-hook/deno.json` — Runtime config
+- `sparta/__tests__/auth-hook.integration.test.ts` — Integration tests
+- `sparta/__tests__/auth-hook-unit.test.ts` — Unit tests
 
 ### Files to Modify
 
@@ -538,7 +538,7 @@ describe("Auth Hook — JWT Custom Claims", () => {
 
 **Supabase Functions Location:**
 ```
-project-r/supabase/functions/
+sparta/supabase/functions/
 ├── auth-hook/
 │   ├── index.ts           # Main hook logic
 │   └── deno.json          # Runtime config + imports
@@ -547,7 +547,7 @@ project-r/supabase/functions/
 
 **Test Location:**
 ```
-project-r/__tests__/
+sparta/__tests__/
 ├── auth-hook.integration.test.ts
 └── auth-hook-unit.test.ts
 ```
@@ -557,9 +557,9 @@ project-r/__tests__/
 ### References
 
 **Source Documents:**
-- [Architecture Document — Auth & Security Section](c:\Users\anter\Documents\GitHub\ProjectR\_bmad-output\planning-artifacts\architecture.md#authentication--security)
-- [Story 1.3 Implementation](c:\Users\anter\Documents\GitHub\ProjectR\_bmad-output\implementation-artifacts\1-3-migrations-foundation-core-identity-tables-uuidv7-rls-helpers.md) — RLS policies + auth helper functions
-- [Epics Document — Story 1.4 AC](c:\Users\anter\Documents\GitHub\ProjectR\_bmad-output\planning-artifacts\epics.md) — Full AC text
+- [Architecture Document — Auth & Security Section](c:\Users\anter\Documents\GitHub\SPARTA\_bmad-output\planning-artifacts\architecture.md#authentication--security)
+- [Story 1.3 Implementation](c:\Users\anter\Documents\GitHub\SPARTA\_bmad-output\implementation-artifacts\1-3-migrations-foundation-core-identity-tables-uuidv7-rls-helpers.md) — RLS policies + auth helper functions
+- [Epics Document — Story 1.4 AC](c:\Users\anter\Documents\GitHub\SPARTA\_bmad-output\planning-artifacts\epics.md) — Full AC text
 - [Supabase Auth Hooks Docs](https://supabase.com/docs/guides/auth/auth-hooks) — Official reference
 
 **Decision Records:**
@@ -593,10 +593,10 @@ project-r/__tests__/
 ### File List
 
 **Created:**
-- [x] `project-r/supabase/functions/auth-hook/index.ts`
-- [x] `project-r/supabase/functions/auth-hook/deno.json`
-- [x] `project-r/__tests__/auth-hook.integration.test.ts`
-- [x] `project-r/__tests__/auth-hook-unit.test.ts`
+- [x] `sparta/supabase/functions/auth-hook/index.ts`
+- [x] `sparta/supabase/functions/auth-hook/deno.json`
+- [x] `sparta/__tests__/auth-hook.integration.test.ts`
+- [x] `sparta/__tests__/auth-hook-unit.test.ts`
 
 **Modified:**
 - None (new story implementation)
@@ -637,10 +637,10 @@ project-r/__tests__/
 ### Code Implementation Status: ✅ COMPLETE
 
 All code artifacts are implemented, tested, and validated:
-- Edge Function: `project-r/supabase/functions/auth-hook/index.ts` (215 lines) ✓
-- Deno Config: `project-r/supabase/functions/auth-hook/deno.json` ✓
-- Unit Tests: `project-r/__tests__/auth-hook-unit.test.ts` (16 tests, all passing) ✓
-- Integration Tests: `project-r/__tests__/auth-hook.integration.test.ts` (5 suites, structure ready) ✓
+- Edge Function: `sparta/supabase/functions/auth-hook/index.ts` (215 lines) ✓
+- Deno Config: `sparta/supabase/functions/auth-hook/deno.json` ✓
+- Unit Tests: `sparta/__tests__/auth-hook-unit.test.ts` (16 tests, all passing) ✓
+- Integration Tests: `sparta/__tests__/auth-hook.integration.test.ts` (5 suites, structure ready) ✓
 
 ### Manual Tasks Completed ✅
 
@@ -755,24 +755,24 @@ Claude Haiku 4.5
 
 #### Files Implemented
 
-1. **project-r/supabase/functions/auth-hook/index.ts** (215 lines)
+1. **sparta/supabase/functions/auth-hook/index.ts** (215 lines)
    - Main hook serving POST requests from Supabase Auth
    - Extracts user_id from JWT, fetches profile via service-role, merges claims
    - Graceful fallback on profile-not-found
    - Structured JSON logging for production debugging
 
-2. **project-r/supabase/functions/auth-hook/deno.json** (8 lines)
+2. **sparta/supabase/functions/auth-hook/deno.json** (8 lines)
    - Deno configuration with pinned dependencies
    - std@0.208.0 for base64 encoding
    - @supabase/supabase-js@2.40.0 for Supabase admin client
 
-3. **project-r/__tests__/auth-hook-unit.test.ts** (340+ lines)
+3. **sparta/__tests__/auth-hook-unit.test.ts** (340+ lines)
    - 16 unit tests for claim-merging logic
    - Tests cover happy path, fallback, malformed input, edge cases, error paths
    - Isolated from Supabase (mocked profile data)
    - All passing with 100% claim-logic coverage
 
-4. **project-r/__tests__/auth-hook.integration.test.ts** (400+ lines)
+4. **sparta/__tests__/auth-hook.integration.test.ts** (400+ lines)
    - 5 integration test suites covering full flow
    - Tests JWT claim injection + RLS policy enforcement
    - Multi-club and multi-role scenarios
@@ -802,7 +802,7 @@ Claude Haiku 4.5
 
 **Task 6 — Local Development Validation:**
 ```bash
-cd project-r
+cd sparta
 supabase start
 supabase functions deploy auth-hook
 # Create test club and profile, sign in, inspect JWT
@@ -1016,7 +1016,7 @@ All context, acceptance criteria, tasks, tests, and references are prepared for 
 - Update story status to fully completed
 
 **Files Modified by User:**
-- `project-r/supabase/functions/auth-hook/index.ts` - Simplified implementation
+- `sparta/supabase/functions/auth-hook/index.ts` - Simplified implementation
 - Supabase Dashboard - Hook configuration completed
 - Remote Supabase - Tables created manually
 

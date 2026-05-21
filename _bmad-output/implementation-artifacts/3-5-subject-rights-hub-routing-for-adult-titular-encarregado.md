@@ -46,7 +46,7 @@ Para não precisar de enviar emails ou procurar para exercer os meus direitos.
 
 **And** se válido, as ações aplicam-se aos dados do menor ligado (FR8)  
 **And** se inválido/expirado, a página mostra `<EmptyState>` explicativo (UX-DR8):
-- "Este link expirou. Pede um novo ao staff de Project R." (se expirado)
+- "Este link expirou. Pede um novo ao staff de SPARTA." (se expirado)
 - "Este link não é válido." (se não encontrado)
 - Sem exposição de razão técnica (não vazar que o menor existe ou não)
 
@@ -58,7 +58,7 @@ Para não precisar de enviar emails ou procurar para exercer os meus direitos.
 **When** a página carrega  
 **Then** nenhum botão de ação é visível  
 **And** a página mostra `<EmptyState>`:
-- "As tuas opções estão com o teu encarregado de educação. Pede-lhe para abrir o email mais recente da Project R." (UX-DR8)
+- "As tuas opções estão com o teu encarregado de educação. Pede-lhe para abrir o email mais recente da SPARTA." (UX-DR8)
 - Tom respeitoso, sem paternalismo
 
 **And** RLS na página (`Server Component`) valida `auth.uid()` → `players` → `age_group` (não expõe erro, apenas esvazia)
@@ -277,27 +277,27 @@ Replicar este padrão para Story 3.5.
 
 | Artifact | Path | Type |
 |----------|------|------|
-| Edge Function | `project-r/supabase/functions/validate-subject-token/index.ts` | NEW |
-| Edge Function Config | `project-r/supabase/functions/validate-subject-token/deno.json` | NEW |
-| Layout (subject-rights) | `project-r/src/app/configuracoes/(subject-rights)/layout.tsx` | NEW |
-| Hub Page | `project-r/src/app/configuracoes/(subject-rights)/direitos/page.tsx` | NEW |
-| Public Layout | `project-r/src/app/(public)/direitos/layout.tsx` | NEW |
-| Encarregado Page | `project-r/src/app/(public)/direitos/[token]/page.tsx` | NEW |
-| Component (PageInDevelopment) | `project-r/src/components/domain/page-in-development.tsx` | NEW |
-| Action Page (exportar) | `project-r/src/app/configuracoes/(subject-rights)/direitos/exportar/page.tsx` | NEW |
-| Action Page (apagar) | `project-r/src/app/configuracoes/(subject-rights)/direitos/apagar/page.tsx` | NEW |
-| Action Page (retificar) | `project-r/src/app/configuracoes/(subject-rights)/direitos/retificar/page.tsx` | NEW |
-| Action Page (limitar) | `project-r/src/app/configuracoes/(subject-rights)/direitos/limitar/page.tsx` | NEW |
-| Action Page (retirar) | `project-r/src/app/configuracoes/(subject-rights)/direitos/retirar/page.tsx` | NEW |
-| Public Action Page (exportar) | `project-r/src/app/(public)/direitos/[token]/exportar/page.tsx` | NEW |
-| Public Action Page (apagar) | `project-r/src/app/(public)/direitos/[token]/apagar/page.tsx` | NEW |
-| Public Action Page (retificar) | `project-r/src/app/(public)/direitos/[token]/retificar/page.tsx` | NEW |
-| Public Action Page (limitar) | `project-r/src/app/(public)/direitos/[token]/limitar/page.tsx` | NEW |
-| Public Action Page (retirar) | `project-r/src/app/(public)/direitos/[token]/retirar/page.tsx` | NEW |
-| Edge Function Tests | `project-r/src/__tests__/functions/validate-subject-token.test.ts` | NEW |
-| Encarregado Page Tests | `project-r/src/__tests__/app/direitos/page.test.tsx` | NEW |
-| Hub Page Tests | `project-r/src/__tests__/app/configuracoes/direitos/page.test.tsx` | NEW |
-| Component Tests | `project-r/src/__tests__/components/page-in-development.test.tsx` | NEW |
+| Edge Function | `sparta/supabase/functions/validate-subject-token/index.ts` | NEW |
+| Edge Function Config | `sparta/supabase/functions/validate-subject-token/deno.json` | NEW |
+| Layout (subject-rights) | `sparta/src/app/configuracoes/(subject-rights)/layout.tsx` | NEW |
+| Hub Page | `sparta/src/app/configuracoes/(subject-rights)/direitos/page.tsx` | NEW |
+| Public Layout | `sparta/src/app/(public)/direitos/layout.tsx` | NEW |
+| Encarregado Page | `sparta/src/app/(public)/direitos/[token]/page.tsx` | NEW |
+| Component (PageInDevelopment) | `sparta/src/components/domain/page-in-development.tsx` | NEW |
+| Action Page (exportar) | `sparta/src/app/configuracoes/(subject-rights)/direitos/exportar/page.tsx` | NEW |
+| Action Page (apagar) | `sparta/src/app/configuracoes/(subject-rights)/direitos/apagar/page.tsx` | NEW |
+| Action Page (retificar) | `sparta/src/app/configuracoes/(subject-rights)/direitos/retificar/page.tsx` | NEW |
+| Action Page (limitar) | `sparta/src/app/configuracoes/(subject-rights)/direitos/limitar/page.tsx` | NEW |
+| Action Page (retirar) | `sparta/src/app/configuracoes/(subject-rights)/direitos/retirar/page.tsx` | NEW |
+| Public Action Page (exportar) | `sparta/src/app/(public)/direitos/[token]/exportar/page.tsx` | NEW |
+| Public Action Page (apagar) | `sparta/src/app/(public)/direitos/[token]/apagar/page.tsx` | NEW |
+| Public Action Page (retificar) | `sparta/src/app/(public)/direitos/[token]/retificar/page.tsx` | NEW |
+| Public Action Page (limitar) | `sparta/src/app/(public)/direitos/[token]/limitar/page.tsx` | NEW |
+| Public Action Page (retirar) | `sparta/src/app/(public)/direitos/[token]/retirar/page.tsx` | NEW |
+| Edge Function Tests | `sparta/src/__tests__/functions/validate-subject-token.test.ts` | NEW |
+| Encarregado Page Tests | `sparta/src/__tests__/app/direitos/page.test.tsx` | NEW |
+| Hub Page Tests | `sparta/src/__tests__/app/configuracoes/direitos/page.test.tsx` | NEW |
+| Component Tests | `sparta/src/__tests__/components/page-in-development.test.tsx` | NEW |
 
 ---
 

@@ -182,7 +182,7 @@ From Story 1.5:
 
 **Purpose:** Export a Supabase client for use in browser code (React components, Client Components).
 
-**File location:** `project-r/src/lib/supabase/client.ts`
+**File location:** `sparta/src/lib/supabase/client.ts`
 
 **Requirements:**
 - [x] Import `createBrowserClient` from `@supabase/ssr`.
@@ -213,7 +213,7 @@ From Story 1.5:
 
 **Purpose:** Export a Supabase client for use in Server Actions and server-side code.
 
-**File location:** `project-r/src/lib/supabase/server.ts`
+**File location:** `sparta/src/lib/supabase/server.ts`
 
 **Requirements:**
 - [x] Import `createServerClient` from `@supabase/ssr`.
@@ -251,7 +251,7 @@ From Story 1.5:
 
 **Purpose:** Refresh Supabase session and redirect unauthenticated users in the middleware layer.
 
-**File location:** `project-r/src/lib/supabase/middleware.ts`
+**File location:** `sparta/src/lib/supabase/middleware.ts`
 
 **Requirements:**
 - [x] Import `createServerClient` from `@supabase/ssr`.
@@ -288,7 +288,7 @@ From Story 1.5:
 
 **Purpose:** Wire up the session refresh and authentication checks globally.
 
-**File location:** `project-r/middleware.ts` (root of `src/` for Next.js 15+, or adjust per your setup)
+**File location:** `sparta/middleware.ts` (root of `src/` for Next.js 15+, or adjust per your setup)
 
 **Requirements:**
 - [x] Import the `updateSession` function from `lib/supabase/middleware.ts`.
@@ -322,7 +322,7 @@ From Story 1.5:
 
 **Purpose:** Export a service-role client for Edge Functions, cron jobs, and authorized server-side operations.
 
-**File location:** `project-r/src/lib/supabase/service-role.ts`
+**File location:** `sparta/src/lib/supabase/service-role.ts`
 
 **Requirements:**
 - [x] Import `createClient` from `@supabase/supabase-js` (the low-level client).
@@ -355,7 +355,7 @@ From Story 1.5:
 
 **Purpose:** Prevent accidental use of service-role client in browser code.
 
-**File location:** `project-r/.eslintrc.json` (or equivalent config file)
+**File location:** `sparta/.eslintrc.json` (or equivalent config file)
 
 **Requirements:**
 - [x] Add an import restriction rule:
@@ -398,7 +398,7 @@ From Story 1.5:
 
 **Purpose:** Provide a single import path for common Supabase utilities.
 
-**File location:** `project-r/src/lib/supabase/index.ts`
+**File location:** `sparta/src/lib/supabase/index.ts`
 
 **Requirements:**
 - [x] Export browser client:
@@ -423,7 +423,7 @@ From Story 1.5:
 
 **Purpose:** Create fixtures with 2 clubs, 3 roles, 2 users per role for RLS testing.
 
-**File location:** `project-r/supabase/seed.sql` (or `supabase/migrations/<date>_seed_multitenant.sql` if used once)
+**File location:** `sparta/supabase/seed.sql` (or `supabase/migrations/<date>_seed_multitenant.sql` if used once)
 
 **Requirements:**
 - [x] Create 2 test clubs: "Club Alpha" and "Club Beta".
@@ -445,7 +445,7 @@ From Story 1.5:
 
 **Purpose:** Verify AC #1 and AC #2 — RLS blocks cross-tenant access and enforces "with check".
 
-**File location:** `project-r/__tests__/supabase-multitenant.test.ts`
+**File location:** `sparta/__tests__/supabase-multitenant.test.ts`
 
 **Test suite: "Multi-tenant RLS isolation"**
 
@@ -509,7 +509,7 @@ And only profiles with role IN ('coach','analyst','player') are allowed
 
 **Purpose:** Verify AC #4 — service-role import is blocked outside whitelisted paths.
 
-**File location:** `project-r/__tests__/eslint-service-role.test.ts` or manual verification
+**File location:** `sparta/__tests__/eslint-service-role.test.ts` or manual verification
 
 **Requirement:**
 - [x] Create a mock file at `src/app/login/page.tsx` with an intentional import:
@@ -527,7 +527,7 @@ And only profiles with role IN ('coach','analyst','player') are allowed
 
 **Purpose:** Verify AC #5 — middleware redirects unauthenticated users and refreshes sessions.
 
-**File location:** `project-r/__tests__/middleware.test.ts`
+**File location:** `sparta/__tests__/middleware.test.ts`
 
 **Test case 1: Unauthenticated request to protected route redirects to /login**
 ```
@@ -563,7 +563,7 @@ And refreshed tokens are written to the response cookie
 
 **Purpose:** Enable TypeScript IntelliSense for Supabase queries.
 
-**File location:** `project-r/src/types/supabase.ts`
+**File location:** `sparta/src/types/supabase.ts`
 
 **Requirements:**
 - [x] Generate types from Supabase project:
@@ -586,7 +586,7 @@ And refreshed tokens are written to the response cookie
 
 **Purpose:** Ensure future developers know how to set up and troubleshoot multi-tenant RLS.
 
-**File location:** `project-r/docs/multi-tenant-setup.md` or equivalent
+**File location:** `sparta/docs/multi-tenant-setup.md` or equivalent
 
 **Document contents:**
 - [x] Overview: "Story 1.6 establishes multi-tenant isolation via RLS. All Supabase queries are scoped by `club_id = auth.club_id()`."
@@ -599,7 +599,7 @@ And refreshed tokens are written to the response cookie
 - [x] Common pitfalls: service-role in browser, missing "with check" on writes, etc.
 
 **Verification:**
-- [x] Document is accessible from project root or docs folder.
+- [x] Document is accessible from SPARTAoot or docs folder.
 - [x] New developer can follow the document to set up local environment.
 
 ### Task 15 — Verify all ACs are satisfied
@@ -707,25 +707,25 @@ And refreshed tokens are written to the response cookie
 ## File List
 
 **New files:**
-- `project-r/src/lib/supabase/server.ts`
-- `project-r/src/lib/supabase/middleware.ts` (rewritten)
-- `project-r/src/lib/supabase/service-role.ts`
-- `project-r/src/lib/supabase/index.ts`
-- `project-r/src/proxy.ts`
-- `project-r/src/types/supabase.ts`
-- `project-r/supabase/seed.sql`
-- `project-r/docs/multi-tenant-setup.md`
-- `project-r/__tests__/supabase-multitenant.test.ts`
-- `project-r/__tests__/proxy.test.ts`
+- `sparta/src/lib/supabase/server.ts`
+- `sparta/src/lib/supabase/middleware.ts` (rewritten)
+- `sparta/src/lib/supabase/service-role.ts`
+- `sparta/src/lib/supabase/index.ts`
+- `sparta/src/proxy.ts`
+- `sparta/src/types/supabase.ts`
+- `sparta/supabase/seed.sql`
+- `sparta/docs/multi-tenant-setup.md`
+- `sparta/__tests__/supabase-multitenant.test.ts`
+- `sparta/__tests__/proxy.test.ts`
 
 **Modified files:**
-- `project-r/src/lib/supabase/client.ts` (refactored to `@supabase/ssr` createBrowserClient)
-- `project-r/src/lib/supabase/database.types.ts` (converted UTF-16 → UTF-8)
-- `project-r/eslint.config.mjs` (added service-role restriction rule)
-- `project-r/__tests__/auth-protected.test.ts` (mock updated to `@supabase/ssr`)
-- `project-r/__tests__/auth-logout.test.ts` (mock updated to `@supabase/ssr`)
-- `project-r/__tests__/auth-recovery.test.ts` (mock updated to `@supabase/ssr`)
-- `project-r/__tests__/auth-reset.test.ts` (mock updated to `@supabase/ssr`)
+- `sparta/src/lib/supabase/client.ts` (refactored to `@supabase/ssr` createBrowserClient)
+- `sparta/src/lib/supabase/database.types.ts` (converted UTF-16 → UTF-8)
+- `sparta/eslint.config.mjs` (added service-role restriction rule)
+- `sparta/__tests__/auth-protected.test.ts` (mock updated to `@supabase/ssr`)
+- `sparta/__tests__/auth-logout.test.ts` (mock updated to `@supabase/ssr`)
+- `sparta/__tests__/auth-recovery.test.ts` (mock updated to `@supabase/ssr`)
+- `sparta/__tests__/auth-reset.test.ts` (mock updated to `@supabase/ssr`)
 
 ---
 

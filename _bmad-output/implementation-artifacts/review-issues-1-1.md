@@ -48,7 +48,7 @@
 - Developers creating `.env.local` manually may not include all required vars
 
 **Acceptance Criteria (Resolution):**
-- [ ] Create `project-r/.env.example` with template vars:
+- [ ] Create `sparta/.env.example` with template vars:
   ```
   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
@@ -104,7 +104,7 @@
 **Summary:** TypeScript, vitest, and ESLint define path aliases differently. If vitest runs from repo root (monorepo scenario), the `@/*` alias breaks. No guard against import resolution drift.
 
 **Details:**
-- `tsconfig.json` line 23: `"@/*": ["./src/*"]` — Relative to project root
+- `tsconfig.json` line 23: `"@/*": ["./src/*"]` — Relative to SPARTAoot
 - `vitest.config.ts` line 16: `alias: { "@": path.resolve(__dirname, "./src") }` — Uses __dirname (CWD-dependent)
 - `components.json`: Aliases point to `@/components`, `@/lib`, etc. (shadcn convention)
 - `eslint.config.mjs`: No explicit path alias definition; relies on inheritance
@@ -123,7 +123,7 @@
     },
   });
   ```
-  (Already correct — verify __dirname resolves to project-r/ directory)
+  (Already correct — verify __dirname resolves to sparta/ directory)
 
 - [ ] Add test `__tests__/imports.test.ts` that verifies all @/* aliases resolve:
   ```typescript
@@ -132,10 +132,10 @@
   // ... test all key paths
   ```
 
-- [ ] Document in `project-r/CLAUDE.md`:
+- [ ] Document in `sparta/CLAUDE.md`:
   ```
   ## TypeScript Path Aliases
-  - Tests must be run from `project-r/` directory for vitest alias resolution
+  - Tests must be run from `sparta/` directory for vitest alias resolution
   - All @/* paths resolve to src/ subdirectory
   - Verify with: npm run test --run
   ```
@@ -171,7 +171,7 @@
   # Enforce Node version from .nvmrc
   - uses: actions/setup-node@v4
     with:
-      node-version-file: 'project-r/.nvmrc'
+      node-version-file: 'sparta/.nvmrc'
   ```
 
 - [ ] Verify locally: `nvm use` (or `fnm use`) should load .nvmrc version
@@ -200,7 +200,7 @@
   npm uninstall recharts
   ```
 
-- [ ] Document decision in `project-r/docs/architecture/violations.md`:
+- [ ] Document decision in `sparta/docs/architecture/violations.md`:
   ```
   | Date | Story | Decision | Rationale | Status |
   | --- | --- | --- | --- | --- |
@@ -247,11 +247,11 @@
   });
   ```
 
-- [ ] Document in `project-r/CLAUDE.md`:
+- [ ] Document in `sparta/CLAUDE.md`:
   ```
   ## Running Tests
-  - Tests can be run from project-r/ directory: npm run test
-  - Or from repo root: npm run -w project-r test
+  - Tests can be run from sparta/ directory: npm run test
+  - Or from repo root: npm run -w sparta test
   - Vitest setup is configured with absolute paths for monorepo compatibility
   ```
 
@@ -304,7 +304,7 @@
 - Developers adding code will see errors like "Object is possibly 'undefined'" with no resolution path
 
 **Acceptance Criteria (Resolution):**
-- [ ] Add section to `project-r/AGENTS.md` or `project-r/CLAUDE.md`:
+- [ ] Add section to `sparta/AGENTS.md` or `sparta/CLAUDE.md`:
   ```markdown
   ## TypeScript: noUncheckedIndexedAccess
 
@@ -363,7 +363,7 @@
   });
   ```
 
-- [ ] Document in `project-r/AGENTS.md`:
+- [ ] Document in `sparta/AGENTS.md`:
   ```markdown
   ## React 19 JSX Transform
 

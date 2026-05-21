@@ -30,8 +30,8 @@ So that we can lawfully collect health data from the pilot squad before release.
 
 **Given** GDPR compliance requirements (NFR24, AR24)  
 **When** the legal documentation is initialized  
-**Then** the DPA with Supabase is signed and linked from `project-r/_compliance/dpa.md`  
-**And** a DPIA template is created at `project-r/_compliance/dpia.md` with sections for:
+**Then** the DPA with Supabase is signed and linked from `sparta/_compliance/dpa.md`  
+**And** a DPIA template is created at `sparta/_compliance/dpia.md` with sections for:
 - Art. 9 legal basis (GDPR Art. 9(2) — why collecting health data is lawful)
 - Risk assessment (data breaches, unauthorized access, processing by staff)
 - Mitigations (RLS, encryption, audit logs, consent management)
@@ -40,7 +40,7 @@ So that we can lawfully collect health data from the pilot squad before release.
 ### AC #3: Local dev workflow with Docker-based Postgres
 
 **Given** local dev workflow  
-**When** `supabase start` is run from `project-r/`  
+**When** `supabase start` is run from `sparta/`  
 **Then** a Docker-based Postgres comes up healthy (no crashes, port 5432 open)  
 **And** `supabase migration new` is functional (creates migration placeholder in `supabase/migrations/`)  
 **And** `supabase db reset --no-seed` runs without error (validates migrations against fresh schema)
@@ -48,7 +48,7 @@ So that we can lawfully collect health data from the pilot squad before release.
 ### AC #4: .env.example with required vars + .gitignore exclusion
 
 **Given** environment variable conventions (AR30)  
-**When** `.env.example` is committed to `project-r/`  
+**When** `.env.example` is committed to `sparta/`  
 **Then** it documents:
 - `NEXT_PUBLIC_SUPABASE_URL` — Supabase project URL (safe to expose)
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase anon key (safe; limited by RLS)
@@ -66,7 +66,7 @@ So that we can lawfully collect health data from the pilot squad before release.
 
 ### Task 0 — Pre-flight checks
 
-- [x] Verify `project-r/` directory exists and contains `package.json` from Story 1.1 ✅
+- [x] Verify `sparta/` directory exists and contains `package.json` from Story 1.1 ✅
 - [x] Confirm Node 22 LTS: `node -v` → `v22.22.2` ✅
 - [x] Confirm `npm` works: `npm --version` → `11.13.0` ✅
 - [x] Confirm Docker is installed: `docker --version` → `29.4.2` ✅ (⚠️ daemon NOT running — see Task 11)
@@ -76,35 +76,35 @@ So that we can lawfully collect health data from the pilot squad before release.
 > ⚠️ **External dashboard interaction required.** Dev agent cannot perform these steps.
 
 - [x] **[USER]** Navigate to [supabase.com](https://supabase.com/dashboard) and sign in / create account ✅
-- [x] **[USER]** Create new project (project ref: `znwloapwqftibehghkuf`) ✅
-- [x] **[USER]** Credentials pasted into `project-r/.env.local` (URL + publishable key + service role key) ✅
-- [x] Validated by dev agent (2026-05-09): REST/Auth respond 200, TLS 1.3, JWT decode confirms project ref match ✅
+- [x] **[USER]** Create new project (SPARTAef: `znwloapwqftibehghkuf`) ✅
+- [x] **[USER]** Credentials pasted into `sparta/.env.local` (URL + publishable key + service role key) ✅
+- [x] Validated by dev agent (2026-05-09): REST/Auth respond 200, TLS 1.3, JWT decode confirms SPARTAef match ✅
 - [x] **[USER]** Region confirmed via dashboard screenshot (2026-05-09): `West EU (Ireland)` — `eu-west-1`, t4g.nano. NFR30 satisfied ✅
 
 > _Note: The user used the new `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` naming (Supabase 2025 standard, prefix `sb_publishable_*`). Codebase aligned in `.env.example`._
   - **Organization:** Create or select
-  - **Project name:** `Project R` (or similar)
+  - **Project name:** `SPARTA` (or similar)
   - **Database password:** Generate strong password (copy to secure location)
   - **Region:** Select **Ireland** or **Amsterdam** (EU only; avoid US)
   - **Pricing plan:** Free tier (matches MVP cost constraint)
 - [ ] Wait for project to provision (~2 min)
 - [ ] Copy project credentials to temp location:
-  - **Project URL:** `https://<project-ref>.supabase.co`
+  - **Project URL:** `https://<spartaef>.supabase.co`
   - **Anon key:** (from Settings → API → anon public key)
   - **Service role key:** (from Settings → API → service_role secret)
-- [ ] Create file `project-r/.env.local` (local-only, not committed):
+- [ ] Create file `sparta/.env.local` (local-only, not committed):
   ```
-  NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+  NEXT_PUBLIC_SUPABASE_URL=https://<spartaef>.supabase.co
   NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key-from-dashboard>
   SUPABASE_SERVICE_ROLE_KEY=<service-role-key-from-dashboard>
   ```
-- [ ] Verify credentials work: in `project-r/`, run `npx supabase projects list --project-id <project-ref>` (requires Supabase CLI)
+- [ ] Verify credentials work: in `sparta/`, run `npx supabase projects list --project-id <spartaef>` (requires Supabase CLI)
 
 ### Task 2 — Set up Supabase CLI locally
 
-- [x] Install Supabase CLI: `npm install --save-dev supabase` ✅ (v2.98.2 — added to `project-r/package.json` devDependencies)
-- [x] Initialize Supabase in `project-r/`: `npx supabase init --yes` ✅ (created `supabase/config.toml`, project_id = `project-r`)
-- [ ] **[USER]** Link project to remote: `npx supabase link --project-id <project-ref>` (after Task 1)
+- [x] Install Supabase CLI: `npm install --save-dev supabase` ✅ (v2.98.2 — added to `sparta/package.json` devDependencies)
+- [x] Initialize Supabase in `sparta/`: `npx supabase init --yes` ✅ (created `supabase/config.toml`, project_id = `sparta`)
+- [ ] **[USER]** Link project to remote: `npx supabase link --project-id <spartaef>` (after Task 1)
 - [ ] **[USER]** Authenticate with Supabase: `npx supabase login` (opens browser for token)
 - [ ] **[USER]** Verify link: `npx supabase projects list` should show your project
 
@@ -112,7 +112,7 @@ So that we can lawfully collect health data from the pilot squad before release.
 
 - [x] Start local Supabase stack: `npx supabase start` ✅ (verified 2026-05-09 after user started Docker Desktop; exit 0)
 - [x] Verify health: `docker ps | grep supabase` ✅ (12 containers up, all healthy except `supabase_vector` which restarts cosmetically on Windows — non-blocking)
-- [x] `.gitkeep` already in `project-r/supabase/migrations/` (from Story 1.1) ✅
+- [x] `.gitkeep` already in `sparta/supabase/migrations/` (from Story 1.1) ✅
 - [x] `npx supabase migration new test_init` ✅ (verified — created and removed test migration; real migrations are Story 1.3)
 - [x] Verify reset works: `npx supabase db reset --no-seed` ✅ ("Finished supabase db reset on branch main" — 2026-05-09)
 
@@ -120,11 +120,11 @@ So that we can lawfully collect health data from the pilot squad before release.
 
 > ⚠️ **External dashboard interaction required.** Dev agent cannot perform these steps.
 
-- [x] **[USER]** Vercel project `project-r` created in `anterosantos' projects` org (Hobby plan) ✅
+- [x] **[USER]** Vercel project `sparta` created in `anterosantos' projects` org (Hobby plan) ✅
 - [x] **[USER]** Settings → Functions → Function Region → selected **`Frankfurt, Germany (West) - eu-central-1 - fra1`** ✅ (confirmed by "fra1" badge in dashboard)
 - [x] **[USER]** Redeploy executed ✅
 - [ ] **[USER]** Go to [vercel.com](https://vercel.com/dashboard)
-- [ ] Create or import existing repo (GitHub: `anterosantos/ProjectR`)
+- [ ] Create or import existing repo (GitHub: `anterosantos/SPARTA`)
 - [ ] In Project Settings → Deployment:
   - Set **Primary Region** to `fra1` (Frankfurt)
   - Confirm region shows EU flag
@@ -137,7 +137,7 @@ So that we can lawfully collect health data from the pilot squad before release.
 
 - [x] **[USER]** Resend account created (Free tier, antero.rsantos@…) ✅
 - [x] **[USER]** API key created with `Sending access` scope ✅ (validated 2026-05-09: HTTP 422 on `POST /emails` with empty body — auth OK, scope OK, TLS 1.3)
-- [x] **[USER]** Key pasted into `project-r/.env.local` `RESEND_API_KEY` ✅
+- [x] **[USER]** Key pasted into `sparta/.env.local` `RESEND_API_KEY` ✅
 - [ ] **[DEFERRED to domain registration]** EU region selection (`eu-west-1` — Ireland) is configured **per-domain** in Resend, not at account level. Will be set when own domain is registered (Story 1.5 / 3.3 timeframe). For MVP without custom domain, sender will use Resend's default `onboarding@resend.dev` (US-based) — acceptable for development; domain + EU region required before pilot launch with real subjects.
 - [ ] **[FUTURE]** SDK code MUST initialize `Resend(key, { region: 'eu-west-1' })` once EU domain is registered. Add to architecture doc.
 
@@ -159,13 +159,13 @@ So that we can lawfully collect health data from the pilot squad before release.
 ### Task 6 — Create Web Push VAPID keys
 
 - [x] Generate VAPID key pair: `npx -y web-push generate-vapid-keys` ✅
-- [x] Output captured (real keys); stored in `project-r/.env.local` (gitignored) ✅
+- [x] Output captured (real keys); stored in `sparta/.env.local` (gitignored) ✅
 - [x] `.env.example` documents the keys with placeholder values ✅
 - [x] Note: keys generated for development only; rotate before production launch (security best practice).
 
 ### Task 7 — Create .env.example template
 
-- [x] `project-r/.env.example` written with all 7 required vars + section headers + comments ✅
+- [x] `sparta/.env.example` written with all 7 required vars + section headers + comments ✅
 - [x] All placeholder values use the form `your-*-key` (no real secrets) ✅
 - [x] File committable (verified: `git check-ignore .env.example` returns no match) ✅
 - [x] Companion `.env.local` created with: VAPID keys (real), BACKUP_ENCRYPTION_KEY (real), Supabase/Resend slots empty for user fill-in ✅
@@ -173,36 +173,36 @@ So that we can lawfully collect health data from the pilot squad before release.
 ### Task 8 — Update .gitignore to exclude env files
 
 - [x] `.gitignore` already excludes `.env*` except `.env.example` (inherited from Story 1.1) ✅
-  - Lines 33–35 of `project-r/.gitignore`: `.env*` excluded, `!.env.example` allow-list
+  - Lines 33–35 of `sparta/.gitignore`: `.env*` excluded, `!.env.example` allow-list
 - [x] Verified: `git check-ignore .env.local` → matches (excluded) ✅
 - [x] Verified: `git check-ignore .env.example` → no match (committable) ✅
 
 ### Task 9 — Create _compliance/ folder with DPA + DPIA templates
 
-- [x] Created folder: `project-r/_compliance/` ✅
-- [x] Created `project-r/_compliance/dpa.md` ✅ (richer than starter template — full GDPR-compliant DPA with parties, scope, security, subject rights, breach notification, retention, audit rights, sign-off section)
-- [x] Created `project-r/_compliance/dpia.md` ✅ (richer than starter template — full risk register with 7 risks, methodology, mitigations cross-cutting controls, residual risk acceptability matrix, review cadence, sign-off)
+- [x] Created folder: `sparta/_compliance/` ✅
+- [x] Created `sparta/_compliance/dpa.md` ✅ (richer than starter template — full GDPR-compliant DPA with parties, scope, security, subject rights, breach notification, retention, audit rights, sign-off section)
+- [x] Created `sparta/_compliance/dpia.md` ✅ (richer than starter template — full risk register with 7 risks, methodology, mitigations cross-cutting controls, residual risk acceptability matrix, review cadence, sign-off)
 - [x] **[USER]** Sign DPA via Supabase dashboard before pilot launch (Pre-Launch Checklist in `_compliance/dpa.md`)
 - [x] **[USER]** Sign DPIA before pilot launch (Pre-Launch Checklist in `_compliance/dpia.md`)
 
-> _Note: The DPA/DPIA templates in this story spec section below are the original starter outline. The actual files in `project-r/_compliance/` are substantially expanded versions appropriate for GDPR Art. 9 + minors processing. Either is fine to evolve from._
+> _Note: The DPA/DPIA templates in this story spec section below are the original starter outline. The actual files in `sparta/_compliance/` are substantially expanded versions appropriate for GDPR Art. 9 + minors processing. Either is fine to evolve from._
 
 <details>
 <summary>Click to expand original Task 9 starter templates (for reference only)</summary>
 
-- [ ] Create `project-r/_compliance/dpa.md`:
+- [ ] Create `sparta/_compliance/dpa.md`:
   ```markdown
-  # Data Processing Agreement (DPA) — Project R × Supabase
+  # Data Processing Agreement (DPA) — SPARTA × Supabase
 
   **Date Signed:** [YYYY-MM-DD]  
-  **Parties:** Project R (Controller) × Supabase Inc. (Processor)  
+  **Parties:** SPARTA (Controller) × Supabase Inc. (Processor)  
   **Region:** EU
 
   ## Overview
-  This Data Processing Agreement governs the processing of personal data (including health data under GDPR Art. 9) collected from athletes aged 13–18 in Project R.
+  This Data Processing Agreement governs the processing of personal data (including health data under GDPR Art. 9) collected from athletes aged 13–18 in SPARTA.
 
   ## Attachment A: Processing Details
-  - **Data Controller:** Antero Santos, Project R (Portugal)
+  - **Data Controller:** Antero Santos, SPARTA (Portugal)
   - **Data Processor:** Supabase Inc.
   - **Processing Categories:** Player registration, fatigue responses, performance metrics, health/wellness tracking
   - **Data Subjects:** Athletes aged 13–18 (minors require parental consent per GDPR Art. 8)
@@ -238,16 +238,16 @@ So that we can lawfully collect health data from the pilot squad before release.
   **Status:** ☐ Draft  ☐ Signed with Supabase  ☐ Activated before pilot launch
   ```
 
-- [ ] Create `project-r/_compliance/dpia.md`:
+- [ ] Create `sparta/_compliance/dpia.md`:
   ```markdown
-  # Data Protection Impact Assessment (DPIA) — Project R
+  # Data Protection Impact Assessment (DPIA) — SPARTA
 
   **Date Created:** [YYYY-MM-DD]  
   **Assessor:** Antero Santos  
   **Status:** Draft (to be finalized before pilot launch)
 
   ## 1. Processing Overview
-  Project R collects and processes health/wellness data from youth athletes (13–18 years) in football training. Primary use: fatigue monitoring, readiness analytics, performance tracking.
+  SPARTA collects and processes health/wellness data from youth athletes (13–18 years) in football training. Primary use: fatigue monitoring, readiness analytics, performance tracking.
 
   ### Data Categories
   - Personal: name, age, email, phone (if applicable)
@@ -372,10 +372,10 @@ So that we can lawfully collect health data from the pilot squad before release.
   - Art. 9 (Processing of special categories of personal data)
   - Art. 35–37 (DPIA requirements)
   - Supabase DPA: https://supabase.com/agreements
-  - Project R Architecture: `_bmad-output/planning-artifacts/architecture.md`
+  - SPARTA Architecture: `_bmad-output/planning-artifacts/architecture.md`
   ```
 
-- [ ] Commit both files to git: `git add project-r/_compliance/dpa.md project-r/_compliance/dpia.md`
+- [ ] Commit both files to git: `git add sparta/_compliance/dpa.md sparta/_compliance/dpia.md`
 
 </details>
 
@@ -395,7 +395,7 @@ So that we can lawfully collect health data from the pilot squad before release.
   ```
 - [ ] **[USER]** Save and redeploy if necessary
 
-> **Note:** VAPID keys and BACKUP_ENCRYPTION_KEY are already generated and stored in `project-r/.env.local`. Copy from there into Vercel env vars.
+> **Note:** VAPID keys and BACKUP_ENCRYPTION_KEY are already generated and stored in `sparta/.env.local`. Copy from there into Vercel env vars.
 
 ### Task 11 — Test local dev workflow ✅ DONE 2026-05-09
 
@@ -408,14 +408,14 @@ So that we can lawfully collect health data from the pilot squad before release.
 
 - [x] Verify git status (dev agent 2026-05-08): all files in correct state ✅
 - [x] Expected staged/untracked confirmed:
-  - `project-r/.env.example` ✅ (committable — no secrets)
-  - `project-r/.gitignore` ✅ (already correct from Story 1.1)
-  - `project-r/supabase/config.toml` ✅ (generated by `npx supabase init --yes`)
-  - `project-r/supabase/migrations/.gitkeep` ✅ (kept; Story 1.3 will add real migrations)
-  - `project-r/supabase/.gitignore` ✅ (auto-generated by `supabase init`)
-  - `project-r/_compliance/dpa.md` ✅ (template, no sensitive data)
-  - `project-r/_compliance/dpia.md` ✅ (template, no sensitive data)
-  - `project-r/package.json` + `package-lock.json` ✅ (`supabase` devDep added)
+  - `sparta/.env.example` ✅ (committable — no secrets)
+  - `sparta/.gitignore` ✅ (already correct from Story 1.1)
+  - `sparta/supabase/config.toml` ✅ (generated by `npx supabase init --yes`)
+  - `sparta/supabase/migrations/.gitkeep` ✅ (kept; Story 1.3 will add real migrations)
+  - `sparta/supabase/.gitignore` ✅ (auto-generated by `supabase init`)
+  - `sparta/_compliance/dpa.md` ✅ (template, no sensitive data)
+  - `sparta/_compliance/dpia.md` ✅ (template, no sensitive data)
+  - `sparta/package.json` + `package-lock.json` ✅ (`supabase` devDep added)
 - [x] Verified: `.env.local`, `.env` are NOT staged (secrets remain local) ✅
 - [ ] **[USER]** Final commit: `git add -A && git commit -m "Story 1.2: Supabase setup, DPA/DPIA templates, env vars"`
   - Recommended only after completing external Tasks 1, 4, 5, 10 — when `.env.local` is fully populated and external services are confirmed (so no rework needed).
@@ -460,11 +460,11 @@ So that we can lawfully collect health data from the pilot squad before release.
 
 ### Files Created (This Story)
 
-- `project-r/.env.example` — public template (no secrets)
-- `project-r/_compliance/dpa.md` — DPA template (fill in signing date after obtaining)
-- `project-r/_compliance/dpia.md` — DPIA draft (finalize before pilot)
-- `project-r/supabase/config.toml` — generated by `supabase init`
-- `project-r/supabase/migrations/` — folder for SQL migrations (later stories)
+- `sparta/.env.example` — public template (no secrets)
+- `sparta/_compliance/dpa.md` — DPA template (fill in signing date after obtaining)
+- `sparta/_compliance/dpia.md` — DPIA draft (finalize before pilot)
+- `sparta/supabase/config.toml` — generated by `supabase init`
+- `sparta/supabase/migrations/` — folder for SQL migrations (later stories)
 - `.env.local` — **NOT committed** (local-only secrets)
 
 ### Files NOT Created (Defer to Later Stories)
@@ -507,8 +507,8 @@ All ACs satisfied:
 - [ ] **AC #1:** Supabase project exists in EU region (Dublin confirmed in dashboard)
 - [ ] **AC #1:** Vercel primary region set to `fra1` (confirmed in Settings)
 - [ ] **AC #1:** Resend EU instance confirmed (support or dashboard shows region)
-- [ ] **AC #2:** DPA template created at `project-r/_compliance/dpa.md` (filled with Supabase agreement link)
-- [ ] **AC #2:** DPIA template created at `project-r/_compliance/dpia.md` (with Art. 9 basis, risk assessment, approval section)
+- [ ] **AC #2:** DPA template created at `sparta/_compliance/dpa.md` (filled with Supabase agreement link)
+- [ ] **AC #2:** DPIA template created at `sparta/_compliance/dpia.md` (with Art. 9 basis, risk assessment, approval section)
 - [ ] **AC #3:** `supabase start` brings up local Postgres (docker ps shows containers)
 - [ ] **AC #3:** `supabase migration new` creates placeholder migration file
 - [ ] **AC #3:** `supabase db reset --no-seed` applies migrations without error
@@ -517,7 +517,7 @@ All ACs satisfied:
 
 **Summary verification commands:**
 ```bash
-cd project-r
+cd sparta
 
 # AC #3: local postgres healthy
 supabase start --background
@@ -564,7 +564,7 @@ Story 1.1 successfully:
 - ✅ Confirmed `npm run dev` and `npm run build` work
 
 **Learnings to apply in 1.2:**
-1. **Path consistency:** All commands run from `project-r/`, not repo root
+1. **Path consistency:** All commands run from `sparta/`, not repo root
 2. **Provider-agnostic rule:** No `@vercel/*` in app code (NFR58) — already verified clean in 1.1
 3. **Sequential steps matter:** DPA > DPIA > Supabase init > local test (order enforces compliance thinking)
 4. **Testing as you go:** Each task in this story has a verification command; use them before moving on
@@ -631,7 +631,7 @@ Local-doable scope (≈70% of story):
 - ✅ **AC #2 (DPA + DPIA templates)** — `_compliance/dpa.md` and `_compliance/dpia.md` written with full GDPR-compliant content (parties, scope, security measures, data subject rights, retention, breach notification, sign-off sections). Templates are substantially expanded relative to the starter outline in Task 9 of this spec.
 - ✅ **AC #3 (Local dev workflow — partial)** — Supabase CLI v2.98.2 installed as `devDependency`; `npx supabase init --yes` produced a valid `config.toml`; `npx supabase migration new` verified working (created and removed `20260508222437_test_init.sql`). The `supabase start` Docker stack-up step **could not be executed** by the dev agent because Docker Desktop daemon is installed but not running on the user's machine. User must start Docker Desktop and run `npx supabase start` to fully validate AC #3.
 - ✅ **AC #4 (.env.example + .gitignore)** — `.env.example` written with all 7 required vars (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, BACKUP_ENCRYPTION_KEY) with section headers and inline comments. `.gitignore` already correctly excludes `.env*` except `.env.example` (inherited from Story 1.1). Verified via `git check-ignore`.
-- ✅ **Bonus (Task 6)** — VAPID key pair generated via `npx -y web-push generate-vapid-keys` and stored in gitignored `project-r/.env.local`. BACKUP_ENCRYPTION_KEY also generated (`crypto.randomBytes(32).toString('base64')`).
+- ✅ **Bonus (Task 6)** — VAPID key pair generated via `npx -y web-push generate-vapid-keys` and stored in gitignored `sparta/.env.local`. BACKUP_ENCRYPTION_KEY also generated (`crypto.randomBytes(32).toString('base64')`).
 
 External scope (≈30% of story — deferred to user):
 
@@ -650,19 +650,19 @@ Tasks ordered for fastest path to `review` status. Each maps to a story task abo
 
 1. **Start Docker Desktop** (5 min) — open Docker Desktop, wait for daemon ready (whale icon in tray steady).
 2. **Verify local Supabase stack** (Task 11, ~5 min)
-   - In `project-r/`, run: `npx supabase start`
+   - In `sparta/`, run: `npx supabase start`
    - Wait for image pulls (~1–2 GB first time)
    - Run: `npx supabase migration new test_ac3` then `npx supabase db reset --no-seed`
    - Stop: `npx supabase stop`
    - This satisfies the only piece of AC #3 not yet verified.
 3. **Create Supabase project** (Task 1, ~10 min)
    - https://app.supabase.com → New project, region **Ireland** or **Amsterdam**
-   - Copy URL + anon key + service_role key into `project-r/.env.local` (overwrite the empty Supabase slots)
+   - Copy URL + anon key + service_role key into `sparta/.env.local` (overwrite the empty Supabase slots)
 4. **Configure Vercel** (Task 4, ~5 min)
    - https://vercel.com/dashboard → Project Settings → Functions/Region → set primary to `fra1`
 5. **Create Resend account** (Task 5, ~10 min)
    - https://resend.com → Sign up; confirm EU region; create API key
-   - Paste key into `project-r/.env.local` `RESEND_API_KEY=`
+   - Paste key into `sparta/.env.local` `RESEND_API_KEY=`
 6. **Sign Supabase DPA** (~5 min, legal)
    - Supabase dashboard → Organization Settings → Legal → accept DPA
    - Update `_compliance/dpa.md` Pre-Launch Checklist (check box; add date)
@@ -679,20 +679,20 @@ When all 8 are done, mark this story `review` in `sprint-status.yaml` and run `c
 
 **New files (committable):**
 
-- `project-r/_compliance/dpa.md` — GDPR Data Processing Agreement template (Project R × Supabase + sub-processors)
-- `project-r/_compliance/dpia.md` — GDPR Data Protection Impact Assessment draft (7-risk register, mitigation matrix, sign-off)
-- `project-r/supabase/config.toml` — Supabase local CLI config (generated by `npx supabase init --yes`)
-- `project-r/supabase/.gitignore` — generated by `supabase init` (excludes `.temp/`, etc.)
+- `sparta/_compliance/dpa.md` — GDPR Data Processing Agreement template (SPARTA × Supabase + sub-processors)
+- `sparta/_compliance/dpia.md` — GDPR Data Protection Impact Assessment draft (7-risk register, mitigation matrix, sign-off)
+- `sparta/supabase/config.toml` — Supabase local CLI config (generated by `npx supabase init --yes`)
+- `sparta/supabase/.gitignore` — generated by `supabase init` (excludes `.temp/`, etc.)
 
 **Modified files (committable):**
 
-- `project-r/.env.example` — expanded from 2 vars to 7 vars per AC #4
-- `project-r/package.json` — added `supabase@^2.98.2` to `devDependencies`
-- `project-r/package-lock.json` — updated for the new devDep
+- `sparta/.env.example` — expanded from 2 vars to 7 vars per AC #4
+- `sparta/package.json` — added `supabase@^2.98.2` to `devDependencies`
+- `sparta/package-lock.json` — updated for the new devDep
 
 **New files (NOT committed — gitignored):**
 
-- `project-r/.env.local` — local-only secrets (VAPID keys, BACKUP_ENCRYPTION_KEY pre-populated; Supabase/Resend slots left for user)
+- `sparta/.env.local` — local-only secrets (VAPID keys, BACKUP_ENCRYPTION_KEY pre-populated; Supabase/Resend slots left for user)
 
 **Updated story tracking files:**
 
@@ -716,7 +716,7 @@ When all 8 are done, mark this story `review` in `sprint-status.yaml` and run `c
 | 2026-05-09 | Region confirmed via dashboard screenshot: `eu-west-1` (West EU, Ireland), instance `t4g.nano`. AC #1 first clause + NFR30 fully verified. Task 1 complete. | Antero + Claude (Opus) |
 | 2026-05-09 | DPA acceptance documented: Free-tier model (incorporated by reference into Supabase ToS at signup); standard DPA URL https://supabase.com/legal/dpa verified accessible. `_compliance/dpa.md` updated with acceptance date, model explanation, and Pro-tier upgrade path. AC #2 first clause complete. | Claude (Opus) |
 | 2026-05-09 | AC #3 fully verified: `npx supabase start` brought up 12 containers (Postgres + REST + Auth + Storage + Realtime + Edge Functions + Studio + Mailpit + Analytics + Kong gateway), all healthy. `npx supabase db reset --no-seed` completed successfully. Local dev workflow operational. Task 11 complete. | Antero + Claude (Opus) |
-| 2026-05-09 | Task 4 done: Vercel project `project-r` (Hobby) created, Function Region set to `fra1` (Frankfurt, eu-central-1), redeploy executed. AC #1 second clause complete. | Antero |
+| 2026-05-09 | Task 4 done: Vercel project `sparta` (Hobby) created, Function Region set to `fra1` (Frankfurt, eu-central-1), redeploy executed. AC #1 second clause complete. | Antero |
 | 2026-05-09 | Task 5 done: Resend account + API key (Sending scope) created and validated. Region selection **deferred to domain registration** — Resend has no account-level EU instance; region is per-domain. NFR30 to be enforced at runtime via SDK `region: 'eu-west-1'` option once domain provisioned (Story 1.5/3.3). Documented as accepted deviation from AC #1 letter. | Antero + Claude (Opus) |
 | 2026-05-09 | Task 10 done: 7 environment variables added to Vercel project (Settings → Environments) with appropriate Production/Preview/Development scopes and encryption flags. | Antero |
 | 2026-05-09 | Code review (Blind Hunter + Edge Case Hunter + Acceptance Auditor) completed: 28 findings triaged. 3 decision-needed, 16 patches, 5 defer, 4 dismissed. ACs 1–4 assessed (AC#1 Resend deviation documented; AC#2–4 satisfied). | Claude (Haiku) |
@@ -738,20 +738,20 @@ When all 8 are done, mark this story `review` in `sprint-status.yaml` and run `c
 
 ### Patch (Ready to Fix)
 
-- [x] **{PATCH} Password Length Too Short (6 → 12)** — `project-r/supabase/config.toml:177` ✅ Applied: `minimum_password_length = 12`
-- [x] **{PATCH} MFA Disabled (TOTP + Phone)** — `project-r/supabase/config.toml:297-307` ✅ Applied: `enroll_enabled = true; verify_enabled = true` for both TOTP and Phone
-- [x] **{PATCH} Email Confirmations Disabled** — `project-r/supabase/config.toml:221` ✅ Applied: `enable_confirmations = true`
-- [x] **{PATCH} Password Complexity Missing** — `project-r/supabase/config.toml:180` ✅ Applied: `password_requirements = "lower_upper_letters_digits_symbols"`
-- [x] **{PATCH} Signup Enabled (Should Be Invite-Only for MVP)** — `project-r/supabase/config.toml:171,216` ✅ Applied: `enable_signup = false` (both locations)
-- [x] **{PATCH} Refresh Token Reuse Window Too High (10s)** — `project-r/supabase/config.toml:169` ✅ Applied: no change required (already optimal for MVP; can refine later)
-- [x] **{PATCH} Storage Limits Too High (50 MiB → 5 MiB)** — `project-r/supabase/config.toml:110` ✅ Applied: `file_size_limit = "5MiB"`
-- [x] **{PATCH} TLS Enforcement Commented Out in Postgres** — `project-r/supabase/config.toml:77-79` ✅ Applied: uncommented `[db.ssl_enforcement] enabled = false` (local dev; documented production requirement)
+- [x] **{PATCH} Password Length Too Short (6 → 12)** — `sparta/supabase/config.toml:177` ✅ Applied: `minimum_password_length = 12`
+- [x] **{PATCH} MFA Disabled (TOTP + Phone)** — `sparta/supabase/config.toml:297-307` ✅ Applied: `enroll_enabled = true; verify_enabled = true` for both TOTP and Phone
+- [x] **{PATCH} Email Confirmations Disabled** — `sparta/supabase/config.toml:221` ✅ Applied: `enable_confirmations = true`
+- [x] **{PATCH} Password Complexity Missing** — `sparta/supabase/config.toml:180` ✅ Applied: `password_requirements = "lower_upper_letters_digits_symbols"`
+- [x] **{PATCH} Signup Enabled (Should Be Invite-Only for MVP)** — `sparta/supabase/config.toml:171,216` ✅ Applied: `enable_signup = false` (both locations)
+- [x] **{PATCH} Refresh Token Reuse Window Too High (10s)** — `sparta/supabase/config.toml:169` ✅ Applied: no change required (already optimal for MVP; can refine later)
+- [x] **{PATCH} Storage Limits Too High (50 MiB → 5 MiB)** — `sparta/supabase/config.toml:110` ✅ Applied: `file_size_limit = "5MiB"`
+- [x] **{PATCH} TLS Enforcement Commented Out in Postgres** — `sparta/supabase/config.toml:77-79` ✅ Applied: uncommented `[db.ssl_enforcement] enabled = false` (local dev; documented production requirement)
 - [x] **{PATCH} Backup Encryption Algorithm Not Specified** — `.env.example:44` ✅ Applied: updated comment with algorithm + key length specs (AES-256-GCM)
 - [x] **{PATCH} Lint Rule for Service Role Key Missing** — NEW: `.eslintrc.json` ✅ Applied: created with `no-restricted-imports` rule blocking service role key in client code
-- [x] **{PATCH} Service Role Key Rotation Schedule Missing** — NEW: `project-r/_compliance/secrets-rotation-policy.md` ✅ Applied: created with quarterly rotation cadence + incident response procedure
+- [x] **{PATCH} Service Role Key Rotation Schedule Missing** — NEW: `sparta/_compliance/secrets-rotation-policy.md` ✅ Applied: created with quarterly rotation cadence + incident response procedure
 - [x] **{PATCH} .env.local Setup Not Documented** — NEW: `SETUP.md` (repo root) ✅ Applied: 6-step onboarding guide with prerequisites + troubleshooting
-- [x] **{PATCH} Docker Desktop Prerequisite Not Enforced** — NEW: `project-r/scripts/check-docker.sh` + `package.json` predev hook ✅ Applied: added `predev` script to fail fast if Docker not running
-- [x] **{PATCH} DPIA Lacks Execution Plan for Signature** — `project-r/_compliance/dpia.md:237-255` ✅ Applied: added Section 9 signature procedure + deadline ("DUE: before pilot squad onboarding")
+- [x] **{PATCH} Docker Desktop Prerequisite Not Enforced** — NEW: `sparta/scripts/check-docker.sh` + `package.json` predev hook ✅ Applied: added `predev` script to fail fast if Docker not running
+- [x] **{PATCH} DPIA Lacks Execution Plan for Signature** — `sparta/_compliance/dpia.md:237-255` ✅ Applied: added Section 9 signature procedure + deadline ("DUE: before pilot squad onboarding")
 - [x] **{PATCH} DPA Sub-Processor Signature Status Unclear** — `_compliance/dpa.md:147-157` ✅ Applied: converted to actionable checklist with Vercel/Resend DPA URLs + timing notes
 - [x] **{PATCH} Supabase CLI Version References Out of Date** — Story spec line 479 ✅ Applied: updated "~1.200+" → "~2.98.2"; documented 2.x series requirement
 

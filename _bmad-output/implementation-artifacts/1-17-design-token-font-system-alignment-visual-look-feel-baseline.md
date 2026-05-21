@@ -126,7 +126,7 @@ Esta story NÃO implementa nenhum ecrã — apenas alinha o sistema de tokens e 
 ### AC #10: Build, lint e testes passam sem regressões
 
 **Given** todas as alterações desta story
-**When** executados na directoria `project-r/`:
+**When** executados na directoria `sparta/`:
   - `npm run build`
   - `npm run typecheck`
   - `npm run lint`
@@ -207,14 +207,14 @@ Esta story NÃO implementa nenhum ecrã — apenas alinha o sistema de tokens e 
 
 ### Review Findings
 
-- [x] [Review][Patch] `tabular-nums` aplicado via inline style em vez de classe Tailwind como especificado [project-r/src/components/ui/datum.tsx:16]
-- [x] [Review][Patch] `color ?? undefined` é um no-op redundante — `color` já é `string | undefined` [project-r/src/components/ui/datum.tsx:17]
-- [x] [Review][Patch] Teste de `color` em `Datum` sem null-guard antes de `toHaveStyle` — falha silenciosa se selector não encontrar elemento [project-r/src/components/ui/datum.test.tsx:17]
-- [x] [Review][Defer] `--font-mono` declarado duas vezes em `@theme inline` — redundância pré-existente [project-r/src/app/globals.css] — deferred, pre-existing
-- [x] [Review][Defer] Sem nonce/CSP para o script de dark mode inline — gap arquitectural pré-existente [project-r/src/app/layout.tsx] — deferred, pre-existing
-- [x] [Review][Defer] `Datum` com `value=""` (string vazia) produz layout quebrado com unit sem número [project-r/src/components/ui/datum.tsx] — deferred, pre-existing
-- [x] [Review][Defer] `Datum` com `valueSize` ≤ 0 torna o valor invisível — sem validação de mínimo [project-r/src/components/ui/datum.tsx] — deferred, pre-existing
-- [x] [Review][Defer] `Eyebrow` com `children` null/false renderiza apenas o traço decorativo sem texto [project-r/src/components/ui/eyebrow.tsx] — deferred, pre-existing
+- [x] [Review][Patch] `tabular-nums` aplicado via inline style em vez de classe Tailwind como especificado [sparta/src/components/ui/datum.tsx:16]
+- [x] [Review][Patch] `color ?? undefined` é um no-op redundante — `color` já é `string | undefined` [sparta/src/components/ui/datum.tsx:17]
+- [x] [Review][Patch] Teste de `color` em `Datum` sem null-guard antes de `toHaveStyle` — falha silenciosa se selector não encontrar elemento [sparta/src/components/ui/datum.test.tsx:17]
+- [x] [Review][Defer] `--font-mono` declarado duas vezes em `@theme inline` — redundância pré-existente [sparta/src/app/globals.css] — deferred, pre-existing
+- [x] [Review][Defer] Sem nonce/CSP para o script de dark mode inline — gap arquitectural pré-existente [sparta/src/app/layout.tsx] — deferred, pre-existing
+- [x] [Review][Defer] `Datum` com `value=""` (string vazia) produz layout quebrado com unit sem número [sparta/src/components/ui/datum.tsx] — deferred, pre-existing
+- [x] [Review][Defer] `Datum` com `valueSize` ≤ 0 torna o valor invisível — sem validação de mínimo [sparta/src/components/ui/datum.tsx] — deferred, pre-existing
+- [x] [Review][Defer] `Eyebrow` com `children` null/false renderiza apenas o traço decorativo sem texto [sparta/src/components/ui/eyebrow.tsx] — deferred, pre-existing
 - [x] [Review][Defer] Contagem de testes no AC #10 obsoleta (≥ 384 vs ~748 actuais) — spec desactualizada [1-17-design-token-font-system-alignment-visual-look-feel-baseline.md] — deferred, pre-existing
 
 ---
@@ -271,7 +271,7 @@ const darkModeScript = `
 `;
 
 export const metadata: Metadata = {
-  title: "Project R",
+  title: "SPARTA",
   description: "Plataforma de gestão de treino e desempenho",
   manifest: "/manifest.webmanifest",
 };
@@ -556,7 +556,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Project R",
+  title: "SPARTA",
   description: "Plataforma de gestão de treino e desempenho",
   manifest: "/manifest.webmanifest",
 };
@@ -679,12 +679,12 @@ Nenhum erro encontrado durante a implementação.
 
 ## File List
 
-- `project-r/src/app/layout.tsx` — MODIFICADO (fontes Inter Tight + JetBrains Mono; script dark mode)
-- `project-r/src/app/globals.css` — MODIFICADO (tokens ink/surface/hairline/field/signal; fontes @theme inline)
-- `project-r/src/components/ui/eyebrow.tsx` — NOVO
-- `project-r/src/components/ui/eyebrow.test.tsx` — NOVO
-- `project-r/src/components/ui/datum.tsx` — NOVO
-- `project-r/src/components/ui/datum.test.tsx` — NOVO
+- `sparta/src/app/layout.tsx` — MODIFICADO (fontes Inter Tight + JetBrains Mono; script dark mode)
+- `sparta/src/app/globals.css` — MODIFICADO (tokens ink/surface/hairline/field/signal; fontes @theme inline)
+- `sparta/src/components/ui/eyebrow.tsx` — NOVO
+- `sparta/src/components/ui/eyebrow.test.tsx` — NOVO
+- `sparta/src/components/ui/datum.tsx` — NOVO
+- `sparta/src/components/ui/datum.test.tsx` — NOVO
 
 ---
 
@@ -697,7 +697,7 @@ Nenhum erro encontrado durante a implementação.
 
 ## Critérios de Conclusão
 
-- [x] Build passa (`npm run build` em `project-r/`)
+- [x] Build passa (`npm run build` em `sparta/`)
 - [x] Typecheck passa (`npm run typecheck`)
 - [x] Lint passa sem novos erros (`npm run lint`)
 - [x] Todos os testes passam incluindo 5 novos (`npm run test --run` — 738 testes)

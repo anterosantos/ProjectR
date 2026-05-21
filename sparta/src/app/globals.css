@@ -1,0 +1,268 @@
+/*
+ * Tailwind v4 CSS-first config (Story 1.1 — bootstrap).
+ * Tokens abaixo são os defaults do shadcn (preset Nova) — validam o mecanismo @theme.
+ * O vocabulário canónico do SPARTA (signal/{ready,caution,alert,info,neutral},
+ * spacing 4px scale, animation 150ms, etc.) é introduzido na Story 1.8 (UX-DR1–UX-DR4).
+ */
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter-tight);
+  --font-mono: var(--font-jetbrains-mono);
+  --font-heading: var(--font-inter-tight);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Signal/Semáforo Colors (light/dark via prefers-color-scheme) */
+  --color-signal-ready: var(--signal-ready);
+  --color-signal-caution: var(--signal-caution);
+  --color-signal-alert: var(--signal-alert);
+  --color-signal-info: var(--signal-info);
+  --color-signal-neutral: var(--signal-neutral);
+
+  /* Typography — explicit aliases */
+  --font-display: var(--font-inter-tight);
+  --font-body: var(--font-inter-tight);
+  --font-mono: var(--font-jetbrains-mono);
+
+  /* Animation durations (in ms as CSS values) */
+  --animation-default: 150ms;
+  --animation-modal: 200ms;
+  --animation-touchscreen: 0ms;
+
+  /* Z-index semantic tokens */
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-popover: 20;
+  --z-tooltip: 30;
+  --z-modal: 40;
+  --z-toast: 50;
+  --color-focus-ring: var(--focus-ring);
+
+  /* Ink scale — texto secundário/terciário/desabilitado */
+  --color-ink-2: var(--color-ink-2);
+  --color-ink-3: var(--color-ink-3);
+  --color-ink-4: var(--color-ink-4);
+
+  /* Surface scale — card backgrounds */
+  --color-surface: var(--color-surface);
+  --color-surface-2: var(--color-surface-2);
+
+  /* Hairline — separadores editoriais */
+  --color-hairline: var(--color-hairline);
+  --color-hairline-strong: var(--color-hairline-strong);
+
+  /* Field — verde do campo de futebol (invariante entre temas) */
+  --color-field: var(--color-field);
+  --color-field-deep: var(--color-field-deep);
+
+  /* Signal bg/ink pairs — fundos e texto em badges coloridos */
+  --signal-ready-bg: var(--signal-ready-bg);
+  --signal-ready-ink: var(--signal-ready-ink);
+  --signal-caution-bg: var(--signal-caution-bg);
+  --signal-caution-ink: var(--signal-caution-ink);
+  --signal-alert-bg: var(--signal-alert-bg);
+  --signal-alert-ink: var(--signal-alert-ink);
+}
+
+:root {
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+
+  /* Ink scale */
+  --color-ink-2: #525252;
+  --color-ink-3: #737373;
+  --color-ink-4: #A3A3A3;
+
+  /* Surface scale */
+  --color-surface: #FAFAFA;
+  --color-surface-2: #F5F5F5;
+
+  /* Hairline */
+  --color-hairline: #E5E5E5;
+  --color-hairline-strong: #D4D4D4;
+
+  /* Field (invariante) */
+  --color-field: #10B981;
+  --color-field-deep: #059669;
+
+  /* Signal bg/ink — light */
+  --signal-ready-bg: #F0FDF4;
+  --signal-ready-ink: #166534;
+  --signal-caution-bg: #FEFCE8;
+  --signal-caution-ink: #854D0E;
+  --signal-alert-bg: #FEF2F2;
+  --signal-alert-ink: #991B1B;
+
+  /* Light mode semáforo colors */
+  --signal-ready: oklch(0.544 0.285 142.494);      /* green #16A34A */
+  --signal-caution: oklch(0.577 0.245 86.204);      /* yellow #CA8A04 */
+  --signal-alert: oklch(0.546 0.245 27.325);        /* red #DC2626 */
+  --signal-info: oklch(0.490 0.238 254.124);        /* blue #2563EB */
+  --signal-neutral: oklch(0.646 0 0);               /* gray */
+  --focus-ring: oklch(0.490 0.238 254.124);         /* #2563EB — azul universal para focus */
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+
+  /* Ink scale — dark */
+  --color-ink-2: #D4D4D4;
+  --color-ink-3: #A3A3A3;
+  --color-ink-4: #737373;
+
+  /* Surface scale — dark */
+  --color-surface: #171717;
+  --color-surface-2: #262626;
+
+  /* Hairline — dark */
+  --color-hairline: #262626;
+  --color-hairline-strong: #404040;
+
+  /* Field (invariante — mesmo em dark) */
+  --color-field: #10B981;
+  --color-field-deep: #059669;
+
+  /* Signal bg/ink — dark */
+  --signal-ready-bg: rgba(34, 197, 94, 0.12);
+  --signal-ready-ink: #86EFAC;
+  --signal-caution-bg: rgba(234, 179, 8, 0.14);
+  --signal-caution-ink: #FDE68A;
+  --signal-alert-bg: rgba(239, 68, 68, 0.14);
+  --signal-alert-ink: #FCA5A5;
+
+  /* Dark mode semáforo colors */
+  --signal-ready: oklch(0.708 0.245 142.494);      /* green #22C55E */
+  --signal-caution: oklch(0.707 0.245 86.204);      /* yellow #EAB308 */
+  --signal-alert: oklch(0.704 0.191 22.216);        /* red #EF4444 */
+  --signal-info: oklch(0.565 0.238 254.124);        /* blue #3B82F6 */
+  --signal-neutral: oklch(0.556 0 0);               /* gray */
+  --focus-ring: oklch(0.565 0.238 254.124);         /* #3B82F6 — azul dark para focus */
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  *:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
