@@ -1,4 +1,4 @@
-# Story 1.14: GitHub Actions Heartbeat Workflow
+﻿# Story 1.14: GitHub Actions Heartbeat Workflow
 
 **Status:** done
 
@@ -39,7 +39,7 @@ Para que o projeto mantenha-se activo no tier gratuito e somos alertados se a ba
 **Then** faz exit non-zero  
 **And** regista o timestamp da falha localmente (em GitHub run artifacts ou logs)  
 **And** se há 2 falhas consecutivas (dentro dos últimos 12 dias):
-- Abre uma GitHub issue em `project-r` com title `[ALERT] Heartbeat: Database Unreachable`
+- Abre uma GitHub issue em `sparta` com title `[ALERT] Heartbeat: Database Unreachable`
 - Adiciona label `heartbeat-alert`
 - Inclui timestamp, erro de conexão, número da run
 
@@ -62,7 +62,7 @@ Para que o projeto mantenha-se activo no tier gratuito e somos alertados se a ba
 
 ## Tasks / Subtasks
 
-- [x] Task 1: Instalar dependências opcionais em `project-r/` (AC #5)
+- [x] Task 1: Instalar dependências opcionais em `sparta/` (AC #5)
   - [x] 1.1 Verificar que `supabase` CLI pode ser instalado via `supabase/setup-cli@v1` (não precisa de node package)
   - [x] 1.2 Confirmación que o job de CI já usa `supabase/setup-cli` — reusar em heartbeat.yml
 
@@ -112,12 +112,12 @@ Para que o projeto mantenha-se activo no tier gratuito e somos alertados se a ba
 O workflow heartbeat.yml segue o mesmo padrão que `ci.yml` criado em Story 1.13:
 
 ```
-ProjectR/                          ← git root
+SPARTA/                          ← git root
 ├── .github/workflows/
 │   ├── ci.yml                     ← Story 1.13
 │   ├── heartbeat.yml              ← a criar nesta story
 │   └── backup.yml                 ← Story 1.15 (deferred)
-├── project-r/
+├── sparta/
 │   ├── .env.example               ← documentar SUPABASE_DB_URL
 │   └── ...
 └── _bmad-output/
@@ -267,13 +267,13 @@ Contudo, reusar `supabase/setup-cli` seria consistente se:
 ### Key Learnings from 1.13
 
 1. **GitHub Actions Workflow Location:**
-   - Workflows vivem na raiz em `.github/workflows/` (não em `project-r/`)
+   - Workflows vivem na raiz em `.github/workflows/` (não em `sparta/`)
    - GitHub Actions auto-descobre workflows aqui
    - Confirmado com `ci.yml` funcional
 
 2. **Working Directory Management:**
-   - `defaults.run.working-directory: project-r` aplica-se a `run` steps mas NÃO a `uses` steps
-   - Cada `uses` step com `with.path` precisa de prefixo explícito `project-r/`
+   - `defaults.run.working-directory: sparta` aplica-se a `run` steps mas NÃO a `uses` steps
+   - Cada `uses` step com `with.path` precisa de prefixo explícito `sparta/`
    - Para workflows que não precisam working directory, omitir (como heartbeat.yml)
 
 3. **Secrets Management:**
@@ -295,8 +295,8 @@ Contudo, reusar `supabase/setup-cli` seria consistente se:
 
 - `.github/workflows/ci.yml` ← novo padrão de workflow
 - `.env.example` ← documentou `SUPABASE_DB_URL` (note that this was deferred as "NEVER expose")
-- `project-r/package.json` ← scripts adicionados
-- `project-r/vitest.config.ts` ← coverage thresholds
+- `sparta/package.json` ← scripts adicionados
+- `sparta/vitest.config.ts` ← coverage thresholds
 - etc.
 
 ### Testing Infrastructure Available
@@ -377,11 +377,11 @@ b07eaeb feat(outbox): implement outbox functionality with database, enqueue, and
 ### Project Structure
 
 ```
-ProjectR/ (git root)
+SPARTA/ (git root)
 ├── .github/workflows/         ← Story 1.14 adds heartbeat.yml here
 │   ├── ci.yml                 ← Story 1.13 (complete)
 │   └── heartbeat.yml          ← Story 1.14 (to create)
-├── project-r/                 ← Next.js app
+├── sparta/                 ← Next.js app
 │   ├── .env.example
 │   ├── package.json
 │   ├── src/

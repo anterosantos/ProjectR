@@ -1,11 +1,11 @@
-name: Deploy DB Migrations
+﻿name: Deploy DB Migrations
 
 on:
   push:
     branches: [main]
     paths:
-      - 'project-r/supabase/migrations/**'
-      - 'project-r/supabase/bucket-policies.sql'
+      - 'sparta/supabase/migrations/**'
+      - 'sparta/supabase/bucket-policies.sql'
   workflow_dispatch:
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Apply migrations to remote
-        working-directory: project-r
+        working-directory: sparta
         run: bash scripts/push-migrations.sh
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

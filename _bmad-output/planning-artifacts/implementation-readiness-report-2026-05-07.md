@@ -1,4 +1,4 @@
----
+﻿---
 stepsCompleted:
   - step-01-document-discovery
   - step-02-prd-analysis
@@ -21,7 +21,7 @@ documentsIncluded:
 # Relatório de Avaliação de Prontidão para Implementação
 
 **Data:** 2026-05-07
-**Projeto:** Project R
+**Projeto:** SPARTA
 
 ## 1. Inventário de Documentos
 
@@ -32,7 +32,7 @@ documentsIncluded:
 | Épicos & Estórias | `_bmad-output/planning-artifacts/epics.md` | 166 KB | 2026-05-07 |
 | UX Design | `_bmad-output/planning-artifacts/ux-design-specification.md` | 80.7 KB | 2026-05-07 |
 
-**Documentos de apoio:** `product-brief-Project-R.md`, `research/` (3 relatórios)
+**Documentos de apoio:** `product-brief-sparta.md`, `research/` (3 relatórios)
 
 **Issues:** nenhuma duplicata; todos os documentos obrigatórios presentes.
 
@@ -534,7 +534,7 @@ Total ~17 migrations distribuídas. Nenhum mega-migration "schema completo" no S
 
 **Status: 🟢 READY — Pronto para Implementação**
 
-O Project R está **maduro e pronto para entrar em Phase 4 (implementação)**, com observações menores que podem ser endereçadas em paralelo com Sprint 1 (não bloqueiam o início).
+O SPARTA está **maduro e pronto para entrar em Phase 4 (implementação)**, com observações menores que podem ser endereçadas em paralelo com Sprint 1 (não bloqueiam o início).
 
 ### 6.2 Métricas-Chave
 

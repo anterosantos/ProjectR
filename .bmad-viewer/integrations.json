@@ -1,12 +1,12 @@
-{
+﻿{
 	"github": {
 		"provider": "github",
 		"owner": "anterosantos",
-		"repo": "ProjectR",
+		"repo": "SPARTA",
 		"token": "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",
 		"project": {
 			"id": "PVT_kwHOAM4EWs4BW6h3",
-			"title": "ProjectR BMAD Board",
+			"title": "SPARTA BMAD Board",
 			"url": "https://github.com/users/anterosantos/projects/1"
 		},
 		"mode": "issues",

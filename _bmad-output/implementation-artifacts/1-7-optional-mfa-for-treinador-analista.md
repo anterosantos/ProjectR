@@ -1,4 +1,4 @@
-# Story 1.7: Optional MFA for Treinador & Analista
+﻿# Story 1.7: Optional MFA for Treinador & Analista
 
 **Status:** done
 
@@ -231,7 +231,7 @@ const { data: session, error: verifyError } =
 
 **Purpose:** Build the settings page where users can view and manage MFA enrollment.
 
-**File location:** `project-r/src/app/(staff)/configuracoes/seguranca/page.tsx`
+**File location:** `sparta/src/app/(staff)/configuracoes/seguranca/page.tsx`
 
 **Requirements:**
 - [x] Create route group `(staff)` if not already present (groups coach and analyst routes).
@@ -272,7 +272,7 @@ export default async function SegurancaPage() {
 
 **Purpose:** Allow users to enroll in TOTP-based MFA.
 
-**File location:** `project-r/src/components/mfa/MFAEnrollment.tsx`
+**File location:** `sparta/src/components/mfa/MFAEnrollment.tsx`
 
 **Requirements:**
 - [x] Component accepts `onSuccess` callback (invoked after successful enrollment).
@@ -308,7 +308,7 @@ const mfaVerifySchema = z.object({
 
 **Purpose:** Show current MFA status and allow deactivation.
 
-**File location:** `project-r/src/components/mfa/MFAStatus.tsx`
+**File location:** `sparta/src/components/mfa/MFAStatus.tsx`
 
 **Requirements:**
 - [x] Component receives `mfaEnabled: boolean` and `onDisable: () => void`.
@@ -332,7 +332,7 @@ const mfaVerifySchema = z.object({
 
 **Purpose:** Handle MFA deactivation server-side with password re-authentication.
 
-**File location:** `project-r/src/app/(staff)/configuracoes/seguranca/actions.ts`
+**File location:** `sparta/src/app/(staff)/configuracoes/seguranca/actions.ts`
 
 **Requirements:**
 - [x] Export `disableMFAAction(password: string)`:
@@ -352,7 +352,7 @@ const mfaVerifySchema = z.object({
 
 **Purpose:** Update the login page to handle AAL2 TOTP challenge.
 
-**File location:** Modify `project-r/src/app/login/page.tsx` (existing from Story 1.5)
+**File location:** Modify `sparta/src/app/login/page.tsx` (existing from Story 1.5)
 
 **Requirements:**
 - [x] After `signInWithPassword()`:
@@ -396,7 +396,7 @@ if (verifyData?.session) {
 
 **Purpose:** Ensure MFA enrollment, verification, and disable logic is tested.
 
-**File location:** `project-r/src/components/mfa/__tests__/mfa.test.ts` or similar
+**File location:** `sparta/src/components/mfa/__tests__/mfa.test.ts` or similar
 
 **Requirements:**
 - [x] Test `MFAEnrollment` component:
@@ -425,7 +425,7 @@ if (verifyData?.session) {
 
 **Purpose:** Verify MFA works end-to-end with a local Supabase instance.
 
-**File location:** `project-r/src/__tests__/integration/mfa.integration.test.ts` or similar
+**File location:** `sparta/src/__tests__/integration/mfa.integration.test.ts` or similar
 
 **Requirements:**
 
@@ -458,7 +458,7 @@ if (verifyData?.session) {
 
 **Purpose:** Add a settings or account menu link to `/configuracoes/seguranca`.
 
-**File location:** `project-r/src/app/(staff)/configuracoes/page.tsx` (interim nav until Story 1.9 app shell)
+**File location:** `sparta/src/app/(staff)/configuracoes/page.tsx` (interim nav until Story 1.9 app shell)
 
 **Requirements:**
 
@@ -476,7 +476,7 @@ if (verifyData?.session) {
 
 **Purpose:** Document any new environment variables or configuration needed for MFA (Growth phase).
 
-**File location:** `project-r/.env.example`
+**File location:** `sparta/.env.example`
 
 **Requirements:**
 
@@ -492,7 +492,7 @@ if (verifyData?.session) {
 
 **Purpose:** (Growth phase) Document where mandatory MFA enforcement should go.
 
-**File location:** `project-r/src/proxy.ts`
+**File location:** `sparta/src/proxy.ts`
 
 **Requirements:**
 
@@ -689,20 +689,20 @@ export async function disableMFAAction(password: string) {
 
 **New files:**
 
-- `project-r/src/app/(staff)/configuracoes/page.tsx`
-- `project-r/src/app/(staff)/configuracoes/seguranca/page.tsx`
-- `project-r/src/app/(staff)/configuracoes/seguranca/actions.ts`
-- `project-r/src/components/mfa/MFAEnrollment.tsx`
-- `project-r/src/components/mfa/MFAStatus.tsx`
-- `project-r/src/components/mfa/MFASection.tsx`
-- `project-r/__tests__/mfa-unit.test.ts`
-- `project-r/__tests__/mfa.integration.test.ts`
+- `sparta/src/app/(staff)/configuracoes/page.tsx`
+- `sparta/src/app/(staff)/configuracoes/seguranca/page.tsx`
+- `sparta/src/app/(staff)/configuracoes/seguranca/actions.ts`
+- `sparta/src/components/mfa/MFAEnrollment.tsx`
+- `sparta/src/components/mfa/MFAStatus.tsx`
+- `sparta/src/components/mfa/MFASection.tsx`
+- `sparta/__tests__/mfa-unit.test.ts`
+- `sparta/__tests__/mfa.integration.test.ts`
 
 **Modified files:**
 
-- `project-r/src/app/login/page.tsx` — Added MFA challenge stage (AAL2 detection + TOTP input)
-- `project-r/src/proxy.ts` — Added Growth phase MFA enforcement comment
-- `project-r/.env.example` — Added `MFA_REQUIRED_ROLES` variable
+- `sparta/src/app/login/page.tsx` — Added MFA challenge stage (AAL2 detection + TOTP input)
+- `sparta/src/proxy.ts` — Added Growth phase MFA enforcement comment
+- `sparta/.env.example` — Added `MFA_REQUIRED_ROLES` variable
 
 ---
 

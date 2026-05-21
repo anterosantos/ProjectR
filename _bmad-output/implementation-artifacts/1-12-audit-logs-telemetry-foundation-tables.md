@@ -1,4 +1,4 @@
-# Story 1.12: Audit Logs & Telemetry Foundation Tables
+﻿# Story 1.12: Audit Logs & Telemetry Foundation Tables
 
 **Status:** in-progress
 
@@ -152,7 +152,7 @@ logger.info('survey_submitted', { playerId, sessionId, durationMs, offline })
 ## Tasks / Subtasks
 
 - [x] Task 1: Create `000080_audit_logs.sql` migration (AC #1)
-  - [x] 1.1 Create `supabase/migrations/000080_audit_logs.sql` in the project root
+  - [x] 1.1 Create `supabase/migrations/000080_audit_logs.sql` in the SPARTAoot
   - [x] 1.2 Define `audit_logs` table schema (id, club_id, actor_id, action, target_kind, target_id, payload, occurred_at)
   - [x] 1.3 Create indexes: `idx_audit_logs_club_occurred` and `idx_audit_logs_target_id`
   - [x] 1.4 Enable RLS on `audit_logs` table
@@ -222,7 +222,7 @@ logger.info('survey_submitted', { playerId, sessionId, durationMs, offline })
   - [x] 9.5 Test: Verify pg_cron job is registered (query `cron.job` table)
 
 - [x] Task 10: Lint, type-check, build, and verify test coverage (AC #8)
-  - [x] 10.1 Run `npm run lint` from `project-r/` — must pass with 0 errors
+  - [x] 10.1 Run `npm run lint` from `sparta/` — must pass with 0 errors
   - [x] 10.2 Run `npm run typecheck` (or `tsc --noEmit`) — must pass with 0 errors
   - [x] 10.3 Run `npm run test` — all tests pass, new tests for telemetry + audit must exist
   - [x] 10.4 Run `npm run test -- --coverage` — verify coverage on telemetry + audit ≥80%
@@ -475,23 +475,23 @@ This story (1.12) builds on 1.11 by:
 ## File List
 
 ### New Files Created
-- `project-r/supabase/migrations/000080_audit_logs.sql` — audit_logs table migration with RLS policies
-- `project-r/supabase/migrations/000100_telemetry_events.sql` — telemetry_events table migration with RLS policies
-- `project-r/supabase/migrations/000150_pg_cron_jobs.sql` — pg_cron extension and retention job
-- `project-r/src/lib/types.ts` — Result<T, E> and AppError types for error handling
-- `project-r/src/lib/logger.ts` — Structured JSON logger (info, warn, error methods)
-- `project-r/src/lib/actions/telemetry.ts` — logTelemetry() Server Action (fire-and-forget)
-- `project-r/src/lib/actions/audit.ts` — logAccess() Server Action (fire-and-forget)
-- `project-r/src/lib/actions/init.ts` — trackAppInitialized() helper for app initialization
-- `project-r/src/lib/actions/health-data.ts` — Placeholder for health data reads with audit logging
-- `project-r/src/__tests__/lib/logger.test.ts` — Logger unit tests (10 test cases)
-- `project-r/src/__tests__/lib/actions/telemetry.test.ts` — Telemetry integration tests
-- `project-r/src/__tests__/lib/actions/telemetry.simple.test.ts` — Telemetry validation tests (5 test cases)
-- `project-r/src/__tests__/lib/actions/audit.test.ts` — Audit integration tests
-- `project-r/src/__tests__/lib/actions/audit.simple.test.ts` — Audit validation tests (9 test cases)
+- `sparta/supabase/migrations/000080_audit_logs.sql` — audit_logs table migration with RLS policies
+- `sparta/supabase/migrations/000100_telemetry_events.sql` — telemetry_events table migration with RLS policies
+- `sparta/supabase/migrations/000150_pg_cron_jobs.sql` — pg_cron extension and retention job
+- `sparta/src/lib/types.ts` — Result<T, E> and AppError types for error handling
+- `sparta/src/lib/logger.ts` — Structured JSON logger (info, warn, error methods)
+- `sparta/src/lib/actions/telemetry.ts` — logTelemetry() Server Action (fire-and-forget)
+- `sparta/src/lib/actions/audit.ts` — logAccess() Server Action (fire-and-forget)
+- `sparta/src/lib/actions/init.ts` — trackAppInitialized() helper for app initialization
+- `sparta/src/lib/actions/health-data.ts` — Placeholder for health data reads with audit logging
+- `sparta/src/__tests__/lib/logger.test.ts` — Logger unit tests (10 test cases)
+- `sparta/src/__tests__/lib/actions/telemetry.test.ts` — Telemetry integration tests
+- `sparta/src/__tests__/lib/actions/telemetry.simple.test.ts` — Telemetry validation tests (5 test cases)
+- `sparta/src/__tests__/lib/actions/audit.test.ts` — Audit integration tests
+- `sparta/src/__tests__/lib/actions/audit.simple.test.ts` — Audit validation tests (9 test cases)
 
 ### Modified Files
-- `project-r/src/lib/supabase/database.types.ts` — Added audit_logs and telemetry_events table types
+- `sparta/src/lib/supabase/database.types.ts` — Added audit_logs and telemetry_events table types
 
 ---
 

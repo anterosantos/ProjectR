@@ -1,4 +1,4 @@
-# Story 3.3: Consentimento Parental — Envio de Email & Página de Confirmação por Token
+﻿# Story 3.3: Consentimento Parental — Envio de Email & Página de Confirmação por Token
 
 **Status:** review
 
@@ -25,7 +25,7 @@ Para que possa autorizar a participação do meu filho com o mínimo de fricçã
 **Then** a Resend EU envia o email para `parent_email`
 **And** o email usa o template HTML inline-CSS `ParentalConsentEmail` (UX-DR23): ≤50KB, fallback plain-text, B1 PT-PT, ≤200 palavras, CTA único "Confirmar consentimento"
 **And** o email inclui o link `https://<host>/consentimento/<token>`
-**And** o subject é "Consentimento parental — Project R"
+**And** o subject é "Consentimento parental — SPARTA"
 
 ---
 
@@ -114,7 +114,7 @@ Para que possa autorizar a participação do meu filho com o mínimo de fricçã
 
 ### AC #10: Cobertura de testes (NFR54)
 
-**Given** `npm run test --run` em `project-r/`
+**Given** `npm run test --run` em `sparta/`
 **When** os testes correm
 **Then** cobertura ≥80% inclui:
 - Lógica da Server Action `submitConsentDecision`: confirm, withdraw, token inválido, token expirado
@@ -127,21 +127,21 @@ Para que possa autorizar a participação do meu filho com o mínimo de fricçã
 ## Tasks / Subtasks
 
 - [x] **Task 1: Edge Function `send-parental-consent`** (AC #1, #8)
-  - [x] 1.1 Criar `project-r/supabase/functions/_shared/` (pasta partilhada)
+  - [x] 1.1 Criar `sparta/supabase/functions/_shared/` (pasta partilhada)
   - [x] 1.2 Template HTML inline em `send-parental-consent/index.ts` (sem ficheiro externo necessário)
-  - [x] 1.3 Criar `project-r/supabase/functions/send-parental-consent/deno.json` com imports `@supabase/supabase-js`
-  - [x] 1.4 Criar `project-r/supabase/functions/send-parental-consent/index.ts`:
+  - [x] 1.3 Criar `sparta/supabase/functions/send-parental-consent/deno.json` com imports `@supabase/supabase-js`
+  - [x] 1.4 Criar `sparta/supabase/functions/send-parental-consent/index.ts`:
     - Aceitar POST `{ consentId: string }`
     - Obter `parental_consents` via service-role: `token`, `parent_email`, `player_id`, `token_expires_at`
     - Obter nome do jogador: `players WHERE id = player_id SELECT full_name`
-    - Construir link: `${Deno.env.get('SITE_URL') || 'https://project-r.vercel.app'}/consentimento/${token}`
+    - Construir link: `${Deno.env.get('SITE_URL') || 'https://sparta.vercel.app'}/consentimento/${token}`
     - Renderizar HTML template `parentalConsentEmailHtml({ playerName, confirmUrl, expiresAt })`
     - Enviar via Resend API com `Authorization: Bearer ${RESEND_API_KEY}`
     - Retornar `{ ok: true }` ou erro estruturado
 
 - [x] **Task 2: Edge Function `consent-validate`** (AC #2, #3, #4, #5, #6)
-  - [x] 2.1 Criar `project-r/supabase/functions/consent-validate/deno.json`
-  - [x] 2.2 Criar `project-r/supabase/functions/consent-validate/index.ts`:
+  - [x] 2.1 Criar `sparta/supabase/functions/consent-validate/deno.json`
+  - [x] 2.2 Criar `sparta/supabase/functions/consent-validate/index.ts`:
     - **GET `?token=xxx`**: busca `parental_consents WHERE token = xxx` → retorna `{ state, playerName?, policyBody?, tokenExpiresAt? }`
     - **POST `{ token, action, ip }`**: valida token `pending`, executa `confirm` ou `withdraw`
     - Em `confirm`: UPDATE `parental_consents`, UPDATE `profiles`, INSERT `audit_logs`, chamar `send-confirmation-email`
@@ -152,14 +152,14 @@ Para que possa autorizar a participação do meu filho com o mínimo de fricçã
   - [x] 3.1 Templates HTML inline em Edge Functions (sem CDN), max 50KB, PT-PT B1, sem tracking pixels, plain-text fallback obrigatório
 
 - [x] **Task 4: Landing page `/consentimento/[token]`** (AC #2, #3, #4)
-  - [x] 4.1 Criar `project-r/src/app/consentimento/[token]/page.tsx` (Server Component async):
+  - [x] 4.1 Criar `sparta/src/app/consentimento/[token]/page.tsx` (Server Component async):
     - Chamar Edge Function GET: `${SUPABASE_URL}/functions/v1/consent-validate?token=${token}` com `Authorization: Bearer ${SERVICE_ROLE_KEY}`
     - `cache: 'no-store'` (estado dinâmico)
     - Renderizar `<ConsentForm>` (valid), `<EmptyState>` (expired/confirmed/withdrawn/invalid)
-  - [x] 4.2 Criar `project-r/src/app/consentimento/[token]/actions.ts` (Server Action):
+  - [x] 4.2 Criar `sparta/src/app/consentimento/[token]/actions.ts` (Server Action):
     - `'use server'`; importar `headers` de `next/headers`
     - `submitConsentDecision(formData: FormData)`: extrai token/action, extrai IP, POST para Edge Function, redirect
-  - [x] 4.3 Criar `project-r/src/app/consentimento/[token]/consent-form.tsx` (Client Component — progressive enhancement):
+  - [x] 4.3 Criar `sparta/src/app/consentimento/[token]/consent-form.tsx` (Client Component — progressive enhancement):
     - `<form action={submitConsentDecision}>` com hidden token, botão confirm e botão ghost withdraw
     - Exibe `body_full_md` via `<ReactMarkdown>`
 
@@ -175,14 +175,14 @@ Para que possa autorizar a participação do meu filho com o mínimo de fricçã
   - [x] 6.5 Story 3.2 implementada — dependências satisfeitas
 
 - [x] **Task 7: Variáveis de ambiente** (AC #1, #9)
-  - [x] 7.1 `RESEND_API_KEY` já existia; adicionado `SITE_URL=https://project-r.vercel.app` ao `.env.example`
+  - [x] 7.1 `RESEND_API_KEY` já existia; adicionado `SITE_URL=https://sparta.vercel.app` ao `.env.example`
   - [x] 7.2 Documentado no `.env.example` que deve ser adicionado como secret nas Edge Functions
   - [x] 7.3 `SUPABASE_SERVICE_ROLE_KEY` já existe como secret das Edge Functions
 
 - [x] **Task 8: Testes** (AC #10)
   - [x] 8.1 Testes de `initiateParentalConsent` (fire-and-forget) e `resendConsentEmail` (Edge Function call) em `consent.test.ts` actualizado
-  - [x] 8.2 Criar `project-r/src/__tests__/app/consentimento/actions.test.ts`: confirm, withdraw, network error, token em falta (4 testes ✅)
-  - [x] 8.3 Criar `project-r/src/__tests__/app/consentimento/page.test.tsx`: valid, expired, confirmed, withdrawn, invalid, fetch error, fallback playerName (7 testes ✅)
+  - [x] 8.2 Criar `sparta/src/__tests__/app/consentimento/actions.test.ts`: confirm, withdraw, network error, token em falta (4 testes ✅)
+  - [x] 8.3 Criar `sparta/src/__tests__/app/consentimento/page.test.tsx`: valid, expired, confirmed, withdrawn, invalid, fetch error, fallback playerName (7 testes ✅)
 
 - [x] **Task 9: Verificação final**
   - [x] 9.1 `npm run lint` — zero erros (47 warnings pré-existentes)
@@ -262,7 +262,7 @@ const handler = async (req: Request): Promise<Response> => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const resendApiKey = Deno.env.get("RESEND_API_KEY")!;
-  const siteUrl = Deno.env.get("SITE_URL") || "https://project-r.vercel.app";
+  const siteUrl = Deno.env.get("SITE_URL") || "https://sparta.vercel.app";
 
   const { consentId } = await req.json() as { consentId: string };
   if (!consentId) {
@@ -308,9 +308,9 @@ const handler = async (req: Request): Promise<Response> => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "Project R <noreply@project-r.app>",
+      from: "SPARTA <noreply@sparta.app>",
       to: [consent.parent_email],
-      subject: "Consentimento parental — Project R",
+      subject: "Consentimento parental — SPARTA",
       html,
       text,
     }),
@@ -340,7 +340,7 @@ function parentalConsentEmailHtml({ playerName, confirmUrl, expiresAt }: {
 <body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#171717;">
   <h1 style="font-size:20px;font-weight:600;margin-bottom:16px;">Pedido de consentimento parental</h1>
   <p style="font-size:14px;line-height:1.6;margin-bottom:16px;">
-    Foi criada uma conta para <strong>${playerName}</strong> na plataforma Project R,
+    Foi criada uma conta para <strong>${playerName}</strong> na plataforma SPARTA,
     utilizada pelo clube para gerir sessões desportivas e bem-estar dos atletas.
   </p>
   <p style="font-size:14px;line-height:1.6;margin-bottom:24px;">
@@ -355,13 +355,13 @@ function parentalConsentEmailHtml({ playerName, confirmUrl, expiresAt }: {
     Se não reconhece este pedido, pode ignorar este email. Os dados só serão recolhidos após confirmação.
   </p>
   <hr style="border:none;border-top:1px solid #E5E5E5;margin:24px 0;">
-  <p style="font-size:11px;color:#A3A3A3;">Project R · Gestão desportiva · <a href="${confirmUrl}" style="color:#A3A3A3;">${confirmUrl}</a></p>
+  <p style="font-size:11px;color:#A3A3A3;">SPARTA · Gestão desportiva · <a href="${confirmUrl}" style="color:#A3A3A3;">${confirmUrl}</a></p>
 </body>
 </html>`;
 
-  const text = `Pedido de consentimento parental — Project R
+  const text = `Pedido de consentimento parental — SPARTA
 
-Foi criada uma conta para ${playerName} na plataforma Project R.
+Foi criada uma conta para ${playerName} na plataforma SPARTA.
 Para autorizar o acesso, clique no link abaixo (válido até ${expiresAt}):
 
 ${confirmUrl}
@@ -553,14 +553,14 @@ async function sendConfirmationEmail({ resendApiKey, parentEmail, playerName, co
     O seu consentimento para <strong>${playerName}</strong> foi registado em ${confirmedAt}.
   </p>
   <p style="font-size:14px;line-height:1.6;margin-top:16px;">
-    ${playerName} pode agora aceder à plataforma Project R.
+    ${playerName} pode agora aceder à plataforma SPARTA.
   </p>
   <hr style="border:none;border-top:1px solid #E5E5E5;margin:24px 0;">
-  <p style="font-size:11px;color:#A3A3A3;">Project R · Gestão desportiva</p>
+  <p style="font-size:11px;color:#A3A3A3;">SPARTA · Gestão desportiva</p>
 </body>
 </html>`;
 
-  const text = `Consentimento registado — Project R\n\nO seu consentimento para ${playerName} foi registado em ${confirmedAt}.\n${playerName} pode agora aceder à plataforma.`;
+  const text = `Consentimento registado — SPARTA\n\nO seu consentimento para ${playerName} foi registado em ${confirmedAt}.\n${playerName} pode agora aceder à plataforma.`;
 
   await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -569,7 +569,7 @@ async function sendConfirmationEmail({ resendApiKey, parentEmail, playerName, co
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "Project R <noreply@project-r.app>",
+      from: "SPARTA <noreply@sparta.app>",
       to: [parentEmail],
       subject: `Consentimento registado em ${confirmedAt}`,
       html,
@@ -867,7 +867,7 @@ Os seguintes secrets devem existir no Supabase Dashboard → Functions → Secre
 - `SUPABASE_URL` (automático em Edge Functions)
 - `SUPABASE_SERVICE_ROLE_KEY` (automático em Edge Functions)
 - `RESEND_API_KEY` (adicionar manualmente)
-- `SITE_URL` (adicionar manualmente, ex: `https://project-r.vercel.app`)
+- `SITE_URL` (adicionar manualmente, ex: `https://sparta.vercel.app`)
 
 **Localmente**: adicionar ao `.env.local` para que o `supabase functions serve` funcione.
 
@@ -992,8 +992,8 @@ React suporta `name` e `value` em `<button type="submit">`. Ao clicar, o FormDat
 ## Project Context Reference
 
 ```
-ProjectR/
-└── project-r/
+SPARTA/
+└── sparta/
     ├── supabase/
     │   ├── migrations/
     │   │   ├── 000165_privacy_policies.sql        ← done (Story 3.1)
@@ -1066,16 +1066,16 @@ claude-sonnet-4-6
 
 ### File List
 
-- `project-r/supabase/functions/_shared/` (NEW — pasta criada)
-- `project-r/supabase/functions/send-parental-consent/index.ts` (NEW)
-- `project-r/supabase/functions/send-parental-consent/deno.json` (NEW)
-- `project-r/supabase/functions/consent-validate/index.ts` (NEW)
-- `project-r/supabase/functions/consent-validate/deno.json` (NEW)
-- `project-r/src/app/consentimento/[token]/page.tsx` (NEW)
-- `project-r/src/app/consentimento/[token]/consent-form.tsx` (NEW)
-- `project-r/src/app/consentimento/[token]/actions.ts` (NEW)
-- `project-r/src/lib/actions/consent.ts` (UPDATE — fire-and-forget em initiateParentalConsent + substituição do stub em resendConsentEmail)
-- `project-r/.env.example` (UPDATE — SITE_URL adicionado)
-- `project-r/src/__tests__/lib/actions/consent.test.ts` (UPDATE — resendConsentEmail: stub tests → Edge Function tests + fire-and-forget test)
-- `project-r/src/__tests__/app/consentimento/actions.test.ts` (NEW)
-- `project-r/src/__tests__/app/consentimento/page.test.tsx` (NEW)
+- `sparta/supabase/functions/_shared/` (NEW — pasta criada)
+- `sparta/supabase/functions/send-parental-consent/index.ts` (NEW)
+- `sparta/supabase/functions/send-parental-consent/deno.json` (NEW)
+- `sparta/supabase/functions/consent-validate/index.ts` (NEW)
+- `sparta/supabase/functions/consent-validate/deno.json` (NEW)
+- `sparta/src/app/consentimento/[token]/page.tsx` (NEW)
+- `sparta/src/app/consentimento/[token]/consent-form.tsx` (NEW)
+- `sparta/src/app/consentimento/[token]/actions.ts` (NEW)
+- `sparta/src/lib/actions/consent.ts` (UPDATE — fire-and-forget em initiateParentalConsent + substituição do stub em resendConsentEmail)
+- `sparta/.env.example` (UPDATE — SITE_URL adicionado)
+- `sparta/src/__tests__/lib/actions/consent.test.ts` (UPDATE — resendConsentEmail: stub tests → Edge Function tests + fire-and-forget test)
+- `sparta/src/__tests__/app/consentimento/actions.test.ts` (NEW)
+- `sparta/src/__tests__/app/consentimento/page.test.tsx` (NEW)

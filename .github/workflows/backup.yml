@@ -1,4 +1,4 @@
-name: Backup
+﻿name: Backup
 
 on:
   schedule:
@@ -81,7 +81,7 @@ jobs:
       - name: Push Backup to Private Repo
         run: |
           BACKUP_FILE="${{ steps.dump.outputs.backup_file }}"
-          git clone git@github.com:anterosantos/project-r-backups.git /tmp/backups
+          git clone git@github.com:anterosantos/sparta-backups.git /tmp/backups
           cp "/tmp/$BACKUP_FILE" /tmp/backups/
           cd /tmp/backups
           git config user.name "GitHub Actions"
@@ -131,7 +131,7 @@ jobs:
           Please check:
           1. \`SUPABASE_DB_URL\` secret is valid and database is accessible
           2. \`BACKUP_ENCRYPTION_KEY\` secret is set
-          3. \`BACKUP_REPO_DEPLOY_KEY\` has write access to \`project-r-backups\`"
+          3. \`BACKUP_REPO_DEPLOY_KEY\` has write access to \`sparta-backups\`"
           gh issue create \
             --title "[ALERT] Backup: Failed (Run #${GITHUB_RUN_NUMBER})" \
             --label "backup-failure" \

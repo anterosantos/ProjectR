@@ -1,4 +1,4 @@
-# Authentication Testing Guide
+﻿# Authentication Testing Guide
 
 ## Overview
 This guide documents how to test the authentication flow to ensure we don't regress on the fixed issues.
@@ -37,7 +37,7 @@ Tests the entire login flow and related functions.
 
 ### Run all tests
 ```bash
-cd project-r
+cd sparta
 npm run test
 ```
 

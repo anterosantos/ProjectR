@@ -1,4 +1,4 @@
-# Story 1.10: Browser Compatibility Page & In-App WebView Block
+﻿# Story 1.10: Browser Compatibility Page & In-App WebView Block
 
 **Status:** in-progress
 
@@ -30,7 +30,7 @@ so that I can switch to a compatible browser instead of seeing a broken app.
 
 **Given** a user opens the app inside Facebook, Instagram, or WhatsApp in-app WebView
 **When** user-agent or detection identifies the WebView
-**Then** a blocking page renders: "Abre o Project R no teu browser principal"
+**Then** a blocking page renders: "Abre o SPARTA no teu browser principal"
 **And** shows a "Copiar link" button
 **And** shows step-by-step instructions for iOS and Android (FR58)
 
@@ -84,7 +84,7 @@ so that I can switch to a compatible browser instead of seeing a broken app.
 
 - [x] Task 4: Criar `<WebViewBlockPage />` (AC: #2, #5)
   - [x] 4.1 Criar `src/components/patterns/WebViewBlockPage.tsx`
-  - [x] 4.2 Título: "Abre o Project R no teu browser principal"
+  - [x] 4.2 Título: "Abre o SPARTA no teu browser principal"
   - [x] 4.3 Botão "Copiar link" com `navigator.clipboard.writeText(window.location.href)` — fallback gracioso se clipboard não disponível
   - [x] 4.4 Instruções passo-a-passo: iOS ("Toca nos três pontos → Abrir no Safari") e Android ("Toca nos três pontos → Abrir no Chrome")
   - [x] 4.5 Ícone de aviso (lucide `ExternalLink` ou similar)
@@ -214,7 +214,7 @@ const handleCopyLink = async () => {
 Todo o texto das páginas de bloqueio deve ser B1 PT-PT (vocabulário simples, frases curtas):
 
 **WebView block:**
-- Título: "Abre o Project R no teu browser principal"
+- Título: "Abre o SPARTA no teu browser principal"
 - Subtítulo: "Estás a usar esta aplicação dentro de outro programa. Para funcionar corretamente, precisas de a abrir no teu browser."
 - Botão: "Copiar link"
 - iOS instructions: "1. Toca nos três pontos (···) no canto superior direito\n2. Escolhe 'Abrir no Safari'"
@@ -228,7 +228,7 @@ Todo o texto das páginas de bloqueio deve ser B1 PT-PT (vocabulário simples, f
 ### Estrutura de Ficheiros
 
 ```
-project-r/src/
+sparta/src/
 ├── lib/
 │   └── pwa/
 │       └── webview-detection.ts        [NEW] Detecção pura (sem DOM)
@@ -247,7 +247,7 @@ project-r/src/
 
 Componentes de teste:
 ```
-project-r/src/components/patterns/
+sparta/src/components/patterns/
 ├── BrowserGate.test.tsx                [NEW]
 ├── WebViewBlockPage.test.tsx           [NEW]
 └── UnsupportedBrowserPage.test.tsx     [NEW]
@@ -299,7 +299,7 @@ Se um WebView conseguir autenticar-se, será bloqueado pelo `BrowserGate` antes 
 - Vitest + `@testing-library/react`
 - `vitest-axe` para accessibility checks (padrão do projeto desde Story 1.6+)
 - Cobertura ≥80% para `lib/pwa/webview-detection.ts`
-- Correr testes de `project-r/` com `npm run test --run`
+- Correr testes de `sparta/` com `npm run test --run`
 
 ---
 
@@ -381,7 +381,7 @@ expect(results).toHaveNoViolations();
 
 ## Project Context
 
-- **App root:** `project-r/` (subfolder dentro do repo — todos os comandos de `npm` de dentro de `project-r/`)
+- **App root:** `sparta/` (subfolder dentro do repo — todos os comandos de `npm` de dentro de `sparta/`)
 - **Linguagem UI:** Português PT-PT (B1)
 - **Código/APIs:** Inglês
 - **Design system:** Tailwind v4 + shadcn/ui + lucide-react (Story 1.8)
@@ -414,17 +414,17 @@ claude-sonnet-4-6
 
 ### File List
 
-- `project-r/src/lib/pwa/webview-detection.ts` [NEW]
-- `project-r/src/components/patterns/BrowserGate.tsx` [NEW]
-- `project-r/src/components/patterns/CopyLinkButton.tsx` [NEW]
-- `project-r/src/components/patterns/WebViewBlockPage.tsx` [NEW]
-- `project-r/src/components/patterns/UnsupportedBrowserPage.tsx` [NEW]
-- `project-r/src/app/layout.tsx` [MODIFIED]
-- `project-r/vitest.setup.ts` [MODIFIED]
-- `project-r/src/__tests__/lib/pwa/webview-detection.test.ts` [NEW]
-- `project-r/src/components/patterns/BrowserGate.test.tsx` [NEW]
-- `project-r/src/components/patterns/WebViewBlockPage.test.tsx` [NEW]
-- `project-r/src/components/patterns/UnsupportedBrowserPage.test.tsx` [NEW]
+- `sparta/src/lib/pwa/webview-detection.ts` [NEW]
+- `sparta/src/components/patterns/BrowserGate.tsx` [NEW]
+- `sparta/src/components/patterns/CopyLinkButton.tsx` [NEW]
+- `sparta/src/components/patterns/WebViewBlockPage.tsx` [NEW]
+- `sparta/src/components/patterns/UnsupportedBrowserPage.tsx` [NEW]
+- `sparta/src/app/layout.tsx` [MODIFIED]
+- `sparta/vitest.setup.ts` [MODIFIED]
+- `sparta/src/__tests__/lib/pwa/webview-detection.test.ts` [NEW]
+- `sparta/src/components/patterns/BrowserGate.test.tsx` [NEW]
+- `sparta/src/components/patterns/WebViewBlockPage.test.tsx` [NEW]
+- `sparta/src/components/patterns/UnsupportedBrowserPage.test.tsx` [NEW]
 
 ### Change Log
 
@@ -444,7 +444,7 @@ claude-sonnet-4-6
 
 ### Patches (code issues to fix)
 
-- [x] [Review][Patch] **Missing Tests for CopyLinkButton Component** [CopyLinkButton.test.tsx] ✅ Created `project-r/src/components/patterns/CopyLinkButton.test.tsx` with 9 tests covering clipboard success, API failure, rapid clicks, unmount cleanup, error retry, and URL capture.
+- [x] [Review][Patch] **Missing Tests for CopyLinkButton Component** [CopyLinkButton.test.tsx] ✅ Created `sparta/src/components/patterns/CopyLinkButton.test.tsx` with 9 tests covering clipboard success, API failure, rapid clicks, unmount cleanup, error retry, and URL capture.
 
 - [x] [Review][Patch] **CopyLinkButton: Silent Clipboard Failure Without User Feedback** [CopyLinkButton.tsx:8-16] ✅ Added error state with visible "Erro ao copiar" feedback and updated aria-label when error occurs.
 

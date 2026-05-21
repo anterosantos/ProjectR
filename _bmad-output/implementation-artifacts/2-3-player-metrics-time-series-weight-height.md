@@ -1,4 +1,4 @@
-# Story 2.3: Player Metrics Time Series — Weight & Height
+﻿# Story 2.3: Player Metrics Time Series — Weight & Height
 
 **Status:** done
 
@@ -88,7 +88,7 @@ Para que possamos acompanhar tendências de crescimento/condição física sem s
 ### AC #5: Cobertura de testes (NFR54)
 
 **Given** os testes correm
-**When** `npm run test --run` executa a partir de `project-r/`
+**When** `npm run test --run` executa a partir de `sparta/`
 **Then** cobertura ≥80% para:
 - Validação Zod (campos obrigatórios, ranges, "pelo menos um")
 - Server Actions: insert, update dentro/fora janela 24h
@@ -100,11 +100,11 @@ Para que possamos acompanhar tendências de crescimento/condição física sem s
 ## Tasks / Subtasks
 
 - [x] Task 1: Instalar recharts (AC #3)
-  - [x] 1.1 `npm install recharts` a partir de `project-r/`
+  - [x] 1.1 `npm install recharts` a partir de `sparta/`
   - [x] 1.2 Verificar que `recharts` aparece em `package.json` dependencies
 
 - [x] Task 2: Criar migração `000090_player_metrics.sql` (AC #1)
-  - [x] 2.1 Criar `project-r/supabase/migrations/000090_player_metrics.sql`
+  - [x] 2.1 Criar `sparta/supabase/migrations/000090_player_metrics.sql`
   - [x] 2.2 Incluir CREATE TABLE, RLS policies, e index
   - [x] 2.3 Executar `supabase db reset` localmente para validação (Docker não disponível — SQL validado por inspecção)
 
@@ -163,15 +163,15 @@ Para que possamos acompanhar tendências de crescimento/condição física sem s
 
 | Ficheiro | Tipo | Mudança |
 |---------|------|---------|
-| `project-r/supabase/migrations/000090_player_metrics.sql` | NEW | Criar tabela `player_metrics` com RLS |
-| `project-r/src/lib/supabase/database.types.ts` | UPDATE | Adicionar tipo `PlayerMetric` |
-| `project-r/src/lib/schemas/metrics.ts` | NEW | Zod schemas para criar/actualizar métricas |
-| `project-r/src/lib/actions/metrics.ts` | NEW | Server Actions: add, get, update |
-| `project-r/src/components/ui/add-metric-sheet.tsx` | NEW | Client component: DrillDownSheet + form |
-| `project-r/src/components/ui/player-metrics-chart.tsx` | NEW | Client component: recharts dual-axis |
-| `project-r/src/app/(staff)/plantel/[id]/page.tsx` | UPDATE | Adicionar secção métricas |
-| `project-r/src/__tests__/lib/actions/metrics.test.ts` | NEW | Unit tests |
-| `project-r/src/__tests__/components/player-metrics-chart.test.tsx` | NEW | Component tests |
+| `sparta/supabase/migrations/000090_player_metrics.sql` | NEW | Criar tabela `player_metrics` com RLS |
+| `sparta/src/lib/supabase/database.types.ts` | UPDATE | Adicionar tipo `PlayerMetric` |
+| `sparta/src/lib/schemas/metrics.ts` | NEW | Zod schemas para criar/actualizar métricas |
+| `sparta/src/lib/actions/metrics.ts` | NEW | Server Actions: add, get, update |
+| `sparta/src/components/ui/add-metric-sheet.tsx` | NEW | Client component: DrillDownSheet + form |
+| `sparta/src/components/ui/player-metrics-chart.tsx` | NEW | Client component: recharts dual-axis |
+| `sparta/src/app/(staff)/plantel/[id]/page.tsx` | UPDATE | Adicionar secção métricas |
+| `sparta/src/__tests__/lib/actions/metrics.test.ts` | NEW | Unit tests |
+| `sparta/src/__tests__/components/player-metrics-chart.test.tsx` | NEW | Component tests |
 
 ### Migração: `000090_player_metrics.sql`
 
@@ -640,7 +640,7 @@ const metrics = metricsResult.ok ? metricsResult.data : [];
 ### Padrão de Testes (base para `metrics.test.ts`)
 
 ```ts
-// project-r/src/__tests__/lib/actions/metrics.test.ts
+// sparta/src/__tests__/lib/actions/metrics.test.ts
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { PlayerMetricCreateSchema } from "@/lib/schemas/metrics";
 
@@ -725,7 +725,7 @@ describe("PlayerMetricCreateSchema", () => {
 4. `logAccess()` em `src/lib/actions/audit.ts` — fire-and-forget, não bloqueia
 5. React 19: **não** importar `React` em ficheiros `.tsx`
 6. `noUncheckedIndexedAccess`: usar `arr?.[0] ?? fallback` em accesso a arrays
-7. Testes correm a partir de `project-r/` com `npm run test --run`
+7. Testes correm a partir de `sparta/` com `npm run test --run`
 
 ---
 
@@ -771,8 +771,8 @@ describe("PlayerMetricCreateSchema", () => {
 ## Project Context Reference
 
 ```
-ProjectR/ (git root)
-├── project-r/
+SPARTA/ (git root)
+├── sparta/
 │   ├── supabase/
 │   │   └── migrations/
 │   │       ├── 000085_players_photo.sql    (Story 2.2)
@@ -841,17 +841,17 @@ ProjectR/ (git root)
 
 ### File List
 
-- `project-r/supabase/migrations/000090_player_metrics.sql` (NEW)
-- `project-r/src/lib/supabase/database.types.ts` (UPDATED — player_metrics table added)
-- `project-r/src/lib/schemas/metrics.ts` (NEW)
-- `project-r/src/lib/actions/metrics.ts` (NEW)
-- `project-r/src/components/ui/add-metric-sheet.tsx` (NEW)
-- `project-r/src/components/ui/player-metrics-chart.tsx` (NEW)
-- `project-r/src/app/(staff)/plantel/[id]/page.tsx` (UPDATED — metrics section added)
-- `project-r/src/__tests__/lib/actions/metrics.test.ts` (NEW — 23 testes)
-- `project-r/src/__tests__/components/player-metrics-chart.test.tsx` (NEW — 8 testes)
-- `project-r/package.json` (UPDATED — recharts v3.8.1)
-- `project-r/package-lock.json` (UPDATED)
+- `sparta/supabase/migrations/000090_player_metrics.sql` (NEW)
+- `sparta/src/lib/supabase/database.types.ts` (UPDATED — player_metrics table added)
+- `sparta/src/lib/schemas/metrics.ts` (NEW)
+- `sparta/src/lib/actions/metrics.ts` (NEW)
+- `sparta/src/components/ui/add-metric-sheet.tsx` (NEW)
+- `sparta/src/components/ui/player-metrics-chart.tsx` (NEW)
+- `sparta/src/app/(staff)/plantel/[id]/page.tsx` (UPDATED — metrics section added)
+- `sparta/src/__tests__/lib/actions/metrics.test.ts` (NEW — 23 testes)
+- `sparta/src/__tests__/components/player-metrics-chart.test.tsx` (NEW — 8 testes)
+- `sparta/package.json` (UPDATED — recharts v3.8.1)
+- `sparta/package-lock.json` (UPDATED)
 
 ### Change Log
 

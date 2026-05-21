@@ -1,4 +1,4 @@
-# Story 2.4: Marcar Jogador como Inactivo (Soft Status)
+﻿# Story 2.4: Marcar Jogador como Inactivo (Soft Status)
 
 **Status:** done
 
@@ -102,7 +102,7 @@ agora; apenas garantir que `is_active` existe na tabela e está correctamente de
 
 ### AC #7: Cobertura de testes (NFR54)
 
-**Given** os testes correm via `npm run test --run` a partir de `project-r/`
+**Given** os testes correm via `npm run test --run` a partir de `sparta/`
 **When** executados
 **Then** cobertura ≥80% para:
 - Zod schema: `MarkInactiveSchema` (motivo max 200), `ReactivatePlayerSchema`
@@ -117,7 +117,7 @@ agora; apenas garantir que `is_active` existe na tabela e está correctamente de
 ## Tasks / Subtasks
 
 - [x] Task 1: Criar migração `000095_players_inactive.sql` (AC #1)
-  - [x] 1.1 Criar `project-r/supabase/migrations/000095_players_inactive.sql`
+  - [x] 1.1 Criar `sparta/supabase/migrations/000095_players_inactive.sql`
   - [x] 1.2 `ALTER TABLE players ADD COLUMN is_active boolean NOT NULL DEFAULT true`
   - [x] 1.3 `ALTER TABLE players ADD COLUMN inactive_reason text`
   - [x] 1.4 `CREATE INDEX idx_players_is_active ON players(club_id, is_active)`
@@ -169,7 +169,7 @@ agora; apenas garantir que `is_active` existe na tabela e está correctamente de
 - [x] Task 10: Verificação final (AC #1–#7)
   - [x] 10.1 `npm run lint` — 0 novos erros
   - [x] 10.2 `npm run typecheck` — zero erros
-  - [x] 10.3 `npm run test --run` a partir de `project-r/` — 442/442 ✅
+  - [x] 10.3 `npm run test --run` a partir de `sparta/` — 442/442 ✅
   - [x] 10.4 `npm run build` — build limpa ✅
 
 ---
@@ -201,16 +201,16 @@ Migrações existentes relevantes:
 
 | Ficheiro | Tipo | Mudança |
 |---------|------|---------|
-| `project-r/supabase/migrations/000095_players_inactive.sql` | NEW | ALTER TABLE players + índice |
-| `project-r/src/lib/supabase/database.types.ts` | UPDATE | Adicionar `is_active` + `inactive_reason` ao tipo players |
-| `project-r/src/lib/schemas/players.ts` | UPDATE | Adicionar MarkInactiveSchema, ReactivatePlayerSchema |
-| `project-r/src/lib/actions/players.ts` | UPDATE | markPlayerInactive, reactivatePlayer, getPlayers options, getPlayer select |
-| `project-r/src/components/ui/mark-inactive-sheet.tsx` | NEW | Client component: DrillDownSheet + form |
-| `project-r/src/app/(staff)/plantel/[id]/reactivate-player-dialog.tsx` | NEW | Client component: Dialog confirmação |
-| `project-r/src/app/(staff)/plantel/page.tsx` | UPDATE | Filter chip Inativos, searchParams |
-| `project-r/src/app/(staff)/plantel/[id]/page.tsx` | UPDATE | Conditional MarkInactive/Reactivate, badge inactivo, reativado confirmation |
-| `project-r/src/__tests__/lib/actions/players-inactive.test.ts` | NEW | Unit tests markPlayerInactive, reactivatePlayer |
-| `project-r/src/__tests__/components/mark-inactive-sheet.test.tsx` | NEW | Component tests |
+| `sparta/supabase/migrations/000095_players_inactive.sql` | NEW | ALTER TABLE players + índice |
+| `sparta/src/lib/supabase/database.types.ts` | UPDATE | Adicionar `is_active` + `inactive_reason` ao tipo players |
+| `sparta/src/lib/schemas/players.ts` | UPDATE | Adicionar MarkInactiveSchema, ReactivatePlayerSchema |
+| `sparta/src/lib/actions/players.ts` | UPDATE | markPlayerInactive, reactivatePlayer, getPlayers options, getPlayer select |
+| `sparta/src/components/ui/mark-inactive-sheet.tsx` | NEW | Client component: DrillDownSheet + form |
+| `sparta/src/app/(staff)/plantel/[id]/reactivate-player-dialog.tsx` | NEW | Client component: Dialog confirmação |
+| `sparta/src/app/(staff)/plantel/page.tsx` | UPDATE | Filter chip Inativos, searchParams |
+| `sparta/src/app/(staff)/plantel/[id]/page.tsx` | UPDATE | Conditional MarkInactive/Reactivate, badge inactivo, reativado confirmation |
+| `sparta/src/__tests__/lib/actions/players-inactive.test.ts` | NEW | Unit tests markPlayerInactive, reactivatePlayer |
+| `sparta/src/__tests__/components/mark-inactive-sheet.test.tsx` | NEW | Component tests |
 
 ---
 
@@ -651,7 +651,7 @@ const { created, updated, reativado } = await searchParams;
 ### Padrão de Testes: `players-inactive.test.ts`
 
 ```ts
-// project-r/src/__tests__/lib/actions/players-inactive.test.ts
+// sparta/src/__tests__/lib/actions/players-inactive.test.ts
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MarkInactiveSchema, ReactivatePlayerSchema } from "@/lib/schemas/players";
 
@@ -755,7 +755,7 @@ describe("ReactivatePlayerSchema", () => {
 5. React 19: **não** importar `React` em ficheiros `.tsx`
 6. `noUncheckedIndexedAccess`: usar `arr?.[0] ?? fallback` em acessos a arrays
 7. Zod v4: `.issues` (não `.errors`) no error path
-8. Testes correm a partir de `project-r/` com `npm run test --run`
+8. Testes correm a partir de `sparta/` com `npm run test --run`
 
 ---
 
@@ -800,8 +800,8 @@ feat(2-4): mark player as inactive — migration 000095, markPlayerInactive/reac
 ## Project Context Reference
 
 ```
-ProjectR/ (git root)
-├── project-r/
+SPARTA/ (git root)
+├── sparta/
 │   ├── supabase/
 │   │   └── migrations/
 │   │       ├── 000085_players_photo.sql       (Story 2.2)
@@ -866,16 +866,16 @@ Implementação seguindo o ciclo red-green-refactor:
 
 ### File List
 
-- `project-r/supabase/migrations/000095_players_inactive.sql` (NEW)
-- `project-r/src/lib/supabase/database.types.ts` (UPDATE — is_active, inactive_reason)
-- `project-r/src/lib/schemas/players.ts` (UPDATE — MarkInactiveSchema, ReactivatePlayerSchema)
-- `project-r/src/lib/actions/players.ts` (UPDATE — markPlayerInactive, reactivatePlayer, getPlayers options, getPlayer select, PlayerWithPositions interface)
-- `project-r/src/components/ui/mark-inactive-sheet.tsx` (NEW)
-- `project-r/src/app/(staff)/plantel/[id]/reactivate-player-dialog.tsx` (NEW)
-- `project-r/src/app/(staff)/plantel/page.tsx` (UPDATE — searchParams, filtro inativos)
-- `project-r/src/app/(staff)/plantel/[id]/page.tsx` (UPDATE — botões condicionais, badge inativo, reativado confirmation)
-- `project-r/src/__tests__/lib/actions/players-inactive.test.ts` (NEW)
-- `project-r/src/__tests__/components/mark-inactive-sheet.test.tsx` (NEW)
+- `sparta/supabase/migrations/000095_players_inactive.sql` (NEW)
+- `sparta/src/lib/supabase/database.types.ts` (UPDATE — is_active, inactive_reason)
+- `sparta/src/lib/schemas/players.ts` (UPDATE — MarkInactiveSchema, ReactivatePlayerSchema)
+- `sparta/src/lib/actions/players.ts` (UPDATE — markPlayerInactive, reactivatePlayer, getPlayers options, getPlayer select, PlayerWithPositions interface)
+- `sparta/src/components/ui/mark-inactive-sheet.tsx` (NEW)
+- `sparta/src/app/(staff)/plantel/[id]/reactivate-player-dialog.tsx` (NEW)
+- `sparta/src/app/(staff)/plantel/page.tsx` (UPDATE — searchParams, filtro inativos)
+- `sparta/src/app/(staff)/plantel/[id]/page.tsx` (UPDATE — botões condicionais, badge inativo, reativado confirmation)
+- `sparta/src/__tests__/lib/actions/players-inactive.test.ts` (NEW)
+- `sparta/src/__tests__/components/mark-inactive-sheet.test.tsx` (NEW)
 
 ### Change Log
 

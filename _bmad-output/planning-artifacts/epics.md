@@ -1,4 +1,4 @@
----
+﻿---
 stepsCompleted: [step-01-validate-prerequisites, step-02-design-epics, step-03-create-stories, step-04-final-validation]
 inputDocuments:
   - _bmad-output/planning-artifacts/prd.md
@@ -6,11 +6,11 @@ inputDocuments:
   - _bmad-output/planning-artifacts/ux-design-specification.md
 ---
 
-# Project R - Epic Breakdown
+# SPARTA - Epic Breakdown
 
 ## Overview
 
-This document provides the complete epic and story breakdown for Project R, decomposing the requirements from the PRD, UX Design if it exists, and Architecture requirements into implementable stories.
+This document provides the complete epic and story breakdown for SPARTA, decomposing the requirements from the PRD, UX Design if it exists, and Architecture requirements into implementable stories.
 
 ## Requirements Inventory
 
@@ -909,7 +909,7 @@ So that I can switch to a compatible browser instead of seeing a broken app.
 
 **Given** a user opens the app inside Facebook, Instagram, or WhatsApp in-app WebView
 **When** user-agent or `navigator.standalone` detection identifies the WebView
-**Then** a blocking page renders "Abre o Project R no teu browser principal"
+**Then** a blocking page renders "Abre o SPARTA no teu browser principal"
 **And** shows a "Copiar link" button + step-by-step iOS/Android instructions (FR58)
 
 **Given** a user opens the app in Chrome (last 2), Safari iOS 16.4+, Safari macOS (last 2), Firefox (last 2), Edge (last 2), or Samsung Internet (last 2)
@@ -1090,7 +1090,7 @@ So that we can recover from any data loss within recent operational history.
 **Given** the dump succeeds
 **When** the workflow continues
 **Then** the file is encrypted with `BACKUP_ENCRYPTION_KEY` (AES-256)
-**And** pushed to a private repo `project-r-backups` with filename `YYYY-MM-DD-backup.sql.enc`
+**And** pushed to a private repo `sparta-backups` with filename `YYYY-MM-DD-backup.sql.enc`
 
 **Given** the retention policy
 **When** the workflow finishes
@@ -1215,7 +1215,7 @@ So that all new screens automatically match the visual look and feel defined in 
 **And** it has a vitest unit test
 
 **Given** all changes compile and tests pass
-**When** `npm run build` and `npm run test --run` are executed from `project-r/`
+**When** `npm run build` and `npm run test --run` are executed from `sparta/`
 **Then** build exits 0, typecheck exits 0, lint exits 0 with ≤ previous warning count, all existing tests pass
 
 ## Epic 2: Plantel, Calendário & Sessões (gestão operacional do staff)
@@ -1797,7 +1797,7 @@ So that I do not need to email anyone or hunt around to exercise my rights.
 
 **Given** a player <16 logged in directly
 **When** they navigate to `/configuracoes/direitos`
-**Then** the page shows "As tuas opções estão com o teu encarregado de educação. Pede-lhe para abrir o email mais recente da Project R."
+**Then** the page shows "As tuas opções estão com o teu encarregado de educação. Pede-lhe para abrir o email mais recente da SPARTA."
 **And** no action buttons are visible (FR8 — only Encarregado mediates)
 
 **Given** the navigation pattern (UX-DR26)

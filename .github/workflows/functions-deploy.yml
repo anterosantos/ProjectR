@@ -1,10 +1,10 @@
-name: Deploy Edge Functions
+﻿name: Deploy Edge Functions
 
 on:
   push:
     branches: [main]
     paths:
-      - 'project-r/supabase/functions/**'
+      - 'sparta/supabase/functions/**'
   workflow_dispatch:
 
 jobs:
@@ -20,11 +20,11 @@ jobs:
         run: npm install -g supabase
 
       - name: Link project
-        working-directory: project-r
-        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+        working-directory: sparta
+        run: supabase link --spartaef ${{ secrets.SUPABASE_PROJECT_ID }}
 
       - name: Deploy Edge Functions
-        working-directory: project-r
+        working-directory: sparta
         run: |
           supabase functions deploy auth-hook --no-verify-jwt
           supabase functions deploy anonymize-player-photos

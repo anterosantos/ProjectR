@@ -1,4 +1,4 @@
-# Story 1.8: Design System Foundation — Tokens, 7 Pattern Components & Button Hierarchy
+﻿# Story 1.8: Design System Foundation — Tokens, 7 Pattern Components & Button Hierarchy
 
 **Status:** done
 
@@ -21,7 +21,7 @@ So that all subsequent stories compose UI from a consistent, accessible vocabula
 ### AC #1: Design tokens defined in globals.css with semantic naming
 
 **Given** Tailwind v4 CSS-first config
-**When** `globals.css` declares `@theme` with all Project R tokens
+**When** `globals.css` declares `@theme` with all SPARTA tokens
 **Then** the following token groups are defined as CSS variables:
 - **Color tokens:** `bg/` (base, surface, surface-2, muted), `text/` (primary, secondary, muted, disabled), `border/` (default, strong, subtle), `accent/` (primary, focus-ring), `signal/` (ready, caution, alert, info, neutral)
 - **Typography tokens:** Font families (Inter via `next/font/google`, system-ui in critical routes, ui-monospace for numbers)
@@ -472,9 +472,9 @@ From architecture + Story 1.1 bootstrap:
 
 ### Project Context References
 
-- **Memory:** App root is `project-r/` subfolder (Option B); BMad tooling at repo root
+- **Memory:** App root is `sparta/` subfolder (Option B); BMad tooling at repo root
 - **CLAUDE.md:** TypeScript path aliases (`@/*` = `src/`), React 19 auto-JSX, `noUncheckedIndexedAccess` rule
-- **AGENTS.md:** Running tests from `project-r/` directory required for alias resolution
+- **AGENTS.md:** Running tests from `sparta/` directory required for alias resolution
 
 ---
 

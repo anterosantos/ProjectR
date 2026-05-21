@@ -1,4 +1,4 @@
-# Story 1.3: Migrations Foundation — Core Identity Tables, UUIDv7, RLS & Helpers
+﻿# Story 1.3: Migrations Foundation — Core Identity Tables, UUIDv7, RLS & Helpers
 
 **Status:** done
 
@@ -75,7 +75,7 @@ So that every future table inherits a consistent multi-tenant security pattern.
 
 ### Task 0 — Pre-flight Checks
 
-- [x] Confirm `project-r/` directory exists and contains `package.json` from Story 1.1 ✅
+- [x] Confirm `sparta/` directory exists and contains `package.json` from Story 1.1 ✅
 - [x] Confirm `supabase/` folder exists with `config.toml` from Story 1.2 ✅
 - [x] Confirm `supabase start` brings up local Postgres (from Story 1.2 AC #3 validation) ✅
 - [x] Verify `.env.local` contains Supabase credentials (NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY) ✅
@@ -84,7 +84,7 @@ So that every future table inherits a consistent multi-tenant security pattern.
 
 **Purpose:** Implement UUIDv7 server-side, following [Fabio Lima's specification](https://github.com/f4bio/uuidv7)
 
-**File location:** `project-r/supabase/migrations/000010_uuidv7_function.sql`
+**File location:** `sparta/supabase/migrations/000010_uuidv7_function.sql`
 
 **Content requirements:**
 - [x] Create PL/pgSQL function `uuidv7()` returning `uuid`
@@ -135,7 +135,7 @@ GRANT EXECUTE ON FUNCTION uuidv7 TO anon, authenticated, service_role;
 
 **Purpose:** Create foundational multi-tenant tables with proper defaults & constraints
 
-**File location:** `project-r/supabase/migrations/000020_clubs_profiles.sql`
+**File location:** `sparta/supabase/migrations/000020_clubs_profiles.sql`
 
 **Content requirements:**
 
@@ -176,7 +176,7 @@ GRANT EXECUTE ON FUNCTION uuidv7 TO anon, authenticated, service_role;
 
 **Purpose:** Implement helper functions to extract JWT claims for use in RLS policies (AR11, AR12)
 
-**File location:** `project-r/supabase/migrations/000030_auth_helpers.sql`
+**File location:** `sparta/supabase/migrations/000030_auth_helpers.sql`
 
 **Content requirements:**
 
@@ -225,7 +225,7 @@ GRANT EXECUTE ON FUNCTION uuidv7 TO anon, authenticated, service_role;
 
 **Purpose:** Implement Row-Level Security policies enforcing multi-tenant isolation (NFR16, AR8)
 
-**File location:** `project-r/supabase/migrations/000040_profiles_rls.sql`
+**File location:** `sparta/supabase/migrations/000040_profiles_rls.sql`
 
 **Content requirements:**
 
@@ -306,7 +306,7 @@ GRANT EXECUTE ON FUNCTION uuidv7 TO anon, authenticated, service_role;
 **Purpose:** Ensure all 4 migrations apply cleanly and schema is correct
 
 **Steps:**
-- [x] Start local Supabase: `cd project-r && npx supabase start`
+- [x] Start local Supabase: `cd sparta && npx supabase start`
 - [x] Reset database to apply all migrations: `npx supabase db reset --no-seed`
 - [x] Verify schema in local Postgres:
   ```bash
@@ -359,7 +359,7 @@ GRANT EXECUTE ON FUNCTION uuidv7 TO anon, authenticated, service_role;
 
 - [x] [Review][Decision] **D1 → Patch: Auth helper naming** → Adopted `public.club_id()` / `public.user_role()` (drop `get_` prefix). Originally chose `auth.*` schema but Supabase blocks postgres role from CREATE on `auth` (owned by `supabase_admin`). Fallback: `public.*` without `get_` prefix → minimum-possible schema-only divergence from spec. Future epics.md AC #3 + Story 1.4 AC text needs update.
 - [x] [Review][Decision] **D2 → Patch: Profile INSERT/UPDATE security** → Service-role only INSERT (drop `insert_own_profile` policy; profile creation owned by Story 1.4 auth hook). Column-level UPDATE GRANT (only `full_name`). Privilege escalation via role/club_id mutation now mathematically impossible.
-- [x] [Review][Decision] **D3 → Patch: `supabase db reset` validation** → Root-caused: orphan containers from Story 1.2 named `supabase_db_ProjectR` instead of `supabase_db_project-r` (case mismatch with `config.toml`). Fixed by stopping orphan containers + restart. AC #5 contract command now succeeds. CI pipeline (Story 1.13) will not inherit this bug.
+- [x] [Review][Decision] **D3 → Patch: `supabase db reset` validation** → Root-caused: orphan containers from Story 1.2 named `supabase_db_SPARTA` instead of `supabase_db_sparta` (case mismatch with `config.toml`). Fixed by stopping orphan containers + restart. AC #5 contract command now succeeds. CI pipeline (Story 1.13) will not inherit this bug.
 - [x] [Review][Decision] **D4 → Patch: UUIDv7 monotonicity within ms** → Accept pure-random sub-ms ordering for MVP (server-side fallback only; client uses `uuid` v9 NPM lib as primary). Documented as comment in 000010.
 
 #### Patch (all 13 applied + verified 2026-05-09)
@@ -376,7 +376,7 @@ GRANT EXECUTE ON FUNCTION uuidv7 TO anon, authenticated, service_role;
 - [x] [Review][Patch] **P10: CHECK (length > 0) on clubs.name** — Prevents empty-string club names. [000020_clubs_profiles.sql]
 - [x] [Review][Patch] **P11: Function rename** — `get_club_id` → `club_id`, `get_user_role` → `user_role` (D1 resolution). [000030, 000040]
 - [x] [Review][Patch] **P12: Document UUIDv7 monotonicity trade-off** — Comment block in 000010 explaining sub-ms ordering is random (acceptable for MVP fallback). [000010_uuidv7_function.sql]
-- [x] [Review][Patch] **P13: Root-cause `supabase db reset` failure** — Orphan containers named `supabase_db_ProjectR` (capital P) blocked CLI from detecting the stack (which expects `supabase_db_project-r`). Fixed by stopping orphans + restart. AC #5 contract now honored. [process-level]
+- [x] [Review][Patch] **P13: Root-cause `supabase db reset` failure** — Orphan containers named `supabase_db_SPARTA` (capital P) blocked CLI from detecting the stack (which expects `supabase_db_sparta`). Fixed by stopping orphans + restart. AC #5 contract now honored. [process-level]
 
 #### Deferred (pre-existing or out-of-scope)
 
@@ -389,14 +389,14 @@ GRANT EXECUTE ON FUNCTION uuidv7 TO anon, authenticated, service_role;
 **Purpose:** Version control for database schema
 
 **Steps:**
-- [x] Verify all 4 migration files are in `project-r/supabase/migrations/`:
+- [x] Verify all 4 migration files are in `sparta/supabase/migrations/`:
   - [x] `000010_uuidv7_function.sql`
   - [x] `000020_clubs_profiles.sql`
   - [x] `000030_auth_helpers.sql`
   - [x] `000040_profiles_rls.sql`
 - [x] Verify git status:
   ```bash
-  cd project-r
+  cd sparta
   git status  # should show 4 new migration files (untracked)
   ```
 - [x] Stage and commit:
@@ -438,10 +438,10 @@ GRANT EXECUTE ON FUNCTION uuidv7 TO anon, authenticated, service_role;
 
 ### Files to Create
 
-- `project-r/supabase/migrations/000010_uuidv7_function.sql` — UUIDv7 function
-- `project-r/supabase/migrations/000020_clubs_profiles.sql` — Core identity tables
-- `project-r/supabase/migrations/000030_auth_helpers.sql` — Auth helper functions
-- `project-r/supabase/migrations/000040_profiles_rls.sql` — RLS policies + indexes
+- `sparta/supabase/migrations/000010_uuidv7_function.sql` — UUIDv7 function
+- `sparta/supabase/migrations/000020_clubs_profiles.sql` — Core identity tables
+- `sparta/supabase/migrations/000030_auth_helpers.sql` — Auth helper functions
+- `sparta/supabase/migrations/000040_profiles_rls.sql` — RLS policies + indexes
 
 ### Files to Modify
 
@@ -556,10 +556,10 @@ Claude Haiku 4.5 (`claude-haiku-4-5-20251001`)
 
 **Committable (new migrations):**
 
-- `project-r/supabase/migrations/000010_uuidv7_function.sql`
-- `project-r/supabase/migrations/000020_clubs_profiles.sql`
-- `project-r/supabase/migrations/000030_auth_helpers.sql`
-- `project-r/supabase/migrations/000040_profiles_rls.sql`
+- `sparta/supabase/migrations/000010_uuidv7_function.sql`
+- `sparta/supabase/migrations/000020_clubs_profiles.sql`
+- `sparta/supabase/migrations/000030_auth_helpers.sql`
+- `sparta/supabase/migrations/000040_profiles_rls.sql`
 
 **No files modified or removed in this story.**
 
@@ -578,7 +578,7 @@ All ACs satisfied:
 **Summary verification commands:**
 
 ```bash
-cd project-r
+cd sparta
 
 # Start local Postgres (if not running)
 npx supabase start --background

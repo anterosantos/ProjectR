@@ -1,4 +1,4 @@
-# Story 3.1: Privacy Policy Versioning + Sub-14 Adapted Copy
+﻿# Story 3.1: Privacy Policy Versioning + Sub-14 Adapted Copy
 
 **Status:** done
 
@@ -104,7 +104,7 @@ Para que cada registo de consentimento fique vinculado a um texto imutável e os
 
 ### AC #8: Cobertura de testes (NFR54)
 
-**Given** `npm run test --run` em `project-r/`
+**Given** `npm run test --run` em `sparta/`
 **When** os testes correm
 **Then** cobertura ≥80% na lógica de selecção de versão incluindo:
 - Utilizador não autenticado → `body_full_md`
@@ -118,7 +118,7 @@ Para que cada registo de consentimento fique vinculado a um texto imutável e os
 ## Tasks / Subtasks
 
 - [x] **Task 1: Migração `000165_privacy_policies.sql`** (AC #1)
-  - [x] 1.1 Criar `project-r/supabase/migrations/000165_privacy_policies.sql`
+  - [x] 1.1 Criar `sparta/supabase/migrations/000165_privacy_policies.sql`
   - [x] 1.2 Tabela com colunas: id, version, effective_from, body_full_md, body_u14_md, is_current, created_at
   - [x] 1.3 `CREATE UNIQUE INDEX idx_privacy_policies_one_current ON privacy_policies(is_current) WHERE is_current = true`
   - [x] 1.4 RLS enable + policy SELECT para `authenticated, anon` usando `USING (true)`
@@ -136,7 +136,7 @@ Para que cada registo de consentimento fique vinculado a um texto imutável e os
   - [x] 3.2 Seguir padrão existente (campos obrigatórios em `Insert` apenas se `DEFAULT` não existir)
 
 - [x] **Task 4: Instalar `react-markdown`** (AC #4)
-  - [x] 4.1 `cd project-r && npm install react-markdown` (versão 9.x)
+  - [x] 4.1 `cd sparta && npm install react-markdown` (versão 9.x)
   - [x] 4.2 Verificar: `npm run build` continua a passar sem erros
 
 - [x] **Task 5: Client Component `policy-content.tsx`** (AC #4, #5)
@@ -473,7 +473,7 @@ function renderWithGlossary(text: string) {
 ### `react-markdown@9.x` — nova dependência
 
 ```bash
-cd project-r && npm install react-markdown
+cd sparta && npm install react-markdown
 ```
 
 - Compatível com React 19 e Next.js 16 App Router
@@ -550,7 +550,7 @@ vi.mock("react-markdown", () => ({
 ### Estrutura de ficheiros
 
 ```text
-project-r/
+sparta/
 ├── supabase/
 │   ├── migrations/
 │   │   └── 000165_privacy_policies.sql   ← NEW
@@ -629,8 +629,8 @@ Páginas públicas como `/politica-privacidade` usam o cliente Supabase sem sess
 ## Project Context Reference
 
 ```
-ProjectR/
-└── project-r/                              ← working directory para npm commands
+SPARTA/
+└── sparta/                              ← working directory para npm commands
     ├── supabase/
     │   ├── migrations/
     │   │   ├── 000010–000160_*.sql         ← existentes
@@ -704,13 +704,13 @@ claude-haiku-4-5-20251001
 
 ### File List
 
-- `project-r/supabase/migrations/000165_privacy_policies.sql` (NEW)
-- `project-r/supabase/seed.sql` (UPDATE — added INSERT privacy_policies v1.0.0)
-- `project-r/src/lib/supabase/database.types.ts` (UPDATE — added privacy_policies Row/Insert/Update types)
-- `project-r/src/app/politica-privacidade/page.tsx` (NEW)
-- `project-r/src/app/politica-privacidade/policy-content.tsx` (NEW)
-- `project-r/src/__tests__/app/politica-privacidade/page.test.tsx` (NEW)
-- `project-r/package.json` (UPDATE — added react-markdown@9.x)
+- `sparta/supabase/migrations/000165_privacy_policies.sql` (NEW)
+- `sparta/supabase/seed.sql` (UPDATE — added INSERT privacy_policies v1.0.0)
+- `sparta/src/lib/supabase/database.types.ts` (UPDATE — added privacy_policies Row/Insert/Update types)
+- `sparta/src/app/politica-privacidade/page.tsx` (NEW)
+- `sparta/src/app/politica-privacidade/policy-content.tsx` (NEW)
+- `sparta/src/__tests__/app/politica-privacidade/page.test.tsx` (NEW)
+- `sparta/package.json` (UPDATE — added react-markdown@9.x)
 
 ---
 

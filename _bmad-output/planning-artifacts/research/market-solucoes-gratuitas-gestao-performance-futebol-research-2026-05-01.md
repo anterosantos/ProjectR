@@ -1,11 +1,11 @@
----
+﻿---
 stepsCompleted: [1, 2, 3, 4, 5, 6]
 inputDocuments: []
 workflowType: 'research'
 lastStep: 6
 research_type: 'market'
 research_topic: 'Soluções gratuitas para gestão de performance, monitorização de fadiga e estatísticas de jogadores de futebol'
-research_goals: 'Identificar apps/plataformas de custo zero que cubram parte ou toda a solução do Project R; mapear o que o mercado já oferece para evitar desenvolvimento desnecessário; identificar oportunidades de integração'
+research_goals: 'Identificar apps/plataformas de custo zero que cubram parte ou toda a solução do SPARTA; mapear o que o mercado já oferece para evitar desenvolvimento desnecessário; identificar oportunidades de integração'
 user_name: 'Antero'
 date: '2026-05-01'
 web_research_enabled: true
@@ -25,7 +25,7 @@ source_verification: true
 ### Âmbito Confirmado
 
 **Tópico:** Soluções gratuitas para gestão de performance, monitorização de fadiga e estatísticas de jogadores de futebol
-**Objetivos:** Identificar apps/plataformas de custo zero que cubram parte ou toda a solução do Project R; mapear o que o mercado já oferece para evitar desenvolvimento desnecessário; identificar oportunidades de integração
+**Objetivos:** Identificar apps/plataformas de custo zero que cubram parte ou toda a solução do SPARTA; mapear o que o mercado já oferece para evitar desenvolvimento desnecessário; identificar oportunidades de integração
 **Tipo:** Market Research
 **Data:** 2026-05-01
 
@@ -34,7 +34,7 @@ source_verification: true
 - Dimensão do mercado, dinâmicas e tendências
 - Soluções existentes gratuitas (freemium, open-source, planos free)
 - Análise competitiva e de funcionalidades
-- Recomendações estratégicas para o Project R
+- Recomendações estratégicas para o SPARTA
 
 ### Metodologia
 
@@ -47,9 +47,9 @@ source_verification: true
 
 A pesquisa confirma a existência de uma **lacuna de mercado clara e não coberta**: nenhuma solução gratuita integra monitorização de fadiga com estatísticas de performance para equipas de futebol amador. As soluções existentes (Spond, Mingle Sport, TeamStats, Wooter) cobrem parcialmente a gestão de plantel, calendário e estatísticas, mas nenhuma inclui questionários de fadiga integrados com analytics de performance. A única solução especializada em wellness (Metrifit) tem custo anual e não integra estatísticas de jogo.
 
-O Project R ocupa um posicionamento único: uma plataforma integrada, de custo zero, que cobre todo o ciclo de dados — fadiga pré/pós-sessão, estatísticas individuais, correlação fadiga × performance, e dashboards de prontidão — inexistente no mercado gratuito atual. A recomendação estratégica é o desenvolvimento próprio como PWA (Progressive Web App), que permite entregar uma experiência mobile-first com push notifications nativas, a uma fração do custo de apps nativas e com zero dependência de plataformas de terceiros.
+O SPARTA ocupa um posicionamento único: uma plataforma integrada, de custo zero, que cobre todo o ciclo de dados — fadiga pré/pós-sessão, estatísticas individuais, correlação fadiga × performance, e dashboards de prontidão — inexistente no mercado gratuito atual. A recomendação estratégica é o desenvolvimento próprio como PWA (Progressive Web App), que permite entregar uma experiência mobile-first com push notifications nativas, a uma fração do custo de apps nativas e com zero dependência de plataformas de terceiros.
 
-O mercado global de software de gestão desportiva projeta crescimento de USD 12,22 mil milhões (2025) para USD 19,32 mil milhões até 2034, com adoção crescente de AI, analytics e cloud — confirmando que a direção do Project R está alinhada com as tendências do setor.
+O mercado global de software de gestão desportiva projeta crescimento de USD 12,22 mil milhões (2025) para USD 19,32 mil milhões até 2034, com adoção crescente de AI, analytics e cloud — confirmando que a direção do SPARTA está alinhada com as tendências do setor.
 
 ### Workflow de Pesquisa
 
@@ -156,10 +156,10 @@ Confiança: Alta — confirmado por ausência de resultados relevantes nas pesqu
 
 ### Priorização de Pain Points
 
-| Pain Point | Impacto no Project R | Prioridade |
+| Pain Point | Impacto no SPARTA | Prioridade |
 | ---------- | -------------------- | ---------- |
 | Ausência de solução integrada gratuita | Alto — justifica construir solução própria | Alta |
-| Monitorização de fadiga sem app gratuita dedicada | Alto — núcleo diferenciador do Project R | Alta |
+| Monitorização de fadiga sem app gratuita dedicada | Alto — núcleo diferenciador do SPARTA | Alta |
 | Adesão ao preenchimento de questionários | Alto — mitigável com notificações push | Alta |
 | Interfaces complexas | Médio — resolver com UX simples | Média |
 | Interpretação de dados sem expertise | Médio — resolver com dashboards automáticos | Média |
@@ -202,9 +202,9 @@ O principal motor de switching em 2026 é a procura de **engagement e motivaçã
 
 _Fonte: [The Football Hub - Football Management Apps](https://www.the-football-hub.org/post/football-management-apps-which-one)_
 
-### Implicação para o Project R
+### Implicação para o SPARTA
 
-O Project R tem uma vantagem estrutural: **resolve um problema que nenhuma app gratuita atual resolve** — a monitorização integrada de fadiga e performance. A decisão de adoção será facilitada pela ausência de alternativas diretas no segmento gratuito.
+O SPARTA tem uma vantagem estrutural: **resolve um problema que nenhuma app gratuita atual resolve** — a monitorização integrada de fadiga e performance. A decisão de adoção será facilitada pela ausência de alternativas diretas no segmento gratuito.
 
 O risco principal é a **adesão dos jogadores** — o sistema deve ser aprovado pelo treinador mas é usado diariamente pelos jogadores. Cada passo de fricção reduz a consistência dos dados.
 
@@ -224,7 +224,7 @@ O risco principal é a **adesão dos jogadores** — o sistema deve ser aprovado
 - Gestão de múltiplas equipas
 - Lineups básicos
 
-**Limitações para o Project R:**
+**Limitações para o SPARTA:**
 
 - Sem recolha de estatísticas de performance
 - Sem questionários de fadiga/bem-estar
@@ -252,13 +252,13 @@ _Fonte: [Spond - Best Free Sports Team Management App](https://www.spond.com/new
 - Desktop / Homebase
 - Estatísticas avançadas de performance
 
-**Limitações para o Project R:**
+**Limitações para o SPARTA:**
 
 - Sem questionários de fadiga
 - Sem correlação fadiga × performance
 - Dados analíticos avançados apenas em plano pago
 
-**Veredicto:** Cobre bem a gestão de plantel e presenças. Não resolve o núcleo do Project R.
+**Veredicto:** Cobre bem a gestão de plantel e presenças. Não resolve o núcleo do SPARTA.
 _Fonte: [Mingle Sport - Free Team Management](https://mingle.sport/the-best-free-team-management-app-for-football-teams/)_
 
 ---
@@ -274,13 +274,13 @@ _Fonte: [Mingle Sport - Free Team Management](https://mingle.sport/the-best-free
 - Gestão de equipa e jogadores
 - Exportação de relatórios
 
-**Limitações para o Project R:**
+**Limitações para o SPARTA:**
 
 - Sem monitorização de fadiga ou bem-estar
 - Sem dashboards de recuperação ou carga acumulada
 - AI reports apenas em plano premium
 
-**Veredicto:** O mais próximo de cobrir as estatísticas do Project R, mas sem componente de fadiga.
+**Veredicto:** O mais próximo de cobrir as estatísticas do SPARTA, mas sem componente de fadiga.
 _Fonte: [TeamStats - Football Team Management](https://www.teamstats.net/)_
 
 ---
@@ -296,7 +296,7 @@ _Fonte: [TeamStats - Football Team Management](https://www.teamstats.net/)_
 - Leaderboards e rankings
 - Website e app personalizados
 
-**Limitações para o Project R:**
+**Limitações para o SPARTA:**
 
 - Mais orientado para ligas/torneios do que equipas individuais
 - Sem monitorização de bem-estar
@@ -311,7 +311,7 @@ _Fonte: [Wooter - Football Statistics](https://wooter.co/en/sports/football)_
 
 **Custo:** 100% gratuito
 **Foco:** DIY — qualquer finalidade
-**Aplicação para Project R:**
+**Aplicação para SPARTA:**
 
 - Questionários de fadiga em 5 dimensões — totalmente configurável
 - Dados automaticamente agregados em Google Sheets
@@ -349,14 +349,14 @@ _Fonte: [Dr. Adam Sullivan - Free Athlete Wellness Tool](https://adam-sullivan.c
 - Não integra estatísticas de jogo ou treino
 - Focado em monitorização de bem-estar, não em performance estatística
 
-**Veredicto:** A solução comercial mais próxima do componente de fadiga do Project R. Confirma que **não existe alternativa gratuita equivalente**.
+**Veredicto:** A solução comercial mais próxima do componente de fadiga do SPARTA. Confirma que **não existe alternativa gratuita equivalente**.
 _Fonte: [Metrifit - Ready to Perform](https://metrifit.com/)_
 
 ---
 
 ### Mapa de Cobertura de Funcionalidades
 
-| Funcionalidade Project R | Spond | Mingle Sport | TeamStats | Wooter | Google F+S | Metrifit |
+| Funcionalidade SPARTA | Spond | Mingle Sport | TeamStats | Wooter | Google F+S | Metrifit |
 | ------------------------ | :---: | :----------: | :-------: | :----: | :--------: | :------: |
 | Gestão de plantel | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Calendário de sessões | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
@@ -376,12 +376,12 @@ _Fonte: [Metrifit - Ready to Perform](https://metrifit.com/)_
 
 ---
 
-### Oportunidades de Integração para o Project R
+### Oportunidades de Integração para o SPARTA
 
 Com base no mapeamento competitivo, existem duas estratégias viáveis:
 
 **Opção A — Desenvolvimento próprio completo**
-Construir o Project R de raiz, cobrindo todos os módulos. Garante integração total mas requer mais investimento de desenvolvimento.
+Construir o SPARTA de raiz, cobrindo todos os módulos. Garante integração total mas requer mais investimento de desenvolvimento.
 
 **Opção B — Integração híbrida gratuita**
 Combinar soluções existentes gratuitas para cobrir módulos não-críticos:
@@ -409,7 +409,7 @@ Durante a pesquisa de síntese foi identificada uma ferramenta não contemplada 
 - Sincronização de dados em tempo real
 - Sem exportação de CSV necessária
 
-**Limitações para o Project R:**
+**Limitações para o SPARTA:**
 
 - Ferramenta genérica — não específica para futebol
 - Sem gestão de plantel, calendário ou convocatórias
@@ -418,7 +418,7 @@ Durante a pesquisa de síntese foi identificada uma ferramenta não contemplada 
 - Sem exportação em PDF
 - Interface não mobile-first
 
-**Veredicto:** Cobre parcialmente o componente de fadiga (melhor que Google Forms isolado), mas continua a não resolver a integração com estatísticas de performance. Não elimina a necessidade do Project R.
+**Veredicto:** Cobre parcialmente o componente de fadiga (melhor que Google Forms isolado), mas continua a não resolver a integração com estatísticas de performance. Não elimina a necessidade do SPARTA.
 
 _Fonte: [Complementary Training — AthleteSR](https://complementarytraining.com/srpe-and-wellness-dashboard/)_
 
@@ -428,7 +428,7 @@ _Fonte: [Complementary Training — AthleteSR](https://complementarytraining.com
 
 ### Síntese da Lacuna de Mercado
 
-A pesquisa confirma de forma inequívoca: **não existe nenhuma solução gratuita que integre, numa única plataforma, os três pilares do Project R** — gestão de plantel, monitorização de fadiga e estatísticas de performance.
+A pesquisa confirma de forma inequívoca: **não existe nenhuma solução gratuita que integre, numa única plataforma, os três pilares do SPARTA** — gestão de plantel, monitorização de fadiga e estatísticas de performance.
 
 | Pilar | Melhor opção gratuita disponível | Cobertura |
 | ----- | -------------------------------- | --------- |
@@ -439,13 +439,13 @@ A pesquisa confirma de forma inequívoca: **não existe nenhuma solução gratui
 | Índice de carga acumulada | AthleteSR (genérico) | ⚠️ Parcial |
 | Painel de prontidão | Nenhuma | ❌ Inexistente |
 
-**Conclusão:** O valor central do Project R — cruzar fadiga com performance para gerar inteligência sobre o estado real do atleta — não existe em nenhuma solução gratuita disponível. Este é o diferenciador que justifica o desenvolvimento.
+**Conclusão:** O valor central do SPARTA — cruzar fadiga com performance para gerar inteligência sobre o estado real do atleta — não existe em nenhuma solução gratuita disponível. Este é o diferenciador que justifica o desenvolvimento.
 
 ### Comparação Estratégica: Opção A vs. Opção B
 
 #### Opção A — Desenvolvimento PWA Próprio (Recomendada)
 
-**Descrição:** Construir o Project R como uma Progressive Web App (PWA), cobrindo todos os módulos numa única plataforma integrada.
+**Descrição:** Construir o SPARTA como uma Progressive Web App (PWA), cobrindo todos os módulos numa única plataforma integrada.
 
 **Vantagens:**
 
@@ -485,7 +485,7 @@ A pesquisa confirma de forma inequívoca: **não existe nenhuma solução gratui
 
 ### Recomendação Final
 
-**Desenvolver o Project R como PWA própria (Opção A).**
+**Desenvolver o SPARTA como PWA própria (Opção A).**
 
 A Opção B parece mais rápida no curto prazo mas acumula dívida técnica e de experiência de utilizador que compromete o objetivo central: dados fiáveis para decisões. O valor do sistema está precisamente na integração — e essa integração não pode existir sem desenvolvimento próprio.
 
@@ -536,7 +536,7 @@ Foco: cobrir o registo de dados de jogo e treino com visualização.
 
 #### Fase 3 — Analytics Avançado (estimativa: 2 meses)
 
-Foco: gerar a inteligência diferenciadora do Project R.
+Foco: gerar a inteligência diferenciadora do SPARTA.
 
 - Correlação Fadiga × Performance
 - Curva de Recuperação Individual
@@ -647,12 +647,12 @@ _Fonte: [Sports Management Software Market — Market Research Future](https://w
 ### Tendências a 3-5 Anos (2027-2031)
 
 - **Integração wearable → app** torna-se expectativa standard, mesmo no segmento amador
-- **API ecosystems** de apps desportivas (tipo Strava Connect) poderão permitir integração com o Project R sem desenvolvimento customizado
+- **API ecosystems** de apps desportivas (tipo Strava Connect) poderão permitir integração com o SPARTA sem desenvolvimento customizado
 - **Cloud-based solutions** dominam ~65% do mercado de software de gestão desportiva (projeção 2026+)
 
-### Implicação Estratégica para o Project R
+### Implicação Estratégica para o SPARTA
 
-O Project R deve ser construído com uma arquitetura preparada para integração futura com wearables e APIs externas, sem tornar esta capacidade um requisito do MVP. A modularidade da arquitetura é mais importante do que a completude funcional inicial.
+O SPARTA deve ser construído com uma arquitetura preparada para integração futura com wearables e APIs externas, sem tornar esta capacidade um requisito do MVP. A modularidade da arquitetura é mais importante do que a completude funcional inicial.
 
 ---
 
@@ -694,15 +694,15 @@ O Project R deve ser construído com uma arquitetura preparada para integração
 
 ### Principais Conclusões
 
-1. **Lacuna de mercado confirmada:** Nenhuma solução gratuita integra monitorização de fadiga com estatísticas de performance para equipas de futebol amador. O Project R ocupa um espaço inexistente no mercado gratuito.
+1. **Lacuna de mercado confirmada:** Nenhuma solução gratuita integra monitorização de fadiga com estatísticas de performance para equipas de futebol amador. O SPARTA ocupa um espaço inexistente no mercado gratuito.
 
 2. **Duas opções estratégicas viáveis** foram identificadas, com clara vantagem da Opção A (desenvolvimento PWA próprio) para garantir integração, controlo e ausência de dependência de terceiros.
 
-3. **Stack tecnológica de custo zero** está disponível e é adequada para as necessidades do Project R com um plantel de 40 jogadores.
+3. **Stack tecnológica de custo zero** está disponível e é adequada para as necessidades do SPARTA com um plantel de 40 jogadores.
 
 4. **O maior risco não é técnico** — é comportamental: a adesão dos jogadores ao preenchimento dos questionários. A UX e as push notifications são fatores críticos de sucesso.
 
-5. **O mercado valida a direção:** O crescimento do mercado de software desportivo e a adoção crescente de AI/analytics confirmam que a abordagem data-driven do Project R é a tendência dominante no setor.
+5. **O mercado valida a direção:** O crescimento do mercado de software desportivo e a adoção crescente de AI/analytics confirmam que a abordagem data-driven do SPARTA é a tendência dominante no setor.
 
 ### Próximos Passos Recomendados
 
@@ -717,4 +717,4 @@ O Project R deve ser construído com uma arquitetura preparada para integração
 **Nível de Confiança:** Alto — baseado em múltiplas fontes verificadas independentemente
 **Cobertura de Fontes:** 17 fontes verificadas em 6 categorias temáticas
 
-_Esta pesquisa de mercado serve como documento de referência estratégica para o Project R e fundamenta as decisões de arquitetura e desenvolvimento da solução._
+_Esta pesquisa de mercado serve como documento de referência estratégica para o SPARTA e fundamenta as decisões de arquitetura e desenvolvimento da solução._

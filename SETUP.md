@@ -1,6 +1,6 @@
-# Project R — Local Development Setup
+﻿# SPARTA — Local Development Setup
 
-This guide walks you through setting up the Project R development environment. Expected time: **~30 minutes** on first setup.
+This guide walks you through setting up the SPARTA development environment. Expected time: **~30 minutes** on first setup.
 
 ---
 
@@ -23,8 +23,8 @@ docker --version # Should show Docker version (daemon must be running)
 ## Step 1: Clone & Install Dependencies
 
 ```bash
-git clone <repo-url> project-r-repo
-cd project-r-repo/project-r
+git clone <repo-url> sparta-repo
+cd sparta-repo/sparta
 npm install
 ```
 
@@ -38,7 +38,7 @@ Copy the template and fill in actual values:
 cp .env.example .env.local
 ```
 
-Now edit `project-r/.env.local` and fill in the following (marked **TODO** below):
+Now edit `sparta/.env.local` and fill in the following (marked **TODO** below):
 
 ---
 
@@ -47,17 +47,17 @@ Now edit `project-r/.env.local` and fill in the following (marked **TODO** below
 1. Go to [app.supabase.com](https://app.supabase.com)
 2. Sign up / Log in
 3. **Create new project:**
-   - **Project name:** `Project R` (or similar)
+   - **Project name:** `SPARTA` (or similar)
    - **Region:** Select **Ireland** or **Amsterdam** (EU only; avoid US)
    - **Pricing plan:** Free tier (for MVP)
 4. **Wait for provisioning** (~2 minutes)
 5. **Copy credentials** from Settings → API:
-   - **Project URL:** `https://<project-ref>.supabase.co`
+   - **Project URL:** `https://<spartaef>.supabase.co`
    - **Publishable Key:** (looks like `sb_publishable_...`)
    - **Service Role Key:** (long JWT-format string)
 6. **Paste into `.env.local`:**
    ```
-   NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+   NEXT_PUBLIC_SUPABASE_URL=https://<spartaef>.supabase.co
    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
    SUPABASE_SERVICE_ROLE_KEY=<service-role-jwt>
    ```
@@ -112,7 +112,7 @@ Now edit `project-r/.env.local` and fill in the following (marked **TODO** below
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser. You should see the Project R homepage.
+Open [http://localhost:3000](http://localhost:3000) in your browser. You should see the SPARTA homepage.
 
 ---
 
@@ -128,11 +128,11 @@ Open [http://localhost:3000](http://localhost:3000) in your browser. You should 
 
 ### Port already in use?
 - **Error:** "Port 54322 is already in use"
-- **Fix:** Either (a) stop the other service, or (b) edit `project-r/supabase/config.toml` and change the port numbers.
+- **Fix:** Either (a) stop the other service, or (b) edit `sparta/supabase/config.toml` and change the port numbers.
 
 ### Tests fail?
 - **Error:** "Cannot find module '@/...'" or similar
-- **Fix:** Make sure you're running tests from the `project-r/` directory: `cd project-r && npm run test --run`
+- **Fix:** Make sure you're running tests from the `sparta/` directory: `cd sparta && npm run test --run`
 
 ---
 

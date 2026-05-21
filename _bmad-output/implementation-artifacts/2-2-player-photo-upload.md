@@ -1,4 +1,4 @@
-# Story 2.2: Player Photo Upload
+﻿# Story 2.2: Player Photo Upload
 
 **Status:** done
 
@@ -85,7 +85,7 @@ Para que o staff consiga identificar jogadores no Painel e touchscreen sem expor
   - [x] 1.3 Testar cross-club isolation (ex: user de club A não consegue aceder a foto de jogador de club B)
 
 - [x] Task 2: Aplicar migração `000085_players_photo.sql` (AC #2)
-  - [x] 2.1 Migração já criada em `project-r/supabase/migrations/000085_players_photo.sql`
+  - [x] 2.1 Migração já criada em `sparta/supabase/migrations/000085_players_photo.sql`
   - [x] 2.2 Executar `supabase db reset` localmente para validação
   - [x] 2.3 Confirmar coluna `photo_path` foi adicionada a `players`
 
@@ -157,7 +157,7 @@ Para que o staff consiga identificar jogadores no Painel e touchscreen sem expor
 
 ### Migração: `000085_players_photo.sql`
 
-**Localização:** `project-r/supabase/migrations/000085_players_photo.sql`
+**Localização:** `sparta/supabase/migrations/000085_players_photo.sql`
 
 **Conteúdo:**
 
@@ -174,7 +174,7 @@ COMMENT ON COLUMN players.photo_path IS
 **Execução:**
 
 ```bash
-cd project-r
+cd sparta
 supabase db reset  # Aplica todas as migrações (000010–000085)
 ```
 
@@ -651,8 +651,8 @@ e6ce1fd feat: enhance accessibility with skip link and main content IDs
 ## Project Context Reference
 
 ```
-ProjectR/ (git root)
-├── project-r/
+SPARTA/ (git root)
+├── sparta/
 │   ├── supabase/
 │   │   └── migrations/
 │   │       ├── 000070–000075_*.sql    (Story 2.1)
@@ -756,15 +756,15 @@ ProjectR/ (git root)
 
 ## File List
 
-- `project-r/supabase/migrations/000085_players_photo.sql` (EXISTS)
-- `project-r/src/lib/supabase/database.types.ts` (UPDATE) — Added photo_path field to players table
-- `project-r/src/lib/storage.ts` (NEW) — Helper functions for photo upload and signed URLs
-- `project-r/src/lib/actions/players.ts` (UPDATE) — Added uploadPlayerPhoto action and photo_path to queries
-- `project-r/src/components/ui/player-photo.tsx` (NEW) — Component for displaying player photos with fallback
-- `project-r/src/app/(staff)/plantel/page.tsx` (UPDATE) — Added photo thumbnails to list
-- `project-r/src/app/(staff)/plantel/[id]/page.tsx` (UPDATE) — Added large photo display on detail page
-- `project-r/src/app/(staff)/plantel/[id]/editar/edit-player-form.tsx` (UPDATE) — Added photo upload form
-- `project-r/__tests__/lib/storage/player-photo.test.ts` (NEW) — Tests for photo upload validation and storage
+- `sparta/supabase/migrations/000085_players_photo.sql` (EXISTS)
+- `sparta/src/lib/supabase/database.types.ts` (UPDATE) — Added photo_path field to players table
+- `sparta/src/lib/storage.ts` (NEW) — Helper functions for photo upload and signed URLs
+- `sparta/src/lib/actions/players.ts` (UPDATE) — Added uploadPlayerPhoto action and photo_path to queries
+- `sparta/src/components/ui/player-photo.tsx` (NEW) — Component for displaying player photos with fallback
+- `sparta/src/app/(staff)/plantel/page.tsx` (UPDATE) — Added photo thumbnails to list
+- `sparta/src/app/(staff)/plantel/[id]/page.tsx` (UPDATE) — Added large photo display on detail page
+- `sparta/src/app/(staff)/plantel/[id]/editar/edit-player-form.tsx` (UPDATE) — Added photo upload form
+- `sparta/__tests__/lib/storage/player-photo.test.ts` (NEW) — Tests for photo upload validation and storage
 
 ---
 

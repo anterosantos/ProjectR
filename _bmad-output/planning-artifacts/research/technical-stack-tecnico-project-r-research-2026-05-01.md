@@ -1,20 +1,20 @@
----
+﻿---
 stepsCompleted: [1, 2, 3, 4, 5]
 inputDocuments:
-  - "_bmad-output/planning-artifacts/product-brief-Project-R.md"
-  - "docs/projectr.requirements.md"
+  - "_bmad-output/planning-artifacts/product-brief-sparta.md"
+  - "docs/SPARTA.requirements.md"
 workflowType: 'research'
 lastStep: 5
 research_type: 'technical'
-research_topic: 'Stack técnico do Project R: PWA, Supabase, push notifications e hosting gratuito'
-research_goals: 'Validar as escolhas técnicas do stack proposto para o Project R, cobrindo PWA vs nativo para iOS, limites do Supabase free tier, estratégias offline-first, Firebase Cloud Messaging vs Web Push API, e opções de hosting gratuito (Vercel/Railway/Render)'
+research_topic: 'Stack técnico do SPARTA: PWA, Supabase, push notifications e hosting gratuito'
+research_goals: 'Validar as escolhas técnicas do stack proposto para o SPARTA, cobrindo PWA vs nativo para iOS, limites do Supabase free tier, estratégias offline-first, Firebase Cloud Messaging vs Web Push API, e opções de hosting gratuito (Vercel/Railway/Render)'
 user_name: 'Antero'
 date: '2026-05-01'
 web_research_enabled: true
 source_verification: true
 ---
 
-# Research Report: Stack Técnico do Project R
+# Research Report: Stack Técnico do SPARTA
 
 **Data:** 2026-05-01 (atualizado 2026-05-02)
 **Autor:** Antero
@@ -55,12 +55,12 @@ Todas as recomendações são para o âmbito MVP. O documento sinaliza explicita
 - **iOS 26** abre por defeito as PWAs adicionadas ao home screen como web apps (toggle no Share sheet) — reduz o gap percetual face a apps nativas.
 - **Suporte PWA na UE foi reposto** após remoção breve em 2024 motivada pelo DMA — Portugal está coberto.
 
-### Limitações que continuam a importar para o Project R
+### Limitações que continuam a importar para o SPARTA
 
 - **"Adicionar ao Ecrã Inicial" continua a ser obrigatório** para receber push em iOS, **e não há prompt automático**. O utilizador tem de tocar Share → Add to Home Screen manualmente. **Este é o maior risco de adoção do projeto, não a tecnologia.**
 - **Sem Background Sync, Periodic Background Sync ou Background Fetch em iOS** — sem roadmap público da Apple. Implicação direta: dados offline (questionário em campo sem cobertura) só sincronizam **quando o jogador reabre a PWA**. Não é dealbreaker para o caso de uso, mas obriga a UX explícita ("1 questionário pendente — toque para sincronizar").
 - **Eviction de IndexedDB ao fim de 7 dias de não-uso** aplica-se apenas a sites *não instalados*. Uma vez adicionado ao Home Screen, a eviction é largamente eliminada. **Instalar é, portanto, requisito de durabilidade de dados, não só de push.**
-- **Storage**: Cache API ~50 MB; IndexedDB até 500 MB ou metade do espaço livre. Folga generosa para os payloads pequenos do Project R.
+- **Storage**: Cache API ~50 MB; IndexedDB até 500 MB ou metade do espaço livre. Folga generosa para os payloads pequenos do SPARTA.
 - IndexedDB em iOS tem histórico de instabilidade (transações que ficam pendentes, perdas em updates de OS). Exige código defensivo (retries transacionais, nunca confiar num write até confirmação).
 
 ### Alternativas nativas avaliadas
@@ -89,7 +89,7 @@ Todas as recomendações são para o âmbito MVP. O documento sinaliza explicita
 
 ---
 
-## 2. Supabase Free Tier — Viabilidade para Project R
+## 2. Supabase Free Tier — Viabilidade para SPARTA
 
 ### Limites exatos (Maio 2026)
 
@@ -109,7 +109,7 @@ Todas as recomendações são para o âmbito MVP. O documento sinaliza explicita
 | Região EU | Sim — Frankfurt, Dublin, Londres, Paris | Disponível no free tier |
 | Backups | Diários, retenção 1 dia | Sem PITR no free |
 
-### Análise de headroom para o Project R
+### Análise de headroom para o SPARTA
 
 **1 clube (40 jogadores + 5 staff):**
 - DB: 50-100 MB/época → **5-10 épocas de margem** dentro dos 500 MB.
@@ -135,7 +135,7 @@ Todas as recomendações são para o âmbito MVP. O documento sinaliza explicita
 - ✅ **Regiões EU disponíveis no free tier** (Frankfurt, Dublin, Londres, Paris). Selecionáveis na criação do projeto.
 - ✅ **DPA self-service e gratuito** em https://supabase.com/legal/dpa — incorpora SCCs UE e UK addendum. Não requer plano pago.
 - ✅ **Encriptação at-rest e in-transit por defeito.**
-- ⚠️ **Responsabilidade partilhada**: o Project R tem de implementar RLS, captura de consentimento, endpoints de eliminação, política de privacidade, DPIA — isso fica do nosso lado.
+- ⚠️ **Responsabilidade partilhada**: o SPARTA tem de implementar RLS, captura de consentimento, endpoints de eliminação, política de privacidade, DPIA — isso fica do nosso lado.
 
 **Veredicto GDPR: Supabase free tier passa o teste para os dados de fadiga/bem-estar (categoria especial Art. 9).**
 
@@ -184,7 +184,7 @@ Stack em 4 camadas:
 
 ### iOS Background Sync — verificação de realidade
 
-**Background Sync API continua sem suporte iOS Safari em 2026.** Apenas Chromium. Não há roadmap Apple. Implicação para o Project R:
+**Background Sync API continua sem suporte iOS Safari em 2026.** Apenas Chromium. Não há roadmap Apple. Implicação para o SPARTA:
 
 **Trigger ladder de drain (do mais fiável ao último recurso):**
 1. Evento `online` no `window`
@@ -272,7 +272,7 @@ Stack em 4 camadas:
 
 - **Ambos os paths transitam um serviço de push de terceiro** (FCM/autopush/Apple) — propriedade do standard, não escolha de produto.
 - **FCM adiciona uma camada Google extra** *em todos os browsers*, mesmo Firefox/Safari → entrada extra no Article 30 register; Firebase DPA + SCCs para gerir.
-- **VAPID raw**: sem processador adicional. Endpoints continuam a ir aos vendors, mas a relação é mediada pelo browser do utilizador, não pelo Project R. **DPIA story mais limpa.**
+- **VAPID raw**: sem processador adicional. Endpoints continuam a ir aos vendors, mas a relação é mediada pelo browser do utilizador, não pelo SPARTA. **DPIA story mais limpa.**
 - **Regra ouro de payload (qualquer path)**: nunca pôr scores de fadiga, RPE, ou outros dados Art. 9 no payload. Conteúdo opaco ("Hora do check-in pós-sessão") com deeplink; dados reais carregados depois pela app via canal autenticado.
 
 ### Recomendação

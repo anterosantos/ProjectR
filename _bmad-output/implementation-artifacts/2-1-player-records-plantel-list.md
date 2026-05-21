@@ -1,4 +1,4 @@
-# Story 2.1: Player Records & Plantel List
+﻿# Story 2.1: Player Records & Plantel List
 
 **Status:** done
 
@@ -75,7 +75,7 @@ Para que o plantel seja a fonte de verdade única para tudo o que se segue.
 ### AC #7: Cobertura de testes (NFR54)
 
 **Given** os testes de integração correm
-**When** `npm run test --run` executa na directoria `project-r/`
+**When** `npm run test --run` executa na directoria `sparta/`
 **Then** os fluxos de criação, edição e arquivo têm ≥80% de cobertura incluindo edge cases de validação Zod
 
 ---
@@ -728,8 +728,8 @@ aa31995 feat(backup): complete story 1.15                                ← YAM
 ## Project Context Reference
 
 ```
-ProjectR/ (git root)
-├── project-r/                         ← working directory para npm commands
+SPARTA/ (git root)
+├── sparta/                         ← working directory para npm commands
 │   ├── supabase/
 │   │   └── migrations/
 │   │       ├── 000010–000160_*.sql    ← migrações existentes
@@ -789,22 +789,22 @@ ProjectR/ (git root)
 
 ## File List
 
-- `project-r/supabase/migrations/000070_players_positions.sql` (NEW)
-- `project-r/supabase/migrations/000075_player_rpc.sql` (NEW)
-- `project-r/src/lib/supabase/database.types.ts` (MODIFIED)
-- `project-r/src/lib/schemas/players.ts` (NEW)
-- `project-r/src/lib/schemas/audit.ts` (NEW — extraído de audit.ts para evitar conflito "use server")
-- `project-r/src/lib/actions/players.ts` (NEW)
-- `project-r/src/lib/actions/audit.ts` (MODIFIED — AuditLogInputSchema movido para schemas/audit.ts)
-- `project-r/src/app/(staff)/plantel/page.tsx` (MODIFIED)
-- `project-r/src/app/(staff)/plantel/plantel-empty-state.tsx` (NEW)
-- `project-r/src/app/(staff)/plantel/novo/page.tsx` (NEW)
-- `project-r/src/app/(staff)/plantel/[id]/page.tsx` (NEW)
-- `project-r/src/app/(staff)/plantel/[id]/archive-player-dialog.tsx` (NEW)
-- `project-r/src/app/(staff)/plantel/[id]/editar/page.tsx` (NEW)
-- `project-r/src/app/(staff)/plantel/[id]/editar/edit-player-form.tsx` (NEW)
-- `project-r/src/__tests__/lib/actions/players.test.ts` (NEW)
-- `project-r/src/__tests__/lib/actions/audit.simple.test.ts` (MODIFIED — import atualizado para schemas/audit)
+- `sparta/supabase/migrations/000070_players_positions.sql` (NEW)
+- `sparta/supabase/migrations/000075_player_rpc.sql` (NEW)
+- `sparta/src/lib/supabase/database.types.ts` (MODIFIED)
+- `sparta/src/lib/schemas/players.ts` (NEW)
+- `sparta/src/lib/schemas/audit.ts` (NEW — extraído de audit.ts para evitar conflito "use server")
+- `sparta/src/lib/actions/players.ts` (NEW)
+- `sparta/src/lib/actions/audit.ts` (MODIFIED — AuditLogInputSchema movido para schemas/audit.ts)
+- `sparta/src/app/(staff)/plantel/page.tsx` (MODIFIED)
+- `sparta/src/app/(staff)/plantel/plantel-empty-state.tsx` (NEW)
+- `sparta/src/app/(staff)/plantel/novo/page.tsx` (NEW)
+- `sparta/src/app/(staff)/plantel/[id]/page.tsx` (NEW)
+- `sparta/src/app/(staff)/plantel/[id]/archive-player-dialog.tsx` (NEW)
+- `sparta/src/app/(staff)/plantel/[id]/editar/page.tsx` (NEW)
+- `sparta/src/app/(staff)/plantel/[id]/editar/edit-player-form.tsx` (NEW)
+- `sparta/src/__tests__/lib/actions/players.test.ts` (NEW)
+- `sparta/src/__tests__/lib/actions/audit.simple.test.ts` (MODIFIED — import atualizado para schemas/audit)
 
 ---
 

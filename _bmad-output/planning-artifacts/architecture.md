@@ -1,25 +1,25 @@
----
+﻿---
 stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8]
 lastStep: 8
 status: 'complete'
 completedAt: '2026-05-07'
 inputDocuments:
   - "_bmad-output/planning-artifacts/prd.md"
-  - "_bmad-output/planning-artifacts/product-brief-Project-R.md"
+  - "_bmad-output/planning-artifacts/product-brief-sparta.md"
   - "_bmad-output/planning-artifacts/ux-design-specification.md"
-  - "_bmad-output/planning-artifacts/research/technical-stack-tecnico-project-r-research-2026-05-01.md"
+  - "_bmad-output/planning-artifacts/research/technical-stack-tecnico-sparta-research-2026-05-01.md"
   - "_bmad-output/planning-artifacts/research/market-solucoes-gratuitas-gestao-performance-futebol-research-2026-05-01.md"
   - "_bmad-output/planning-artifacts/research/domain-metricas-desempenho-atletas-futebol-11-research-2026-05-01.md"
   - "_bmad-output/brainstorming/brainstorming-session-2026-05-01-1000.md"
   - "_bmad-output/brainstorming/brainstorming-session-2026-05-01-1100.md"
-  - "docs/projectr.requirements.md"
+  - "docs/SPARTA.requirements.md"
 workflowType: 'architecture'
-project_name: 'Project R'
+project_name: 'SPARTA'
 user_name: 'Antero'
 date: '2026-05-07'
 ---
 
-# Architecture Decision Document — Project R
+# Architecture Decision Document — SPARTA
 
 **Author:** Antero
 **Date:** 2026-05-07
@@ -123,7 +123,7 @@ Três caminhos avaliados:
 
 ```bash
 # 1. Scaffold Next.js
-npx create-next-app@latest project-r \
+npx create-next-app@latest sparta \
   --typescript \
   --tailwind \
   --eslint \
@@ -132,7 +132,7 @@ npx create-next-app@latest project-r \
   --import-alias "@/*" \
   --use-npm
 
-cd project-r
+cd sparta
 
 # 2. shadcn/ui (Tailwind v4 + Radix primitives + lucide-react)
 npx shadcn@latest init
@@ -739,7 +739,7 @@ src/lib/outbox/
 
 ```ts
 // db.ts
-const db = new Dexie('project-r')
+const db = new Dexie('sparta')
 db.version(1).stores({
   outbox: 'id, kind, status, createdAt, retryCount',
   cache: 'key, payload, updatedAt',
@@ -806,8 +806,8 @@ steps:
 
 #### Domain
 
-- MVP serve em `project-r.vercel.app` (subdomínio gratuito)
-- Domain próprio (`projectr.pt` ~12€/ano) fora de scope MVP — adição trivial via Vercel DNS
+- MVP serve em `sparta.vercel.app` (subdomínio gratuito)
+- Domain próprio (`SPARTA.pt` ~12€/ano) fora de scope MVP — adição trivial via Vercel DNS
 
 #### Monitoring & Observability
 
@@ -1232,7 +1232,7 @@ toast.success('🎉 Sucesso!');  // viola tom calmo
 ### Complete Project Directory Structure
 
 ```text
-project-r/
+sparta/
 ├── README.md                              # setup local + arquitetura overview
 ├── package.json
 ├── tsconfig.json                          # strict + noUncheckedIndexedAccess
@@ -1261,7 +1261,7 @@ project-r/
 │   │   └── policies/
 │   │       ├── privacy-policy.md          # versão "adulta"
 │   │       └── privacy-policy-u15.md      # versão linguagem adaptada
-│   └── projectr.requirements.md
+│   └── SPARTA.requirements.md
 │
 ├── .github/workflows/
 │   ├── ci.yml                             # lint + typecheck + test + build + axe + lighthouse
@@ -1593,7 +1593,7 @@ npm run lighthouse   # node scripts/lighthouse-check.mjs
 **Deployment:**
 
 - Vercel auto-deploys em push para `main`
-- Preview deploys em PRs (URL `project-r-{hash}.vercel.app`)
+- Preview deploys em PRs (URL `sparta-{hash}.vercel.app`)
 - Edge Functions deploy via `supabase functions deploy {name}`
 - Migrations via `supabase db push` (CI valida; deploy manual a produção até Phase 2)
 - Env vars sync via Vercel CLI ou dashboard; nunca em código
@@ -1783,10 +1783,10 @@ Todos os AI agents que implementem este projeto MUST:
 
 ```bash
 # 1. Project init
-npx create-next-app@latest project-r \
+npx create-next-app@latest sparta \
   --typescript --tailwind --eslint --app --src-dir \
   --import-alias "@/*" --use-npm
-cd project-r
+cd sparta
 
 # 2. shadcn/ui + Supabase + offline + state + forms + dates + charts + tests
 npx shadcn@latest init
@@ -1802,7 +1802,7 @@ npm install -D vitest @vitest/ui jsdom \
 # 3. Supabase project (EU region) + DPA acceptance
 supabase login
 supabase init
-supabase projects create project-r --region eu-west-1
+supabase projects create sparta --region eu-west-1
 
 # 4. Initial migrations (000000–000160)
 # Ver supabase/migrations/ — sequência documentada em Step 6

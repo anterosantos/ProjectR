@@ -1,4 +1,4 @@
-# Production Error Fix Summary
+﻿# Production Error Fix Summary
 
 **Date**: 2026-05-18  
 **Status**: ✅ Resolved  
@@ -57,8 +57,8 @@ Converted to lazy initialization using a function + Proxy pattern:
 
 **Symptom**  
 ```
-SecurityError: Failed to register a ServiceWorker for scope ('https://project-r-red.vercel.app/')
-with script ('https://project-r-red.vercel.app/sw.js'): 
+SecurityError: Failed to register a ServiceWorker for scope ('https://sparta-red.vercel.app/')
+with script ('https://sparta-red.vercel.app/sw.js'): 
 The script resource is behind a redirect, which is disallowed.
 ```
 

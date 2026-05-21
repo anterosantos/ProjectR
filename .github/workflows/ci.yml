@@ -1,4 +1,4 @@
-name: CI
+﻿name: CI
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
 
 defaults:
   run:
-    working-directory: project-r
+    working-directory: sparta
 
 jobs:
   lint:
@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: project-r/package-lock.json
+          cache-dependency-path: sparta/package-lock.json
       - run: npm ci
       - run: npm run lint
 
@@ -30,7 +30,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: project-r/package-lock.json
+          cache-dependency-path: sparta/package-lock.json
       - run: npm ci
       - run: npm run typecheck
 
@@ -44,22 +44,22 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: project-r/package-lock.json
+          cache-dependency-path: sparta/package-lock.json
       - run: npm ci
       - name: Install Supabase CLI
         run: npm install -g supabase
       - name: Start local Supabase stack
         run: supabase start -x edge-runtime,vector,imgproxy,logflare,studio,mailpit
-        working-directory: project-r
+        working-directory: sparta
       - name: Apply migrations
         run: supabase db reset --no-seed
-        working-directory: project-r
+        working-directory: sparta
       - name: Export Supabase credentials for tests
-        working-directory: project-r
+        working-directory: sparta
         run: |
           echo "NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321" >> $GITHUB_ENV
-          # Read the JWT secret GoTrue is actually using (project_id = "project-r" → container name)
-          JWT_SECRET=$(docker exec supabase_auth_project-r printenv GOTRUE_JWT_SECRET 2>/dev/null || true)
+          # Read the JWT secret GoTrue is actually using (project_id = "sparta" → container name)
+          JWT_SECRET=$(docker exec supabase_auth_sparta printenv GOTRUE_JWT_SECRET 2>/dev/null || true)
           if [ -z "$JWT_SECRET" ]; then
             echo "FATAL: could not read GOTRUE_JWT_SECRET from container"
             docker ps --format "table {{.Names}}" | grep supabase || true
@@ -90,7 +90,7 @@ jobs:
       - name: Stop Supabase
         if: always()
         run: supabase stop --no-backup
-        working-directory: project-r
+        working-directory: sparta
 
   build:
     runs-on: ubuntu-latest
@@ -104,12 +104,12 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: project-r/package-lock.json
+          cache-dependency-path: sparta/package-lock.json
       - name: Debug env vars
         run: |
           echo "NEXT_PUBLIC_SUPABASE_URL length: ${#NEXT_PUBLIC_SUPABASE_URL}"
           echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY length: ${#NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}"
-        working-directory: project-r
+        working-directory: sparta
       - run: npm ci
       - run: npm run build
       - run: npm run check-bundle-size
@@ -126,7 +126,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: project-r/package-lock.json
+          cache-dependency-path: sparta/package-lock.json
       - run: npm ci
       - run: npm run build
       - run: npx lhci autorun
@@ -144,11 +144,11 @@ jobs:
         run: npm install -g supabase
       - name: Start local Supabase stack
         run: supabase start -x edge-runtime,vector,imgproxy,logflare,studio,mailpit
-        working-directory: project-r
+        working-directory: sparta
       - name: Validate migrations
         run: supabase db reset --no-seed
-        working-directory: project-r
+        working-directory: sparta
       - name: Stop Supabase
         if: always()
         run: supabase stop --no-backup
-        working-directory: project-r
+        working-directory: sparta

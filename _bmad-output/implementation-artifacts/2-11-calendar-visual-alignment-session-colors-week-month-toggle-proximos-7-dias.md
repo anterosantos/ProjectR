@@ -1,4 +1,4 @@
-# Story 2.11: Calendar Visual Alignment — Session Block Colors, Week/Month Toggle & "Próximos 7 Dias"
+﻿# Story 2.11: Calendar Visual Alignment — Session Block Colors, Week/Month Toggle & "Próximos 7 Dias"
 
 **Status:** done
 
@@ -125,7 +125,7 @@ As Stories 2-6 e 2-7 implementaram a camada de dados e a estrutura base do Calen
 
 ### AC #10: Testes e não-regressão
 
-**When** `npm run test --run` executa em `project-r/`
+**When** `npm run test --run` executa em `sparta/`
 **Then** todos os testes anteriores continuam a passar
 **And** ≥ 6 novos testes cobrem:
   - Mapeamento de cor por tipo de sessão (training→azul, match→vermelho, friendly→amarelo)
@@ -437,7 +437,7 @@ Esta story usa os seguintes tokens novos introduzidos em Story 1-17:
 
 ## Critérios de Conclusão
 
-- [x] Build passa (`npm run build` em `project-r/`) ✅
+- [x] Build passa (`npm run build` em `sparta/`) ✅
 - [x] Typecheck passa (`npm run typecheck`) ✅
 - [x] Lint passa sem novos erros (`npm run lint`) ✅ (0 erros, 51 warnings pré-existentes)
 - [x] Todos os testes passam incluindo ≥ 6 novos (`npm run test --run`) ✅ 766 testes (738 anteriores + 28 novos)
@@ -454,19 +454,19 @@ Esta story usa os seguintes tokens novos introduzidos em Story 1-17:
 
 | Ficheiro | Tipo |
 |---------|------|
-| `project-r/src/lib/constants/session-colors.ts` | NOVO |
-| `project-r/src/hooks/useDarkMode.ts` | NOVO |
-| `project-r/src/components/ui/calendar-view-toggle.tsx` | NOVO |
-| `project-r/src/components/ui/day-chip-strip.tsx` | NOVO |
-| `project-r/src/components/ui/session-block.tsx` | NOVO |
-| `project-r/src/components/ui/next-seven-days-list.tsx` | NOVO |
-| `project-r/src/components/ui/month-grid.tsx` | NOVO |
-| `project-r/src/components/ui/calendar-week-view.tsx` | NOVO |
-| `project-r/src/components/ui/calendar-month-view.tsx` | NOVO |
-| `project-r/src/app/(staff)/calendario/page.tsx` | MODIFICADO |
-| `project-r/src/components/ui/session-block.test.tsx` | NOVO |
-| `project-r/src/components/ui/day-chip-strip.test.tsx` | NOVO |
-| `project-r/src/components/ui/next-seven-days-list.test.tsx` | NOVO |
+| `sparta/src/lib/constants/session-colors.ts` | NOVO |
+| `sparta/src/hooks/useDarkMode.ts` | NOVO |
+| `sparta/src/components/ui/calendar-view-toggle.tsx` | NOVO |
+| `sparta/src/components/ui/day-chip-strip.tsx` | NOVO |
+| `sparta/src/components/ui/session-block.tsx` | NOVO |
+| `sparta/src/components/ui/next-seven-days-list.tsx` | NOVO |
+| `sparta/src/components/ui/month-grid.tsx` | NOVO |
+| `sparta/src/components/ui/calendar-week-view.tsx` | NOVO |
+| `sparta/src/components/ui/calendar-month-view.tsx` | NOVO |
+| `sparta/src/app/(staff)/calendario/page.tsx` | MODIFICADO |
+| `sparta/src/components/ui/session-block.test.tsx` | NOVO |
+| `sparta/src/components/ui/day-chip-strip.test.tsx` | NOVO |
+| `sparta/src/components/ui/next-seven-days-list.test.tsx` | NOVO |
 
 ---
 

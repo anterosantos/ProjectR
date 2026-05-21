@@ -1,28 +1,28 @@
----
+﻿---
 stepsCompleted: [1, 2, 3, 4]
-inputDocuments: ['docs/projectr.requirements.md']
-session_topic: 'Funcionalidades em falta no Project R'
+inputDocuments: ['docs/SPARTA.requirements.md']
+session_topic: 'Funcionalidades em falta no SPARTA'
 session_goals: 'Identificar lacunas no que já está especificado — features não cobertas, casos de uso esquecidos, necessidades implícitas dos utilizadores'
 selected_approach: 'user-selected'
 techniques_used: ['Analogical Thinking']
 ideas_generated: [13]
-context_file: 'docs/projectr.requirements.md'
+context_file: 'docs/SPARTA.requirements.md'
 session_active: false
 workflow_completed: true
 ---
 
-# Brainstorming Session — Project R
+# Brainstorming Session — SPARTA
 
 **Facilitador:** Antero
 **Data:** 2026-05-01
-**Tópico:** Funcionalidades em falta no Project R
+**Tópico:** Funcionalidades em falta no SPARTA
 **Técnica:** Analogical Thinking (F1, Exército, Gaming, Apps de Fitness)
 
 ---
 
 ## Visão Geral da Sessão
 
-**Objetivos:** Identificar lacunas no que já está especificado no documento `docs/projectr.requirements.md` — features não cobertas, casos de uso esquecidos, necessidades implícitas dos utilizadores.
+**Objetivos:** Identificar lacunas no que já está especificado no documento `docs/SPARTA.requirements.md` — features não cobertas, casos de uso esquecidos, necessidades implícitas dos utilizadores.
 
 **Contexto do Projeto:** Sistema de acompanhamento de jogadores de futebol 11 (plantel de 40 jogadores) cobrindo fadiga individual, performance e estatísticas, com 3 módulos propostos: Registos de Jogadores, Registo de Estatísticas, Consulta de Relatórios.
 
@@ -34,7 +34,7 @@ workflow_completed: true
 
 **Técnicas selecionadas:**
 
-- **Analogical Thinking** — encontrar soluções criativas traçando paralelos com outros domínios para revelar funcionalidades em falta no Project R
+- **Analogical Thinking** — encontrar soluções criativas traçando paralelos com outros domínios para revelar funcionalidades em falta no SPARTA
 
 **Domínios explorados:** Fórmula 1 · Exército · Gaming/eSports · Apps de Fitness
 
@@ -177,7 +177,7 @@ Ideias identificadas mas não prioritárias para a versão atual:
 
 ## Próximos Passos Recomendados
 
-1. **Atualizar o documento de requisitos** `docs/projectr.requirements.md` com as 12 features confirmadas (excluindo a opcional)
+1. **Atualizar o documento de requisitos** `docs/SPARTA.requirements.md` com as 12 features confirmadas (excluindo a opcional)
 2. **Avançar para o Create PRD** (`@bmad-create-prd`) com o documento de requisitos atualizado como base
 3. **Considerar o módulo de Análise de Adversários** como fase 2 do produto
 4. **Guardar o backlog de evolução futura** para roadmap de versões seguintes

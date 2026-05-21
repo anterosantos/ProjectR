@@ -1,4 +1,4 @@
-# Story 2.7: Vista de Calendário por Papel
+﻿# Story 2.7: Vista de Calendário por Papel
 
 **Status:** review
 
@@ -95,7 +95,7 @@ Para que cada utilizador veja o que precisa sem sobrecarga de informação.
 
 ### AC #6: Cobertura de testes (NFR54)
 
-**Given** testes correm via `npm run test --run` a partir de `project-r/`
+**Given** testes correm via `npm run test --run` a partir de `sparta/`
 **When** executados
 **Then** cobertura ≥80% para:
 - `<SeasonToggle>`: render, toggle active state, URL param updates
@@ -109,19 +109,19 @@ Para que cada utilizador veja o que precisa sem sobrecarga de informação.
 ## Tasks / Subtasks
 
 - [x] Task 1: Adicionar filtro `type` ao server action `getSessionsForClub` (AC #2, #6)
-  - [x] 1.1 Em `project-r/src/lib/actions/sessions.ts`, adicionar `type` ao `SessionFiltersSchema`: `z.enum(['training','match','friendly']).optional()`
+  - [x] 1.1 Em `sparta/src/lib/actions/sessions.ts`, adicionar `type` ao `SessionFiltersSchema`: `z.enum(['training','match','friendly']).optional()`
   - [x] 1.2 Adicionar aplicação do filtro na query: `if (validated.data.type) { query = query.eq('type', validated.data.type); }`
   - [x] 1.3 Exportar `SessionFilters` type actualizado (já é exportado, sem alteração de interface)
 
 - [x] Task 2: Criar `<SeasonToggle>` client component (AC #1, #2)
-  - [x] 2.1 Criar `project-r/src/components/patterns/SeasonToggle.tsx` (`"use client"`)
+  - [x] 2.1 Criar `sparta/src/components/patterns/SeasonToggle.tsx` (`"use client"`)
   - [x] 2.2 Props: `{ isCumulative: boolean }` — reflecte estado actual via URL param
   - [x] 2.3 Usa `useRouter()` + `useSearchParams()` para toglar `?cumulativo=true` / remover param
   - [x] 2.4 Render: dois botões/chips "Época actual" | "Cumulativo" com estado activo visual
   - [x] 2.5 Min touch target 44px (NFR40)
 
 - [x] Task 3: Criar `<SessionTypeFilter>` client component (AC #2)
-  - [x] 3.1 Criar `project-r/src/components/patterns/SessionTypeFilter.tsx` (`"use client"`)
+  - [x] 3.1 Criar `sparta/src/components/patterns/SessionTypeFilter.tsx` (`"use client"`)
   - [x] 3.2 Props: `{ activeFilter: 'all' | 'training' | 'matches' }` — 'matches' mapeia para `match` E `friendly`
   - [x] 3.3 Usa `useRouter()` + `useSearchParams()` para toglar `?tipo=training|matches` / remover
   - [x] 3.4 Render: 3 chips "Tudo" | "Treinos" | "Jogos" (touch target ≥44px)
@@ -137,7 +137,7 @@ Para que cada utilizador veja o que precisa sem sobrecarga de informação.
   - [x] 4.7 Para modo cumulativo: inverter ordem para DESC (sessões mais recentes primeiro)
 
 - [x] Task 5: Implementar `/sessoes/page.tsx` — vista do Analista (AC #2, #5)
-  - [x] 5.1 Substituir placeholder em `project-r/src/app/(staff)/sessoes/page.tsx`
+  - [x] 5.1 Substituir placeholder em `sparta/src/app/(staff)/sessoes/page.tsx`
   - [x] 5.2 Server Component com `{ searchParams }` prop: `{ cumulativo?: string; tipo?: string }`
   - [x] 5.3 Auth check: `role === 'analyst'` — redirect para `/` se não for analista
   - [x] 5.4 Mapear `searchParams.tipo` → SessionFilters.type: `'training'` → `'training'`, `'matches'` → não usar (filtrar client-side com dois valores)
@@ -148,7 +148,7 @@ Para que cada utilizador veja o que precisa sem sobrecarga de informação.
   - [x] 5.9 `<EmptyState>` quando sem sessões
 
 - [x] Task 6: Implementar `/hoje/page.tsx` — vista do Jogador (AC #3, #5)
-  - [x] 6.1 Substituir placeholder em `project-r/src/app/(player)/hoje/page.tsx`
+  - [x] 6.1 Substituir placeholder em `sparta/src/app/(player)/hoje/page.tsx`
   - [x] 6.2 Server Component — layout do `(player)` já garante auth; verificar `role === 'player'`
   - [x] 6.3 Calcular janela: `from = new Date().toISOString()`, `to = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()`
   - [x] 6.4 Chamar `getSessionsForClub({ from, to, status: 'scheduled' })`
@@ -248,7 +248,7 @@ function setTipo(value: string | null) {
 ### 📂 Estrutura de Ficheiros desta Story
 
 ```
-project-r/src/
+sparta/src/
 ├── lib/
 │   └── actions/
 │       └── sessions.ts            ← MODIFICAR: adicionar type ao SessionFiltersSchema + query
@@ -428,12 +428,12 @@ Modo cumulativo mostra sessões mais recentes primeiro (DESC) por ser mais útil
 - **Architecture:** `_bmad-output/planning-artifacts/architecture.md`
 - **UX Design:** `_bmad-output/planning-artifacts/ux-design-specification.md` (UX-DR8 /hoje player, UX-DR35 chips analista)
 - **Ficheiros chave existentes:**
-  - [sessions.ts](project-r/src/lib/actions/sessions.ts) — server action a modificar (Task 1)
-  - [calendario/page.tsx](project-r/src/app/(staff)/calendario/page.tsx) — a modificar (Task 4)
-  - [sessoes/page.tsx](project-r/src/app/(staff)/sessoes/page.tsx) — placeholder a substituir (Task 5)
-  - [hoje/page.tsx](project-r/src/app/(player)/hoje/page.tsx) — placeholder a substituir (Task 6)
-  - [SessionCard](project-r/src/components/ui/session-card.tsx) — reutilizar, não modificar
-  - [BottomTabNav.tsx](project-r/src/components/patterns/BottomTabNav.tsx) — coach→/calendario, analyst→/sessoes, player→/hoje (já configurado, sem alteração necessária)
+  - [sessions.ts](sparta/src/lib/actions/sessions.ts) — server action a modificar (Task 1)
+  - [calendario/page.tsx](sparta/src/app/(staff)/calendario/page.tsx) — a modificar (Task 4)
+  - [sessoes/page.tsx](sparta/src/app/(staff)/sessoes/page.tsx) — placeholder a substituir (Task 5)
+  - [hoje/page.tsx](sparta/src/app/(player)/hoje/page.tsx) — placeholder a substituir (Task 6)
+  - [SessionCard](sparta/src/components/ui/session-card.tsx) — reutilizar, não modificar
+  - [BottomTabNav.tsx](sparta/src/components/patterns/BottomTabNav.tsx) — coach→/calendario, analyst→/sessoes, player→/hoje (já configurado, sem alteração necessária)
 
 ---
 
@@ -466,17 +466,17 @@ claude-sonnet-4-6 (bmad-dev-story workflow, 2026-05-19)
 
 ### File List
 
-- project-r/src/lib/actions/sessions.ts (modificado: type filter adicionado ao SessionFiltersSchema)
-- project-r/src/components/patterns/SeasonToggle.tsx (novo)
-- project-r/src/components/patterns/SessionTypeFilter.tsx (novo)
-- project-r/src/app/(staff)/calendario/page.tsx (modificado: SeasonToggle, aria-current, época actual default)
-- project-r/src/app/(staff)/sessoes/page.tsx (substituído: vista completa do analista)
-- project-r/src/app/(player)/hoje/page.tsx (substituído: vista do jogador)
-- project-r/src/__tests__/components/season-toggle.test.tsx (novo)
-- project-r/src/__tests__/components/session-type-filter.test.tsx (novo)
-- project-r/src/__tests__/lib/actions/sessions.test.ts (modificado: +3 testes type filter)
-- project-r/src/__tests__/app/sessoes.test.tsx (novo)
-- project-r/src/__tests__/app/hoje.test.tsx (novo)
+- sparta/src/lib/actions/sessions.ts (modificado: type filter adicionado ao SessionFiltersSchema)
+- sparta/src/components/patterns/SeasonToggle.tsx (novo)
+- sparta/src/components/patterns/SessionTypeFilter.tsx (novo)
+- sparta/src/app/(staff)/calendario/page.tsx (modificado: SeasonToggle, aria-current, época actual default)
+- sparta/src/app/(staff)/sessoes/page.tsx (substituído: vista completa do analista)
+- sparta/src/app/(player)/hoje/page.tsx (substituído: vista do jogador)
+- sparta/src/__tests__/components/season-toggle.test.tsx (novo)
+- sparta/src/__tests__/components/session-type-filter.test.tsx (novo)
+- sparta/src/__tests__/lib/actions/sessions.test.ts (modificado: +3 testes type filter)
+- sparta/src/__tests__/app/sessoes.test.tsx (novo)
+- sparta/src/__tests__/app/hoje.test.tsx (novo)
 
 ---
 
@@ -486,13 +486,13 @@ claude-sonnet-4-6 (bmad-dev-story workflow, 2026-05-19)
 
 ### Decision-Needed (RESOLVED)
 
-- [x] [Review][Decision] CTA "Registar sessão" para Analista — **RESOLVED**: Criar `/sessoes/nova` endpoint para analista. Nova rota `project-r/src/app/(staff)/sessoes/nova/page.tsx` criada, permitindo analista registar sessão com role check. CTA em `/sessoes/page.tsx` atualizado para apontar para `/sessoes/nova`. Implementação completa — sem redirecionamento para home.
+- [x] [Review][Decision] CTA "Registar sessão" para Analista — **RESOLVED**: Criar `/sessoes/nova` endpoint para analista. Nova rota `sparta/src/app/(staff)/sessoes/nova/page.tsx` criada, permitindo analista registar sessão com role check. CTA em `/sessoes/page.tsx` atualizado para apontar para `/sessoes/nova`. Implementação completa — sem redirecionamento para home.
 
 ### Patches (ALL COMPLETED ✅)
 
-- [x] [Review][Patch] Missing `/calendario` page test file — **COMPLETED**. Created `project-r/src/__tests__/app/calendario.test.tsx` with 8 test cases covering: season toggle (current season default + cumulative mode), DESC sort in cumulative, "Nova sessão" CTA visibility (coach only), graceful degradation when no current season, SeasonToggle visibility, EmptyState rendering.
+- [x] [Review][Patch] Missing `/calendario` page test file — **COMPLETED**. Created `sparta/src/__tests__/app/calendario.test.tsx` with 8 test cases covering: season toggle (current season default + cumulative mode), DESC sort in cumulative, "Nova sessão" CTA visibility (coach only), graceful degradation when no current season, SeasonToggle visibility, EmptyState rendering.
 
-- [x] [Review][Patch] Cumulativo DESC sort order unverified — **COMPLETED**. Added test case "ordena sessões DESC por scheduled_at quando cumulativo=true" to `project-r/src/__tests__/app/sessoes.test.tsx`. Test verifies that sessions are reordered DESC when cumulativo=true.
+- [x] [Review][Patch] Cumulativo DESC sort order unverified — **COMPLETED**. Added test case "ordena sessões DESC por scheduled_at quando cumulativo=true" to `sparta/src/__tests__/app/sessoes.test.tsx`. Test verifies that sessions are reordered DESC when cumulativo=true.
 
 - [x] [Review][Patch] Test coverage extended — **COMPLETED**. All patches applied. Test results: 647 tests passed, 0 failed. Coverage verified to pass all new test cases for /calendario, /sessoes (cumulativo DESC), and /hoje pages.
 

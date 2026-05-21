@@ -1,4 +1,4 @@
-# Code Review Completion Summary — Story 1.1
+﻿# Code Review Completion Summary — Story 1.1
 
 **Date:** 2026-05-08  
 **Story:** 1-1-project-initialization-stack-bootstrap  
@@ -130,13 +130,13 @@ All deferred items logged in `docs/architecture/violations.md` with ownership.
 - Tokens resolvable at runtime → VERIFIED
 
 ### AC #5: Zero acoplamento a Vercel ✅
-- `rg "from ['\"]@vercel/" project-r/src/` → 0 matches → VERIFIED
+- `rg "from ['\"]@vercel/" sparta/src/` → 0 matches → VERIFIED
 - No `@vercel/*` dependencies in package.json → VERIFIED
 
 ### Definition of Done ✅
 - ✅ AC #1–#5 all satisfied with evidence
 - ✅ Folder structure: 29 .gitkeep files per architecture
-- ✅ Opção B: project-r/ at repo root, no nested .git
+- ✅ Opção B: sparta/ at repo root, no nested .git
 - ✅ No speculative imports or implementation
 - ✅ Tests, lint, build all pass
 

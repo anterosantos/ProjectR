@@ -1,21 +1,21 @@
----
+﻿---
 stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 lastStep: 14
 status: "complete"
 completed: "2026-05-07"
 inputDocuments:
   - "_bmad-output/planning-artifacts/prd.md"
-  - "_bmad-output/planning-artifacts/product-brief-Project-R.md"
+  - "_bmad-output/planning-artifacts/product-brief-sparta.md"
   - "_bmad-output/planning-artifacts/research/market-solucoes-gratuitas-gestao-performance-futebol-research-2026-05-01.md"
   - "_bmad-output/planning-artifacts/research/domain-metricas-desempenho-atletas-futebol-11-research-2026-05-01.md"
-  - "_bmad-output/planning-artifacts/research/technical-stack-tecnico-project-r-research-2026-05-01.md"
+  - "_bmad-output/planning-artifacts/research/technical-stack-tecnico-sparta-research-2026-05-01.md"
   - "_bmad-output/brainstorming/brainstorming-session-2026-05-01-1000.md"
   - "_bmad-output/brainstorming/brainstorming-session-2026-05-01-1100.md"
-  - "docs/projectr.requirements.md"
+  - "docs/SPARTA.requirements.md"
 created: "2026-05-06"
 ---
 
-# UX Design Specification — Project R
+# UX Design Specification — SPARTA
 
 **Author:** Antero
 **Date:** 2026-05-06
@@ -24,7 +24,7 @@ created: "2026-05-06"
 
 ### Project Vision
 
-PWA mobile-first que substitui a memória, o WhatsApp e o Excel do staff técnico amador de futebol 11 por uma vista única de prontidão semafórica de 40 jogadores. Mais do que uma ferramenta de dados, o Project R é uma decisão de produto: a tecnologia alimenta a conversa humana entre treinador e atleta — não a substitui. A UX existe para tornar essa conversa mais informada, não para automatizar feedback.
+PWA mobile-first que substitui a memória, o WhatsApp e o Excel do staff técnico amador de futebol 11 por uma vista única de prontidão semafórica de 40 jogadores. Mais do que uma ferramenta de dados, o SPARTA é uma decisão de produto: a tecnologia alimenta a conversa humana entre treinador e atleta — não a substitui. A UX existe para tornar essa conversa mais informada, não para automatizar feedback.
 
 ### Target Users
 
@@ -49,7 +49,7 @@ Três papéis ativos na PWA (Treinador, Analista, Jogador) + um ator externo (EE
 
 ### Design Opportunities
 
-1. **Semáforo emocional, não tabular** — concorrentes pagos privilegiam tabelas densas. O Project R pode ser o produto onde o treinador *sente* o estado do plantel num glance.
+1. **Semáforo emocional, não tabular** — concorrentes pagos privilegiam tabelas densas. O SPARTA pode ser o produto onde o treinador *sente* o estado do plantel num glance.
 2. **UI invisível em jogo** — touchscreen 3-ecrãs como caso de "o melhor UI desaparece no fluxo de uso". Tap-tap-tap sem desviar olhos do campo por mais de 1 segundo.
 3. **Consentimento parental empático** — Sandra não é jurista nem técnica. A página de consentimento pode ser o melhor "1-screen privacy explainer" que alguma vez viu — diferenciador real face ao "li e aceito" da concorrência.
 4. **Offline como feature** — comunicar "offline está bem" reduz ansiedade e legitima uso em campos sem cobertura.
@@ -60,7 +60,7 @@ Três papéis ativos na PWA (Treinador, Analista, Jogador) + um ator externo (EE
 
 ### Defining Experience
 
-O Project R não tem uma core action única — tem três loops, um por papel ativo, cada um com tolerância de fricção própria:
+O SPARTA não tem uma core action única — tem três loops, um por papel ativo, cada um com tolerância de fricção própria:
 
 - **Treinador:** abrir o Painel de Prontidão e decidir convocatória em <30s
 - **Analista (em jogo):** registar ~187 eventos no touchscreen 3-ecrãs em 90 minutos, sem desviar olhos do campo
@@ -125,7 +125,7 @@ Quatro sentimentos-alvo distintos, um por papel. Não há um sentimento único q
 - **Tomás (Jogador) — Respeito leve:** "Foi rápido, foi para alguém que se importa, voltou a ser o meu sábado."
 - **Sandra (EE) — Tranquilidade informada:** "Percebi o que estão a fazer com os dados do meu filho — e percebi pela primeira vez."
 
-**Diferenciação emocional:** o Project R rejeita o rigor frio dos dashboards profissionais (Catapult, Metrifit) e a leveza desorganizada do status quo (WhatsApp + Excel). A aposta é "confiança humana mediada por dados" — o treinador sente-se mais ele próprio, não menos.
+**Diferenciação emocional:** o SPARTA rejeita o rigor frio dos dashboards profissionais (Catapult, Metrifit) e a leveza desorganizada do status quo (WhatsApp + Excel). A aposta é "confiança humana mediada por dados" — o treinador sente-se mais ele próprio, não menos.
 
 ### Emotional Journey Mapping
 
@@ -200,7 +200,7 @@ Cada emoção mapeia em escolhas concretas de UI/UX:
 
 Quatro princípios com prioridade clara, ordenados por importância:
 
-1. **Calma > Excitação** — sem copy que celebre, alarme ou exija urgência. O Project R é uso semanal calmo, não engagement diário viciante.
+1. **Calma > Excitação** — sem copy que celebre, alarme ou exija urgência. O SPARTA é uso semanal calmo, não engagement diário viciante.
 2. **Voz humana, não institucional** — PT-PT natural, registo conversacional, sem juridiquês mesmo em fluxos GDPR. Tom de "treinador a falar com pais".
 3. **Sugerir, não prescrever** — sinais, nunca ordens. Verbos neutros ("estado", "tendência"), nunca imperativos. Protege autoridade do treinador e autonomia do atleta.
 4. **Confiança ganha-se pela explicabilidade, não pela autoridade** — todo o sinal sintético é drillable. A app nunca pede fé.
@@ -426,7 +426,7 @@ Button, Card, Input, Form, Label, Select, Checkbox, Radio Group, Switch, Dialog,
 **"Olhar para o plantel. Confiar no verde. Questionar o vermelho."**
 *("Glance at the squad. Trust the green. Question the red.")*
 
-Esta é a interação que define o Project R. Tudo o resto — questionários, registo de stats, dashboards, exportações — existe para alimentar este momento.
+Esta é a interação que define o SPARTA. Tudo o resto — questionários, registo de stats, dashboards, exportações — existe para alimentar este momento.
 
 **O painel é o produto.** O questionário do Tomás é manutenção, o touchscreen da Ana é infraestrutura, o consentimento da Sandra é compliance. A defining experience é o sábado de manhã do José, café na mão, 30 segundos para decidir uma convocatória de 18.
 
@@ -1057,7 +1057,7 @@ Composições reutilizáveis derivadas dos padrões transversais do Step 10. Viv
 
 #### Domain Components
 
-Componentes únicos do Project R com lógica de negócio embebida. Vivem em `src/components/domain/`.
+Componentes únicos do SPARTA com lógica de negócio embebida. Vivem em `src/components/domain/`.
 
 - **`<ReadinessPanel>`** — ecrã principal do treinador. Glance value + lista por posição OU formação. Suporta `view: "list" | "formation"` via toggle. Performance ≤2s para 40 jogadores (NFR1).
 - **`<PlayerRow>`** — linha individual de jogador (nome, número, escalão, ACWR, semáforo). Variantes `compact` (default) e `expanded` (Phase 2 caso decisão volte).
@@ -1080,7 +1080,7 @@ Componentes únicos do Project R com lógica de negócio embebida. Vivem em `src
 src/components/
 ├── ui/              # shadcn/ui copy-paste (Foundation)
 ├── patterns/        # composições reutilizáveis (Pattern)
-└── domain/          # componentes únicos do Project R (Domain)
+└── domain/          # componentes únicos do SPARTA (Domain)
 ```
 
 **Regra invariante de dependências:** Domain → Patterns → UI → Tokens. Componentes de camada superior não podem ser importados por camadas inferiores. UI nunca importa Pattern; Pattern nunca importa Domain.
@@ -1407,7 +1407,7 @@ Checklist concreta para revisão de cada PR:
 
 ### Responsive Strategy
 
-**Filosofia:** mobile-first absoluto. O Project R nasce no telemóvel do José; tablet e laptop são extensões secundárias.
+**Filosofia:** mobile-first absoluto. O SPARTA nasce no telemóvel do José; tablet e laptop são extensões secundárias.
 
 **Mobile (≤767px) — alvo primário:**
 
@@ -1452,7 +1452,7 @@ Breakpoints fixados (Tailwind):
 - **Understandable** — `<html lang="pt-PT">`; navegação consistente; labels visíveis sempre; erros sugerem correção ("Falta o nome do jogador"); help text contextual
 - **Robust** — ARIA labels em controlos sem texto visível; `aria-live="polite"` em estados dinâmicos (pendentes, sync); `aria-current="page"` em tabs ativos; `aria-invalid` + `aria-describedby` em inputs com erro
 
-**Específico do Project R:**
+**Específico do SPARTA:**
 
 - Versão linguisticamente adaptada para sub-14 (NFR43) — política de privacidade, questionário e prompts em B1 simplificado para 13–15 anos
 - Daltonia (8% dos homens, deuteranopia mais comum) mitigada por redundância cor+ícone+forma; semáforo nunca depende de cor sozinha

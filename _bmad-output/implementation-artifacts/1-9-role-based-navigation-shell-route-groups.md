@@ -1,4 +1,4 @@
-# Story 1.9: Role-Based Navigation Shell & Route Groups
+﻿# Story 1.9: Role-Based Navigation Shell & Route Groups
 
 **Status:** done
 
@@ -395,14 +395,14 @@ src/
 
 ### Project Identity
 
-- **Project Name:** Project R
+- **Project Name:** SPARTA
 - **Language:** Portuguese (user-facing); English (code, `/api/*`, internal comments)
 - **User Personas:** Treinador (coach), Analista (analyst), Jogador (player)
 - **Phase:** MVP (core functionality)
 
 ### App Root Location
 
-Per memory: App code lives in `project-r/` subfolder (Option B from Story 1.1). BMad tooling and docs stay at repo root.
+Per memory: App code lives in `sparta/` subfolder (Option B from Story 1.1). BMad tooling and docs stay at repo root.
 
 ### Key Decisions
 
@@ -424,27 +424,27 @@ Per memory: App code lives in `project-r/` subfolder (Option B from Story 1.1). 
 
 ### New Files Created
 
-- `project-r/src/components/patterns/BottomTabNav.tsx` — Client component for role-specific bottom navigation
-- `project-r/src/components/patterns/BottomTabNav.test.tsx` — Unit tests for BottomTabNav
-- `project-r/src/components/patterns/StickyHeader.tsx` — Server component for sticky header with title + meta
-- `project-r/src/components/patterns/StickyHeader.test.tsx` — Unit tests for StickyHeader
-- `project-r/src/components/patterns/StaffSidebar.tsx` — Placeholder sidebar for desktop staff view
-- `project-r/src/components/patterns/StaffSidebar.test.tsx` — Unit tests for StaffSidebar
-- `project-r/src/app/(player)/layout.tsx` — Player route group layout with bottom nav
-- `project-r/src/app/(player)/hoje/page.tsx` — Player home page (today view)
-- `project-r/src/app/(player)/historico/page.tsx` — Player history page
-- `project-r/src/app/(staff)/layout.tsx` — Staff route group layout with sticky header, sidebar, and bottom nav
-- `project-r/src/app/(staff)/prontidao/page.tsx` — Coach readiness panel page
-- `project-r/src/app/(staff)/calendario/page.tsx` — Coach calendar page
-- `project-r/src/app/(staff)/plantel/page.tsx` — Staff player roster page
-- `project-r/src/app/(staff)/sessoes/page.tsx` — Analyst sessions page
-- `project-r/src/app/(staff)/tendencias/page.tsx` — Analyst trends page
+- `sparta/src/components/patterns/BottomTabNav.tsx` — Client component for role-specific bottom navigation
+- `sparta/src/components/patterns/BottomTabNav.test.tsx` — Unit tests for BottomTabNav
+- `sparta/src/components/patterns/StickyHeader.tsx` — Server component for sticky header with title + meta
+- `sparta/src/components/patterns/StickyHeader.test.tsx` — Unit tests for StickyHeader
+- `sparta/src/components/patterns/StaffSidebar.tsx` — Placeholder sidebar for desktop staff view
+- `sparta/src/components/patterns/StaffSidebar.test.tsx` — Unit tests for StaffSidebar
+- `sparta/src/app/(player)/layout.tsx` — Player route group layout with bottom nav
+- `sparta/src/app/(player)/hoje/page.tsx` — Player home page (today view)
+- `sparta/src/app/(player)/historico/page.tsx` — Player history page
+- `sparta/src/app/(staff)/layout.tsx` — Staff route group layout with sticky header, sidebar, and bottom nav
+- `sparta/src/app/(staff)/prontidao/page.tsx` — Coach readiness panel page
+- `sparta/src/app/(staff)/calendario/page.tsx` — Coach calendar page
+- `sparta/src/app/(staff)/plantel/page.tsx` — Staff player roster page
+- `sparta/src/app/(staff)/sessoes/page.tsx` — Analyst sessions page
+- `sparta/src/app/(staff)/tendencias/page.tsx` — Analyst trends page
 
 ### Modified Files
 
-- `project-r/src/app/layout.tsx` — Updated metadata (title, description)
-- `project-r/src/app/page.tsx` — Replaced placeholder with role-based redirect logic
-- `project-r/src/proxy.ts` — Added role-based access enforcement to existing proxy pattern
+- `sparta/src/app/layout.tsx` — Updated metadata (title, description)
+- `sparta/src/app/page.tsx` — Replaced placeholder with role-based redirect logic
+- `sparta/src/proxy.ts` — Added role-based access enforcement to existing proxy pattern
 
 ---
 

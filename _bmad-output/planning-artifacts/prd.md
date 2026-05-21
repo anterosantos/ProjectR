@@ -1,16 +1,16 @@
----
+﻿---
 stepsCompleted: ["step-01-init", "step-02-discovery", "step-02b-vision", "step-02c-executive-summary", "step-03-success", "step-04-journeys", "step-05-domain", "step-06-innovation", "step-07-project-type", "step-08-scoping", "step-09-functional", "step-10-nonfunctional", "step-11-polish", "step-12-complete"]
 status: "complete"
 completed: "2026-05-06"
 releaseMode: phased
 inputDocuments:
-  - "_bmad-output/planning-artifacts/product-brief-Project-R.md"
+  - "_bmad-output/planning-artifacts/product-brief-sparta.md"
   - "_bmad-output/planning-artifacts/research/market-solucoes-gratuitas-gestao-performance-futebol-research-2026-05-01.md"
   - "_bmad-output/planning-artifacts/research/domain-metricas-desempenho-atletas-futebol-11-research-2026-05-01.md"
-  - "_bmad-output/planning-artifacts/research/technical-stack-tecnico-project-r-research-2026-05-01.md"
+  - "_bmad-output/planning-artifacts/research/technical-stack-tecnico-sparta-research-2026-05-01.md"
   - "_bmad-output/brainstorming/brainstorming-session-2026-05-01-1000.md"
   - "_bmad-output/brainstorming/brainstorming-session-2026-05-01-1100.md"
-  - "docs/projectr.requirements.md"
+  - "docs/SPARTA.requirements.md"
 documentCounts:
   briefCount: 1
   researchCount: 3
@@ -25,14 +25,14 @@ classification:
   notes: "PWA mobile-first; dados de saúde Art. 9 GDPR com consentimento parental para 13-15 anos"
 ---
 
-# Product Requirements Document - Project R
+# Product Requirements Document - SPARTA
 
 **Author:** Antero
 **Date:** 2026-05-06
 
 ## Executive Summary
 
-O Project R é uma plataforma de gestão de performance desportiva, de custo zero, construída para futebol 11 amador. Resolve um problema preciso: nenhum staff técnico amador consegue, antes de uma convocatória, ver de forma integrada o estado físico, fadiga e tendência de carga de cada jogador — porque os dados existem dispersos por WhatsApp, Excel e memória do treinador, e nenhuma ferramenta gratuita os cruza.
+O SPARTA é uma plataforma de gestão de performance desportiva, de custo zero, construída para futebol 11 amador. Resolve um problema preciso: nenhum staff técnico amador consegue, antes de uma convocatória, ver de forma integrada o estado físico, fadiga e tendência de carga de cada jogador — porque os dados existem dispersos por WhatsApp, Excel e memória do treinador, e nenhuma ferramenta gratuita os cruza.
 
 A plataforma integra três componentes que hoje só existem isolados ou em soluções profissionais pagas: questionários de fadiga pré e pós-sessão (5 dimensões), registo manual de estatísticas táticas validadas pela ciência do desporto (7 métricas preditivas de resultado), e um Painel de Prontidão semáforo (verde/amarelo/vermelho) calculado automaticamente a partir de fadiga recente, ACWR e assiduidade. O motor analítico — Correlação Fadiga × Performance, Curva de Recuperação Individual — emerge à medida que os dados se acumulam ao longo da época.
 
@@ -74,7 +74,7 @@ Cinco diferenciadores estruturais, validados por market research:
 
 ## Success Criteria
 
-Os critérios de sucesso do Project R organizam-se em quatro dimensões. Todos os limiares são herdados do Product Brief, da pesquisa de domínio (PMC, NASE) e do checklist de stakeholders, ou refinados onde os documentos eram vagos.
+Os critérios de sucesso do SPARTA organizam-se em quatro dimensões. Todos os limiares são herdados do Product Brief, da pesquisa de domínio (PMC, NASE) e do checklist de stakeholders, ou refinados onde os documentos eram vagos.
 
 ### User Success
 
@@ -88,7 +88,7 @@ O sucesso do utilizador é medido através de adesão, fricção e impacto na de
 
 ### Business Success
 
-O Project R não tem modelo de receita no MVP. "Business success" significa viabilidade do produto e validação do problema:
+O SPARTA não tem modelo de receita no MVP. "Business success" significa viabilidade do produto e validação do problema:
 
 - **Validação positiva por ≥ 3 treinadores externos** (fora dos co-desenvolvedores) durante a fase de testes nos meses 2–6. Validação = uso continuado ≥ 4 semanas + entrevista de saída registada.
 - **Plantel-piloto adota o sistema na sua totalidade** — 40 jogadores e 5 staff ativos no fim do mês 1 (≥ 90% dos jogadores com pelo menos 1 questionário preenchido).
@@ -223,7 +223,7 @@ Visão de longo prazo, condicionada ao sucesso dos horizontes anteriores:
 
 ## User Journeys
 
-As jornadas abaixo cobrem todos os atores que interagem com o Project R no âmbito do MVP. As personas são as definidas no Product Brief, complementadas com o encarregado de educação — ator não negligenciável dado o requisito de consentimento parental para 13–15 anos (RGPD/CNPD).
+As jornadas abaixo cobrem todos os atores que interagem com o SPARTA no âmbito do MVP. As personas são as definidas no Product Brief, complementadas com o encarregado de educação — ator não negligenciável dado o requisito de consentimento parental para 13–15 anos (RGPD/CNPD).
 
 ### Journey 1 — José, treinador principal (happy path)
 
@@ -231,9 +231,9 @@ As jornadas abaixo cobrem todos os atores que interagem com o Project R no âmbi
 
 **Cenário:** Sábado, 10h30. O jogo é às 16h. José está em casa, café na mão, telemóvel ao lado.
 
-**Opening scene** — Antes do Project R, este momento era um exercício de memória. "Aquele miúdo queixou-se da coxa terça? O Diogo perdeu o último jogo? Quantos minutos fez o Tomás? Acho que sim." A convocatória fechava-se em 15 minutos por instinto, com 2–3 jogadores incertos a dependerem do humor do dia.
+**Opening scene** — Antes do SPARTA, este momento era um exercício de memória. "Aquele miúdo queixou-se da coxa terça? O Diogo perdeu o último jogo? Quantos minutos fez o Tomás? Acho que sim." A convocatória fechava-se em 15 minutos por instinto, com 2–3 jogadores incertos a dependerem do humor do dia.
 
-**Rising action** — José abre a PWA do Project R no telemóvel (já adicionada ao home screen). Toca em "Painel de Prontidão". O ecrã carrega em <2s e mostra o plantel: 28 verdes, 7 amarelos, 5 vermelhos. Ordenação por estado, depois por posição. Toca em cada amarelo para ver o detalhe — tendência de fadiga das últimas 2 semanas, ACWR, presenças em treino.
+**Rising action** — José abre a PWA do SPARTA no telemóvel (já adicionada ao home screen). Toca em "Painel de Prontidão". O ecrã carrega em <2s e mostra o plantel: 28 verdes, 7 amarelos, 5 vermelhos. Ordenação por estado, depois por posição. Toca em cada amarelo para ver o detalhe — tendência de fadiga das últimas 2 semanas, ACWR, presenças em treino.
 
 **Climax** — Em 6 minutos tem a leitura completa. Os 5 vermelhos saem. Dos 7 amarelos, 4 são opções de banco; 3 são titulares com gestão de minutos (substituição planeada aos 60'). A convocatória é decidida com base em informação consolidada.
 
@@ -272,9 +272,9 @@ As jornadas abaixo cobrem todos os atores que interagem com o Project R no âmbi
 
 **Cenário:** Sábado, 17h45. O jogo acabou há 15 minutos. Ana está na bancada com tablet de 10".
 
-**Opening scene** — Antes do Project R, este momento eram 90 minutos de Excel à noite, com a memória do jogo a desvanecer. Faltavam sempre eventos. Os números nunca batiam certo.
+**Opening scene** — Antes do SPARTA, este momento eram 90 minutos de Excel à noite, com a memória do jogo a desvanecer. Faltavam sempre eventos. Os números nunca batiam certo.
 
-**Rising action** — Durante o jogo, Ana usou os 3 ecrãs touchscreen do Project R: jogador → ação → zona do campo. Tap-tap-tap. 187 eventos registados em 90 minutos sem desviar os olhos do campo por mais de 1 segundo. Ao apito final, tudo está sincronizado.
+**Rising action** — Durante o jogo, Ana usou os 3 ecrãs touchscreen do SPARTA: jogador → ação → zona do campo. Tap-tap-tap. 187 eventos registados em 90 minutos sem desviar os olhos do campo por mais de 1 segundo. Ao apito final, tudo está sincronizado.
 
 **Climax** — Após o jogo, na bancada, Ana abre a vista pós-sessão. Confirma os minutos jogados (auto-preenchidos a partir das substituições registadas), introduz o Session-RPE de cada jogador (escala 1–10, perguntado um por um no balneário), grava. O sistema atualiza ACWR para os 18 convocados em <3 segundos.
 
@@ -319,7 +319,7 @@ As jornadas abaixo cobrem todos os atores que interagem com o Project R no âmbi
 
 **Cenário:** Quinta-feira, 19h45. Email do clube na caixa de entrada.
 
-**Opening scene** — Antes do Project R, Sandra assinava papéis no início da época sem ler. Desta vez é diferente — o email diz "Recolha de dados de saúde do seu filho — pedimos o seu consentimento explícito".
+**Opening scene** — Antes do SPARTA, Sandra assinava papéis no início da época sem ler. Desta vez é diferente — o email diz "Recolha de dados de saúde do seu filho — pedimos o seu consentimento explícito".
 
 **Rising action** — Sandra abre o email no telemóvel. Vê uma página simples, em linguagem clara (não juridiquês), explicando: que dados são recolhidos (5 dimensões de fadiga + peso/altura), porque (gestão de carga e prevenção de lesões), quem acede (treinador, analista, preparador físico), por quanto tempo (até saída do clube + 1 época). Há um link para a política de privacidade completa e um botão "Tenho dúvidas".
 
@@ -411,7 +411,7 @@ Para menores, todos os direitos são exercíveis pelo titular da responsabilidad
 
 #### Sem DPO formal designado
 
-O Project R **não designa DPO formal** — não atinge os limiares do Art. 37 RGPD (autoridade pública, monitorização sistemática em larga escala, ou tratamento em larga escala de dados de Art. 9 enquanto atividade principal). Razões:
+O SPARTA **não designa DPO formal** — não atinge os limiares do Art. 37 RGPD (autoridade pública, monitorização sistemática em larga escala, ou tratamento em larga escala de dados de Art. 9 enquanto atividade principal). Razões:
 
 - Tratamento limitado a 1 clube no MVP (40 atletas)
 - Não é atividade principal do clube (clube é entidade desportiva, não médica)
@@ -514,17 +514,17 @@ Targets de performance específicos estão definidos em *Non-Functional Requirem
 
 ### Domain-Specific Anti-Patterns a Evitar
 
-Erros comuns em produtos de monitorização de atletas que o Project R recusa explicitamente:
+Erros comuns em produtos de monitorização de atletas que o SPARTA recusa explicitamente:
 
 - **Push notifications com dados de saúde no payload** — viola Art. 9; payloads são opacos.
-- **Auto-classificação clínica** ("este atleta tem risco X de lesão") — o Project R **não diagnostica**, sinaliza tendências e deixa a decisão ao staff humano. Esta é também a postura ética declarada.
+- **Auto-classificação clínica** ("este atleta tem risco X de lesão") — o SPARTA **não diagnostica**, sinaliza tendências e deixa a decisão ao staff humano. Esta é também a postura ética declarada.
 - **Acesso lateral entre jogadores** ("o Tomás vê o relatório do Diogo") — RLS estrita a impedir.
 - **Compartilhar dados com sponsors, scouts, ou terceiros sem consentimento explícito** — proibido no MVP; qualquer feature deste tipo requer fluxo de consentimento adicional.
 - **Reutilizar dados para finalidades não declaradas** ("começámos a usar para X, agora vamos analisar Y") — finalidade fixa pelo registo Art. 30; alteração requer nova base jurídica.
 
 ## Innovation & Novel Patterns
 
-O Project R não inova ao nível de tecnologia base — usa stack maduro (PWA, Supabase, Web Push standard). A inovação está em três decisões de produto que contradizem padrões dominantes do mercado.
+O SPARTA não inova ao nível de tecnologia base — usa stack maduro (PWA, Supabase, Web Push standard). A inovação está em três decisões de produto que contradizem padrões dominantes do mercado.
 
 ### Detected Innovation Areas
 
@@ -538,9 +538,9 @@ Esta integração **não existe no segmento amador gratuito**, segundo Market Re
 
 #### 2. Filosofia "dados mediados" — jogador sem acesso direto ao seu relatório
 
-Esta é a aposta mais contracultura do Project R. Os concorrentes diretos e indiretos do espaço de athlete tracking (Strava, Whoop, Garmin Connect, Apple Fitness, Metrifit) **entregam todos os dados diretamente ao utilizador final**.
+Esta é a aposta mais contracultura do SPARTA. Os concorrentes diretos e indiretos do espaço de athlete tracking (Strava, Whoop, Garmin Connect, Apple Fitness, Metrifit) **entregam todos os dados diretamente ao utilizador final**.
 
-O Project R inverte: o jogador preenche o questionário, mas **não vê o seu próprio painel de prontidão nem a sua curva de recuperação**. A informação chega-lhe através do staff técnico em conversa informada.
+O SPARTA inverte: o jogador preenche o questionário, mas **não vê o seu próprio painel de prontidão nem a sua curva de recuperação**. A informação chega-lhe através do staff técnico em conversa informada.
 
 **O que é novo:** o produto coloca-se como instrumento do staff, não do atleta. A tecnologia melhora a conversa humana, não substitui o feedback humano por feedback algorítmico.
 
@@ -602,13 +602,13 @@ A maioria das implementações de ACWR aplica os mesmos limiares a todas as faix
 
 ### Innovation as Marketing Truth, not Innovation Theater
 
-Estas três áreas são **inovações honestas no contexto do segmento alvo**. O Project R não inventa ACWR, não inventa wellness questionnaires, não inventa PWAs — combina elementos conhecidos de uma forma que ninguém combinou para futebol amador gratuito, e faz uma aposta filosófica deliberada (dados mediados) que diferencia o produto não tecnologicamente, mas eticamente.
+Estas três áreas são **inovações honestas no contexto do segmento alvo**. O SPARTA não inventa ACWR, não inventa wellness questionnaires, não inventa PWAs — combina elementos conhecidos de uma forma que ninguém combinou para futebol amador gratuito, e faz uma aposta filosófica deliberada (dados mediados) que diferencia o produto não tecnologicamente, mas eticamente.
 
 A comunicação de marketing deve refletir esta honestidade: "não inventámos a roda, fizemo-la chegar a quem não a tinha".
 
 ## Web App Specific Requirements
 
-O Project R é uma Progressive Web App (PWA) com instalação opcional no home screen. Todo o produto vive atrás de autenticação — não há páginas públicas indexáveis.
+O SPARTA é uma Progressive Web App (PWA) com instalação opcional no home screen. Todo o produto vive atrás de autenticação — não há páginas públicas indexáveis.
 
 ### Project-Type Overview
 
@@ -663,7 +663,7 @@ Esta secção apenas valida que todos os targets são compatíveis com a stack e
 
 ### SEO Strategy
 
-**N/A — produto integralmente autenticado.** O Project R não tem páginas públicas indexáveis. Não há lista de jogadores, leaderboards ou perfis públicos.
+**N/A — produto integralmente autenticado.** O SPARTA não tem páginas públicas indexáveis. Não há lista de jogadores, leaderboards ou perfis públicos.
 
 - **`robots.txt`:** `User-agent: * \n Disallow: /`
 - **Meta tags:** `noindex, nofollow` em todas as rotas
@@ -884,7 +884,7 @@ Cada fase tem KPIs de saída próprios definidos em *Success Criteria > Measurab
 
 ## Functional Requirements
 
-Esta secção define o **contrato de capacidades** do Project R. Cada FR é uma capacidade testável e independente de tecnologia. Funcionalidades não listadas aqui não existem no produto.
+Esta secção define o **contrato de capacidades** do SPARTA. Cada FR é uma capacidade testável e independente de tecnologia. Funcionalidades não listadas aqui não existem no produto.
 
 Os FRs estão agrupados em 8 áreas de capacidade. Os atores referidos são os definidos em *User Journeys*: **Treinador**, **Analista** (incluindo preparador físico), **Jogador**, **Encarregado de Educação**, e **Sistema** (capacidades automáticas).
 
