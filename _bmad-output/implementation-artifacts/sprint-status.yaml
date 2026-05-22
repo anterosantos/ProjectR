@@ -155,7 +155,7 @@ development_status:
   3-6-right-to-export-csv-download: done
   3-7-right-to-erasure-cascade-deletion: done
   3-8-right-to-rectification-staff-mediated-with-audit-log: done
-  3-9-right-to-restrict-processing-freeze-state: review
+  3-9-right-to-restrict-processing-freeze-state: done
   3-10-right-to-withdraw-consent-immediate-effect: ready-for-dev
   3-11-health-data-access-audit-logging-auto-wrapper-for-staff-reads: backlog
   3-12-subject-visibility-who-accessed-my-health-data: backlog

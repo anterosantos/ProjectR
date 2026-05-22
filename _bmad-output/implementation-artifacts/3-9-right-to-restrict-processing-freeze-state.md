@@ -1,6 +1,6 @@
 # Story 3.9: Direito de Limitação do Tratamento — Estado de Congelamento
 
-**Status:** review
+**Status:** done
 
 **Story ID:** 3.9
 **Epic:** Epic 3 — Consentimento Parental & Direitos GDPR
