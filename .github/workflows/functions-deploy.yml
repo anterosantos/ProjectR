@@ -21,7 +21,7 @@ jobs:
 
       - name: Link project
         working-directory: sparta
-        run: supabase link --spartaef ${{ secrets.SUPABASE_PROJECT_ID }}
+        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
 
       - name: Deploy Edge Functions
         working-directory: sparta
@@ -29,6 +29,9 @@ jobs:
           supabase functions deploy auth-hook --no-verify-jwt
           supabase functions deploy anonymize-player-photos
           supabase functions deploy consent-validate
+          supabase functions deploy erase-cascade
+          supabase functions deploy export-csv
           supabase functions deploy send-parental-consent
+          supabase functions deploy send-rectification-sla
           supabase functions deploy staff-alert-consent
           supabase functions deploy validate-subject-token
