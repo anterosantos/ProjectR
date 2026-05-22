@@ -23,7 +23,7 @@ describe('DireitosPage (/configuracoes/direitos)', () => {
     vi.clearAllMocks()
   })
 
-  it('titular autenticado: renderiza h1 e 5 cards de ação', async () => {
+  it('titular autenticado: renderiza h1 e 6 cards de ação', async () => {
     makeSupabaseMock({ id: 'user-adult-1' })
 
     const jsx = await DireitosPage()
@@ -32,12 +32,13 @@ describe('DireitosPage (/configuracoes/direitos)', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(
       'Os meus direitos RGPD'
     )
-    expect(screen.getAllByText('Continuar')).toHaveLength(5)
+    expect(screen.getAllByText('Continuar')).toHaveLength(6)
     expect(screen.getByText('Exportar os meus dados')).toBeDefined()
     expect(screen.getByText('Apagar os meus dados')).toBeDefined()
     expect(screen.getByText('Retificar dados pessoais')).toBeDefined()
     expect(screen.getByText('Limitar tratamento')).toBeDefined()
     expect(screen.getByText('Retirar consentimento')).toBeDefined()
+    expect(screen.getByText('Quem consultou os meus dados')).toBeDefined()
   })
 
   it('botão de cada card diz "Continuar" sem seta', async () => {
@@ -47,7 +48,7 @@ describe('DireitosPage (/configuracoes/direitos)', () => {
     render(jsx)
 
     const buttons = screen.getAllByText('Continuar')
-    expect(buttons).toHaveLength(5)
+    expect(buttons).toHaveLength(6)
     buttons.forEach((btn) => {
       expect(btn.textContent).not.toContain('→')
     })

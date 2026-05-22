@@ -48,7 +48,7 @@ export async function getAuditLogForSubject(
     return err({ code: 'forbidden', message: 'Sem permissão para ver estes registos' })
   }
 
-  return fetchAuditLogs(subjectId, page, pageSize, /* useServiceRole */ false)
+  return fetchAuditLogs(subjectId, page, pageSize)
 }
 
 // =============================================================================
@@ -92,8 +92,7 @@ export async function getAuditLogForSubjectByToken(
 async function fetchAuditLogs(
   subjectId: string,
   page: number,
-  pageSize: number,
-  _useServiceRole: boolean
+  pageSize: number
 ): Promise<Result<AuditVisibilityResult, AppError>> {
   // For the titular route the authenticated client is used — RLS automatically
   // restricts to rows where target_id = auth.uid() and role = 'player'.

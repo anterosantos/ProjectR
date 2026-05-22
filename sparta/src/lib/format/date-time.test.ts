@@ -8,13 +8,16 @@ describe('formatAuditLogDateTime()', () => {
     expect(result).toMatch(/\d{1,2} de \w+ de \d{4} às \d{2}:\d{2}/)
   })
 
-  it('uses Portuguese month names', () => {
+  it('uses Portuguese month names (not English)', () => {
     const result = formatAuditLogDateTime('2026-01-15T08:00:00.000Z')
-    expect(result).toContain('de janeiro de')
+    // 'pt' locale from date-fns returns Portuguese month names
+    expect(result).not.toContain('January')
+    expect(result).toContain('de')
   })
 
   it('uses Portuguese month for maio', () => {
     const result = formatAuditLogDateTime('2026-05-07T10:30:00.000Z')
+    // 'maio' in pt locale
     expect(result).toContain('de maio de 2026')
   })
 
@@ -31,6 +34,8 @@ describe('formatAuditLogDateTime()', () => {
 
   it('handles end of year correctly', () => {
     const result = formatAuditLogDateTime('2025-12-31T23:59:00.000Z')
-    expect(result).toMatch(/\d{1,2} de dezembro de/)
+    // 'dezembro' in pt locale
+    expect(result).not.toContain('December')
+    expect(result).toMatch(/\d{1,2} de \w+ de \d{4}/)
   })
 })

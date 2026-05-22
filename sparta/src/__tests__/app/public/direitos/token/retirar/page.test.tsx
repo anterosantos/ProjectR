@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import RetirarTokenPage from '@/app/(public)/direitos/[token]/retirar/page'
+import * as dataRights from '@/lib/actions/data-rights'
 
 vi.mock('@/lib/actions/data-rights', () => ({
   withdrawConsentByToken: vi.fn(),
+  validateToken: vi.fn(),
 }))
 
 vi.mock('@/lib/outbox/db', () => ({
@@ -40,7 +42,10 @@ describe('Retirar Page (Token)', () => {
   })
 
   it('token válido: mostra formulário com nome do menor', async () => {
-    mockTokenFetch({ valid: true, playerId: '550e8400-e29b-41d4-a716-446655440000', playerName: 'Carlos Mané' })
+    vi.mocked(dataRights.validateToken).mockResolvedValue({
+      ok: true,
+      data: { valid: true, playerId: '550e8400-e29b-41d4-a716-446655440000', playerName: 'Carlos Mané' },
+    })
 
     const component = await RetirarTokenPage({ params: Promise.resolve({ token: 'valid-token-abc123' }) })
     render(component)
@@ -50,11 +55,14 @@ describe('Retirar Page (Token)', () => {
   })
 
   it('token inválido/expirado: mostra EmptyState', async () => {
-    mockTokenFetch({ valid: false, reason: 'expired' })
+    vi.mocked(dataRights.validateToken).mockResolvedValue({
+      ok: false,
+      error: { code: 'unauthorized', message: 'Token inválido ou expirado' },
+    })
 
     const component = await RetirarTokenPage({ params: Promise.resolve({ token: 'expired-token' }) })
     render(component)
 
-    expect(screen.getByText(/Link expirado/i)).toBeDefined()
+    expect(screen.getByText(/Link inválido/i)).toBeDefined()
   })
 })

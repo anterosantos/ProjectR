@@ -463,3 +463,4 @@ export async function handler(req: Request): Promise<Response> {
 if (typeof (globalThis as any).Deno !== 'undefined') {
   Deno.serve(handler)
 }
+

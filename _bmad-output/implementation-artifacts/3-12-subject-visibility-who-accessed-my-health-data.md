@@ -184,8 +184,8 @@ So that GDPR Art. 15 (Right of Access) is honoured concretely with named accesse
 
 ### Task 1: Create Server Action `getAuditLogForSubject` (AC #1, #2, #9)
 
-- [ ] 1.1 Create file `src/lib/actions/audit-visibility.ts`
-- [ ] 1.2 Define TypeScript types:
+- [x] 1.1 Create file `src/lib/actions/audit-visibility.ts`
+- [x] 1.2 Define TypeScript types:
   ```ts
   interface AuditLogEntry {
     id: string;
@@ -204,7 +204,7 @@ So that GDPR Art. 15 (Right of Access) is honoured concretely with named accesse
     hasMore: boolean;
   }
   ```
-- [ ] 1.3 Implement Server Action:
+- [x] 1.3 Implement Server Action:
   ```ts
   export async function getAuditLogForSubject(
     subjectId: string,
@@ -212,26 +212,26 @@ So that GDPR Art. 15 (Right of Access) is honoured concretely with named accesse
     pageSize: number = 50
   ): Promise<Result<AuditVisibilityResult, AppError>>
   ```
-  - [ ] 1.3.1 Get current user via `getUser()`
-  - [ ] 1.3.2 Verify subject ownership (user = subjectId) OR token validity (for Encarregado)
-  - [ ] 1.3.3 Query `audit_logs` filtered by:
+  - [x] 1.3.1 Get current user via `getUser()`
+  - [x] 1.3.2 Verify subject ownership (user = subjectId) OR token validity (for Encarregado)
+  - [x] 1.3.3 Query `audit_logs` filtered by:
     - `target_id = subjectId`
     - `created_at >= now() - interval '12 months'`
-  - [ ] 1.3.4 Apply RLS at DB level (Supabase will enforce automatically)
-  - [ ] 1.3.5 Fetch actor profiles (name, role) in bulk for display
-  - [ ] 1.3.6 Return paginated result with `totalCount` and `hasMore` flag
-  - [ ] 1.3.7 If query returns empty, return `{ entries: [], actorMap: {}, totalCount: 0, hasMore: false }`
-- [ ] 1.4 Error handling:
-  - [ ] 1.4.1 If not authenticated and no token: return `err({ code: 'unauthorized' })`
-  - [ ] 1.4.2 If token invalid or expired: return `err({ code: 'invalid_token' })`
-  - [ ] 1.4.3 If subjectId doesn't match user: return `err({ code: 'forbidden' })`
+  - [x] 1.3.4 Apply RLS at DB level (Supabase will enforce automatically)
+  - [x] 1.3.5 Fetch actor profiles (name, role) in bulk for display
+  - [x] 1.3.6 Return paginated result with `totalCount` and `hasMore` flag
+  - [x] 1.3.7 If query returns empty, return `{ entries: [], actorMap: {}, totalCount: 0, hasMore: false }`
+- [x] 1.4 Error handling:
+  - [x] 1.4.1 If not authenticated and no token: return `err({ code: 'unauthorized' })`
+  - [x] 1.4.2 If token invalid or expired: return `err({ code: 'invalid_token' })`
+  - [x] 1.4.3 If subjectId doesn't match user: return `err({ code: 'forbidden' })`
 
 ---
 
 ### Task 2: Action Translation Map & Utility (AC #3)
 
-- [ ] 2.1 Create file `src/lib/i18n/audit-actions.ts`
-- [ ] 2.2 Define translation object:
+- [x] 2.1 Create file `src/lib/i18n/audit-actions.ts`
+- [x] 2.2 Define translation object:
   ```ts
   const AUDIT_ACTION_TRANSLATIONS: Record<string, string> = {
     'viewed_fatigue_response': 'Consultou questionário de fadiga',
@@ -253,26 +253,26 @@ So that GDPR Art. 15 (Right of Access) is honoured concretely with named accesse
     'player': 'Perfil',
   };
   ```
-- [ ] 2.3 Export functions:
-  - [ ] `translateAction(action: string): string` — returns translated action or fallback to action as-is
-  - [ ] `translateTargetKind(kind: string): string` — same for target_kind
-- [ ] 2.4 Test snapshot: translations map correctly for all discovered actions
+- [x] 2.3 Export functions:
+  - [x] `translateAction(action: string): string` — returns translated action or fallback to action as-is
+  - [x] `translateTargetKind(kind: string): string` — same for target_kind
+- [x] 2.4 Test snapshot: translations map correctly for all discovered actions
 
 ---
 
 ### Task 3: Create Titular Route `/configuracoes/direitos/acessos` (AC #1, #2, #3)
 
-- [ ] 3.1 Create directory: `src/app/(staff)/configuracoes/direitos/acessos/`
-- [ ] 3.2 Create file: `page.tsx` (Client Component)
-  - [ ] 3.2.1 Route guards: middleware redirects if not authenticated (Story 1.5/1.6)
-  - [ ] 3.2.2 Fetch server-side: call `getAuditLogForSubject(auth.uid())`
-  - [ ] 3.2.3 Render:
-    - [ ] Header: "Quem consultou os teus dados?" + breadcrumb "Configurações > Os meus direitos > Acessos"
-    - [ ] `<AuditLogList>` component with entries, pagination, export button
-    - [ ] Or empty state if no entries
-- [ ] 3.3 Create file: `layout.tsx` (if needed) — use common layout from `(staff)` group
-- [ ] 3.4 Create Client Component: `src/components/domain/AuditLogList.tsx`
-  - [ ] 3.4.1 Props:
+- [x] 3.1 Create directory: `src/app/(staff)/configuracoes/direitos/acessos/`
+- [x] 3.2 Create file: `page.tsx` (Client Component)
+  - [x] 3.2.1 Route guards: middleware redirects if not authenticated (Story 1.5/1.6)
+  - [x] 3.2.2 Fetch server-side: call `getAuditLogForSubject(auth.uid())`
+  - [x] 3.2.3 Render:
+    - [x] Header: "Quem consultou os teus dados?" + breadcrumb "Configurações > Os meus direitos > Acessos"
+    - [x] `<AuditLogList>` component with entries, pagination, export button
+    - [x] Or empty state if no entries
+- [x] 3.3 Create file: `layout.tsx` (if needed) — use common layout from `(staff)` group
+- [x] 3.4 Create Client Component: `src/components/domain/AuditLogList.tsx`
+  - [x] 3.4.1 Props:
     ```ts
     interface AuditLogListProps {
       entries: AuditLogEntry[];
@@ -285,36 +285,36 @@ So that GDPR Art. 15 (Right of Access) is honoured concretely with named accesse
       onExport?: () => void;
     }
     ```
-  - [ ] 3.4.2 Render:
-    - [ ] List of entries with date, actor, action, target_kind (AC #3)
-    - [ ] Pagination controls at bottom (AC #4)
-    - [ ] "Exportar este histórico" button (AC #6)
-    - [ ] Empty state when `entries.length === 0` (AC #2)
+  - [x] 3.4.2 Render:
+    - [x] List of entries with date, actor, action, target_kind (AC #3)
+    - [x] Pagination controls at bottom (AC #4)
+    - [x] "Exportar este histórico" button (AC #6)
+    - [x] Empty state when `entries.length === 0` (AC #2)
 
 ---
 
 ### Task 4: Create Encarregado Route `/direitos/[token]/acessos` (AC #1, #2)
 
-- [ ] 4.1 Create directory: `src/app/direitos/[token]/acessos/`
-- [ ] 4.2 Create file: `page.tsx`
-  - [ ] 4.2.1 Extract token from URL params: `params.token`
-  - [ ] 4.2.2 Validate token via Edge Function `consent-validate` (Story 3.3, existing) OR custom Server Action
-  - [ ] 4.2.3 Fetch linked player_id from `parental_consents` table (service-role, token-based)
-  - [ ] 4.2.4 Call `getAuditLogForSubject(player_id, { token })`
-  - [ ] 4.2.5 Render same `<AuditLogList>` component but with:
-    - [ ] Title: "Quem consultou os dados de [child_name]?"
-    - [ ] Export redirects to `/direitos/[token]/exportar` (Story 3.6 flow)
-    - [ ] Empty state + "Sem acessos registados. Os dados ainda não foram consultados pelo staff."
-  - [ ] 4.2.6 Error states:
-    - [ ] Invalid/expired token → show `<EmptyState>` "Link expirado ou inválido"
-    - [ ] No parental consent found → same as above
+- [x] 4.1 Create directory: `src/app/direitos/[token]/acessos/`
+- [x] 4.2 Create file: `page.tsx`
+  - [x] 4.2.1 Extract token from URL params: `params.token`
+  - [x] 4.2.2 Validate token via Edge Function `consent-validate` (Story 3.3, existing) OR custom Server Action
+  - [x] 4.2.3 Fetch linked player_id from `parental_consents` table (service-role, token-based)
+  - [x] 4.2.4 Call `getAuditLogForSubject(player_id, { token })`
+  - [x] 4.2.5 Render same `<AuditLogList>` component but with:
+    - [x] Title: "Quem consultou os dados de [child_name]?"
+    - [x] Export redirects to `/direitos/[token]/exportar` (Story 3.6 flow)
+    - [x] Empty state + "Sem acessos registados. Os dados ainda não foram consultados pelo staff."
+  - [x] 4.2.6 Error states:
+    - [x] Invalid/expired token → show `<EmptyState>` "Link expirado ou inválido"
+    - [x] No parental consent found → same as above
 
 ---
 
 ### Task 5: Pagination Component & Logic (AC #4)
 
-- [ ] 5.1 Create component: `src/components/patterns/Pagination.tsx`
-  - [ ] 5.1.1 Props:
+- [x] 5.1 Create component: `src/components/patterns/Pagination.tsx`
+  - [x] 5.1.1 Props:
     ```ts
     interface PaginationProps {
       currentPage: number;
@@ -323,23 +323,23 @@ So that GDPR Art. 15 (Right of Access) is honoured concretely with named accesse
       isLoading?: boolean;
     }
     ```
-  - [ ] 5.1.2 Render:
-    - [ ] "Página X de Y" text
-    - [ ] "Anterior" button (disabled if page = 1, `aria-disabled="true"`)
-    - [ ] "Próxima" button (disabled if page = totalPages, `aria-disabled="true"`)
-    - [ ] `role="navigation"` + `aria-label="Paginação"`
-  - [ ] 5.1.3 Button styling: ghost variant (UX-DR30), touch target ≥44px (NFR40)
-- [ ] 5.2 Integration in `AuditLogList`:
-  - [ ] 5.2.1 Maintain `currentPage` state
-  - [ ] 5.2.2 Re-fetch data on page change via `getAuditLogForSubject(subjectId, currentPage)`
-  - [ ] 5.2.3 Show loading skeleton while fetching (Story 1.8 pattern)
+  - [x] 5.1.2 Render:
+    - [x] "Página X de Y" text
+    - [x] "Anterior" button (disabled if page = 1, `aria-disabled="true"`)
+    - [x] "Próxima" button (disabled if page = totalPages, `aria-disabled="true"`)
+    - [x] `role="navigation"` + `aria-label="Paginação"`
+  - [x] 5.1.3 Button styling: ghost variant (UX-DR30), touch target ≥44px (NFR40)
+- [x] 5.2 Integration in `AuditLogList`:
+  - [x] 5.2.1 Maintain `currentPage` state
+  - [x] 5.2.2 Re-fetch data on page change via `getAuditLogForSubject(subjectId, currentPage)`
+  - [x] 5.2.3 Show loading skeleton while fetching (Story 1.8 pattern)
 
 ---
 
 ### Task 6: Date-Time Formatting Utility (AC #3)
 
-- [ ] 6.1 Create file: `src/lib/format/date-time.ts`
-- [ ] 6.2 Implement function:
+- [x] 6.1 Create file: `src/lib/format/date-time.ts`
+- [x] 6.2 Implement function:
   ```ts
   export function formatAuditLogDateTime(isoString: string): string {
     // Input: "2026-05-22T10:30:45.000Z"
@@ -350,69 +350,69 @@ So that GDPR Art. 15 (Right of Access) is honoured concretely with named accesse
     // or simpler: formatRelative(date, new Date(), { locale: ptPT })
   }
   ```
-- [ ] 6.3 Use in `AuditLogList` for rendering `occurred_at`
+- [x] 6.3 Use in `AuditLogList` for rendering `occurred_at`
 
 ---
 
 ### Task 7: Unit Tests (AC #10)
 
-- [ ] 7.1 Create test file: `src/app/(staff)/configuracoes/direitos/acessos/page.test.ts`
-  - [ ] 7.1.1 Mock `getAuditLogForSubject` to return seeded audit entries
-  - [ ] 7.1.2 Test: Page renders list with correct layout
-  - [ ] 7.1.3 Test: Pagination buttons work (page state changes)
-  - [ ] 7.1.4 Test: Empty state shows when no entries
-  - [ ] 7.1.5 Test: Action translations display correctly
-  - [ ] 7.1.6 Test: Date formatting is PT-PT ("22 de maio de 2026 às 10:30")
-  - [ ] 7.1.7 Test: Export button is visible and clickable
-  - [ ] 7.1.8 Test: a11y via axe-core (zero violations)
+- [x] 7.1 Create test file: `src/app/(staff)/configuracoes/direitos/acessos/page.test.ts`
+  - [x] 7.1.1 Mock `getAuditLogForSubject` to return seeded audit entries
+  - [x] 7.1.2 Test: Page renders list with correct layout
+  - [x] 7.1.3 Test: Pagination buttons work (page state changes)
+  - [x] 7.1.4 Test: Empty state shows when no entries
+  - [x] 7.1.5 Test: Action translations display correctly
+  - [x] 7.1.6 Test: Date formatting is PT-PT ("22 de maio de 2026 às 10:30")
+  - [x] 7.1.7 Test: Export button is visible and clickable
+  - [x] 7.1.8 Test: a11y via axe-core (zero violations)
 
-- [ ] 7.2 Create test file: `src/lib/i18n/audit-actions.test.ts`
-  - [ ] 7.2.1 Snapshot test: all action translations
-  - [ ] 7.2.2 Snapshot test: all target_kind translations
-  - [ ] 7.2.3 Test: fallback for unknown action/kind (returns input unchanged)
+- [x] 7.2 Create test file: `src/lib/i18n/audit-actions.test.ts`
+  - [x] 7.2.1 Snapshot test: all action translations
+  - [x] 7.2.2 Snapshot test: all target_kind translations
+  - [x] 7.2.3 Test: fallback for unknown action/kind (returns input unchanged)
 
-- [ ] 7.3 Create integration test: `src/lib/actions/audit-visibility.integration.test.ts`
-  - [ ] 7.3.1 Setup: seed DB with test club, staff, player, audit logs
-  - [ ] 7.3.2 Test: RLS isolation (titular cannot see other subject's logs)
-  - [ ] 7.3.3 Test: Encarregado with valid token sees child's logs
-  - [ ] 7.3.4 Test: Unauthorized user gets `forbidden` error
-  - [ ] 7.3.5 Test: 12-month filter works (old entries not returned)
+- [x] 7.3 Create integration test: `src/lib/actions/audit-visibility.integration.test.ts`
+  - [x] 7.3.1 Setup: seed DB with test club, staff, player, audit logs
+  - [x] 7.3.2 Test: RLS isolation (titular cannot see other subject's logs)
+  - [x] 7.3.3 Test: Encarregado with valid token sees child's logs
+  - [x] 7.3.4 Test: Unauthorized user gets `forbidden` error
+  - [x] 7.3.5 Test: 12-month filter works (old entries not returned)
 
 ---
 
 ### Task 8: Encarregado Route Tests (AC #10)
 
-- [ ] 8.1 Create test file: `src/app/direitos/[token]/acessos/page.test.ts`
-  - [ ] 8.1.1 Test: Valid token loads child's logs
-  - [ ] 8.1.2 Test: Invalid token shows error state
-  - [ ] 8.1.3 Test: Expired token shows error state
-  - [ ] 8.1.4 Test: Export button on Encarregado route redirects to `/direitos/[token]/exportar`
+- [x] 8.1 Create test file: `src/app/direitos/[token]/acessos/page.test.ts`
+  - [x] 8.1.1 Test: Valid token loads child's logs
+  - [x] 8.1.2 Test: Invalid token shows error state
+  - [x] 8.1.3 Test: Expired token shows error state
+  - [x] 8.1.4 Test: Export button on Encarregado route redirects to `/direitos/[token]/exportar`
 
 ---
 
 ### Task 9: Integration with Story 3.6 Export (AC #6)
 
-- [ ] 9.1 Verify export button in both routes:
-  - [ ] Titular: calls `requestDataExportForSelf()` from Story 3.6
-  - [ ] Encarregado: calls variant `requestDataExportByToken(token)` from Story 3.6
-- [ ] 9.2 Verify `<CalmConfirmation>` feedback matches Story 3.6 spec
-- [ ] 9.3 Verify exported CSV includes all data (not just audit logs — full data export per FR46)
+- [x] 9.1 Verify export button in both routes:
+  - [x] Titular: calls `requestDataExportForSelf()` from Story 3.6
+  - [x] Encarregado: calls variant `requestDataExportByToken(token)` from Story 3.6
+- [x] 9.2 Verify `<CalmConfirmation>` feedback matches Story 3.6 spec
+- [x] 9.3 Verify exported CSV includes all data (not just audit logs — full data export per FR46)
 
 ---
 
 ### Task 10: Documentation & Copy Finalization (AC #8)
 
-- [ ] 10.1 Create `docs/GDPR/subject-visibility.md` with:
-  - [ ] 10.1.1 Overview: "What audit logs are and why they exist"
-  - [ ] 10.1.2 User guide: "How to check who accessed my data"
-  - [ ] 10.1.3 Action translation list (comprehensive)
-  - [ ] 10.1.4 RLS enforcement explanation
-  - [ ] 10.1.5 Retention window (12 months)
+- [x] 10.1 Create `docs/GDPR/subject-visibility.md` with:
+  - [x] 10.1.1 Overview: "What audit logs are and why they exist"
+  - [x] 10.1.2 User guide: "How to check who accessed my data"
+  - [x] 10.1.3 Action translation list (comprehensive)
+  - [x] 10.1.4 RLS enforcement explanation
+  - [x] 10.1.5 Retention window (12 months)
 
-- [ ] 10.2 Final copy review:
-  - [ ] 10.2.1 All translations ≤15 words
-  - [ ] 10.2.2 No emojis, no exclamation marks (UX-DR38)
-  - [ ] 10.2.3 B1 CEFR ceiling (send to native PT speaker for review if unsure)
+- [x] 10.2 Final copy review:
+  - [x] 10.2.1 All translations ≤15 words
+  - [x] 10.2.2 No emojis, no exclamation marks (UX-DR38)
+  - [x] 10.2.3 B1 CEFR ceiling (send to native PT speaker for review if unsure)
 
 ---
 
@@ -545,26 +545,26 @@ So that GDPR Art. 15 (Right of Access) is honoured concretely with named accesse
 
 ### Checklist for Dev Agent
 
-- [ ] Read all ACs and understand the two-route architecture (titular + Encarregado)
-- [ ] Create Server Action `getAuditLogForSubject()` with RLS enforcement
-- [ ] Create translation maps for actions and target_kinds (PT-PT)
-- [ ] Implement date-time formatter (PT-PT locale via date-fns)
-- [ ] Build Client Component `<AuditLogList>` with entry display, pagination, export button
-- [ ] Build Pagination component `<Pagination>` (reusable pattern)
-- [ ] Create titular route `/configuracoes/direitos/acessos/page.tsx`
-- [ ] Create Encarregado route `/direitos/[token]/acessos/page.tsx`
-- [ ] Write unit tests: translations, formatting, component render
-- [ ] Write integration tests: RLS isolation, token validation, 12-month filter
-- [ ] Test a11y: axe-core zero violations, dark mode, responsive layout
-- [ ] Verify export button integration with Story 3.6
-- [ ] Create documentation: `docs/GDPR/subject-visibility.md`
-- [ ] Final copy review: all translations ≤15 words, B1 CEFR ceiling
-- [ ] Mark story as `review` and run `code-review` for second opinion
+- [x] Read all ACs and understand the two-route architecture (titular + Encarregado)
+- [x] Create Server Action `getAuditLogForSubject()` with RLS enforcement
+- [x] Create translation maps for actions and target_kinds (PT-PT)
+- [x] Implement date-time formatter (PT-PT locale via date-fns)
+- [x] Build Client Component `<AuditLogList>` with entry display, pagination, export button
+- [x] Build Pagination component `<Pagination>` (reusable pattern)
+- [x] Create titular route `/configuracoes/direitos/acessos/page.tsx`
+- [x] Create Encarregado route `/direitos/[token]/acessos/page.tsx`
+- [x] Write unit tests: translations, formatting, component render
+- [x] Write integration tests: RLS isolation, token validation, 12-month filter
+- [x] Test a11y: axe-core zero violations, dark mode, responsive layout
+- [x] Verify export button integration with Story 3.6
+- [x] Create documentation: `docs/GDPR/subject-visibility.md`
+- [x] Final copy review: all translations ≤15 words, B1 CEFR ceiling
+- [x] Mark story as `review` and run `code-review` for second opinion
 
 ---
 
 ## Story Status
 
-**Status:** ready-for-dev  
+**Status:** review  
 **Last Updated:** 2026-05-22  
-**Next Steps:** Run `dev-story` to begin implementation. After complete, run `code-review` for adversarial review.
+**Next Steps:** Run `code-review` para revisão adversarial.

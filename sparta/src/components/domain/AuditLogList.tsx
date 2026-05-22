@@ -87,7 +87,6 @@ export function AuditLogList({ initialData, pageSize = 50, onLoadPage, onExport 
             size="sm"
             onClick={handleExport}
             className="min-h-[44px]"
-            aria-label="Exportar histórico de acessos"
           >
             Exportar este histórico
           </Button>

@@ -63,7 +63,7 @@ const handler = async (req: Request): Promise<Response> => {
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const brevoApiKey = Deno.env.get("BREVO_API_KEY");
   const brevoSenderEmail = Deno.env.get("BREVO_SENDER_EMAIL");
-  const siteUrl = Deno.env.get("SITE_URL") ?? "https://sparta.vercel.app";
+  const siteUrl = Deno.env.get("SITE_URL") ?? "https://sparta-webapp.vercel.app";
 
   console.log("[send-parental-consent] env check:", {
     hasSupabaseUrl: !!supabaseUrl,

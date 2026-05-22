@@ -27,7 +27,7 @@ describe('DireitosTokenPage (/direitos/[token])', () => {
     vi.unstubAllGlobals()
   })
 
-  it('valid token: renderiza 5 cards de ação com breadcrumb', async () => {
+  it('valid token: renderiza 6 cards de ação com breadcrumb', async () => {
     vi.stubGlobal(
       'fetch',
       makeFetchMock({
@@ -46,12 +46,13 @@ describe('DireitosTokenPage (/direitos/[token])', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(
       'Os meus direitos RGPD'
     )
-    expect(screen.getAllByText('Continuar')).toHaveLength(5)
+    expect(screen.getAllByText('Continuar')).toHaveLength(6)
     expect(screen.getByText('Exportar os meus dados')).toBeDefined()
     expect(screen.getByText('Apagar os meus dados')).toBeDefined()
     expect(screen.getByText('Retificar dados pessoais')).toBeDefined()
     expect(screen.getByText('Limitar tratamento')).toBeDefined()
     expect(screen.getByText('Retirar consentimento')).toBeDefined()
+    expect(screen.getByText('Quem consultou os dados')).toBeDefined()
   })
 
   it('expired token: mostra EmptyState com mensagem de link expirado', async () => {
