@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+vi.mock("next/server", () => ({
+  after: vi.fn((fn: () => Promise<void>) => { void fn(); }),
+}));
+
 vi.mock("@/lib/supabase/service-role", () => ({
   getServiceRoleClient: vi.fn(),
 }));
