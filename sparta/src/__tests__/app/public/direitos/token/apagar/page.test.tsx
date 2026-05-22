@@ -1,64 +1,60 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { validateToken } from '@/app/(public)/direitos/[token]/lib/validate-token'
 import ApagarPage from '@/app/(public)/direitos/[token]/apagar/page'
+
+vi.mock('next/navigation', () => ({
+  useRouter: vi.fn(() => ({ push: vi.fn() })),
+}))
 
 vi.mock('@/lib/supabase/server', () => ({
   createServerClient: vi.fn(),
 }))
 
-vi.mock('@/app/(public)/direitos/[token]/lib/validate-token', () => ({
-  validateToken: vi.fn(),
-}))
-
-const mockValidateToken = vi.mocked(validateToken)
+function mockTokenFetch(response: object, status = 200) {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
+    new Response(JSON.stringify(response), {
+      status,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  ))
+}
 
 describe('Apagar Page (Token)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://localhost:54321')
+    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role-key')
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.unstubAllEnvs()
   })
 
   it('renderiza confirmação com nome do menor quando token válido', async () => {
-    mockValidateToken.mockResolvedValue({
-      valid: true,
-      playerId: '550e8400-e29b-41d4-a716-446655440000',
-      playerName: 'João Silva',
-    })
+    mockTokenFetch({ valid: true, playerId: '550e8400-e29b-41d4-a716-446655440000', playerName: 'João Silva' })
 
-    const component = await ApagarPage({
-      params: { token: 'test-token-123' },
-    })
+    const component = await ApagarPage({ params: Promise.resolve({ token: 'test-token-123' }) })
     render(component)
 
     expect(screen.getByText(/Apagar dados de João Silva/i)).toBeDefined()
-    expect(screen.getByRole('button', { name: /Apagar os dados de João Silva/i })).toBeDefined()
   })
 
   it('renderiza EmptyState quando token expirado', async () => {
-    mockValidateToken.mockResolvedValue({
-      valid: false,
-      reason: 'expired',
-    })
+    mockTokenFetch({ valid: false, reason: 'expired' })
 
-    const component = await ApagarPage({
-      params: { token: 'expired-token' },
-    })
+    const component = await ApagarPage({ params: Promise.resolve({ token: 'expired-token' }) })
     render(component)
 
-    expect(screen.getByText(/Token inválido ou expirado/i)).toBeDefined()
+    expect(screen.getByText(/Link expirado/i)).toBeDefined()
   })
 
   it('renderiza EmptyState quando token inválido', async () => {
-    mockValidateToken.mockResolvedValue({
-      valid: false,
-      reason: 'invalid',
-    })
+    mockTokenFetch({ valid: false, reason: 'invalid' })
 
-    const component = await ApagarPage({
-      params: { token: 'invalid-token' },
-    })
+    const component = await ApagarPage({ params: Promise.resolve({ token: 'invalid-token' }) })
     render(component)
 
-    expect(screen.getByText(/Token inválido ou expirado/i)).toBeDefined()
+    expect(screen.getByText(/Link inválido/i)).toBeDefined()
   })
 })

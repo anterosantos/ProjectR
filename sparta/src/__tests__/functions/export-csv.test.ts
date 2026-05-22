@@ -14,9 +14,11 @@ vi.mock('jszip', () => {
   class MockJSZip {
     file: ReturnType<typeof vi.fn>
     generateAsync: ReturnType<typeof vi.fn>
+    files: Record<string, unknown>
     constructor() {
       this.file = mockZipFile
       this.generateAsync = mockGenerateAsync
+      this.files = {}
     }
   }
   return { default: MockJSZip }

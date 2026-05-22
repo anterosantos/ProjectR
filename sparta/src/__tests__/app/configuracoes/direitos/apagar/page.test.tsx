@@ -84,7 +84,7 @@ describe('Apagar Page (Auth)', () => {
                 maybeSingle: vi.fn().mockResolvedValue({
                   data: {
                     id: 'player-123',
-                    birthdate: new Date(2010, 1, 1).toISOString(), // 14 years old
+                    birthdate: new Date(2012, 1, 1).toISOString(), // 14 years old in 2026
                   },
                 }),
               }),
