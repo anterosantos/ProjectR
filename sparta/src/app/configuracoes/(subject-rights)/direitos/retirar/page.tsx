@@ -1,10 +1,48 @@
-import { PageInDevelopment } from '@/components/domain/page-in-development'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { createServerClient } from '@/lib/supabase/server'
+import { RetirarAuthClient } from './_components/retirar-auth-client'
 
-export default function RetirarPage() {
+export default async function RetirarPage() {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+    return null
+  }
+
   return (
-    <PageInDevelopment
-      title="Retirar consentimento"
-      description="Remove o teu consentimento. Esta ação não pode ser desfeita."
-    />
+    <div className="flex flex-col gap-8 p-4 lg:p-6 max-w-2xl mx-auto">
+      <nav
+        className="hidden lg:block text-sm text-muted-foreground"
+        aria-label="Breadcrumb"
+      >
+        <ol className="flex items-center gap-2">
+          <li>
+            <Link href="/configuracoes" className="hover:text-foreground">
+              Configurações
+            </Link>
+          </li>
+          <li className="text-muted-foreground">/</li>
+          <li>
+            <Link href="/configuracoes/direitos" className="hover:text-foreground">
+              Os meus direitos
+            </Link>
+          </li>
+          <li className="text-muted-foreground">/</li>
+          <li className="text-foreground font-medium">Retirar consentimento</li>
+        </ol>
+      </nav>
+
+      <div className="flex flex-col gap-2">
+        <h1 className="text-2xl font-bold">Retirar consentimento</h1>
+        <p className="text-muted-foreground">
+          Remove o teu consentimento e apaga os teus dados permanentemente (RGPD Art. 21).
+        </p>
+      </div>
+
+      <RetirarAuthClient />
+    </div>
   )
 }

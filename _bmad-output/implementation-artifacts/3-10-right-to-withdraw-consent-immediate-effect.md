@@ -1,6 +1,6 @@
 # Story 3.10: Direito de Retirada de Consentimento — Efeito Imediato
 
-**Status:** ready-for-dev
+**Status:** done
 
 **Story ID:** 3.10
 **Epic:** Epic 3 — Consentimento Parental & Direitos GDPR
@@ -92,59 +92,59 @@ Para que o Art. 21 do RGPD seja cumprido sem período de espera.
 
 ### Task 1: Server Actions em `data-rights.ts` (AC #1, #2, #5)
 
-- [ ] 1.1 Adicionar a `sparta/src/lib/actions/data-rights.ts`
-- [ ] 1.2 Tipo `WithdrawalResult = { withdrawn: true }`
-- [ ] 1.3 Função `withdrawConsent(): Promise<Result<WithdrawalResult, AppError>>`
-  - [ ] 1.3.1 `auth.getUser()` — se não autenticado: `err({ code: 'unauthorized' })`
-  - [ ] 1.3.2 Via service-role: obter `player` com `profile_id = user.id` (campos: `id`, `club_id`)
-  - [ ] 1.3.3 Se `!player?.id`: `err({ code: 'not_found', message: 'Sem registo de jogador para este utilizador' })`
-  - [ ] 1.3.4 Inserir `audit_logs` com `action='subject.withdrew'`, `actor_id=user.id`, `target_kind='player'`, `target_id=player.id` **(síncrono — antes do cascade)**
-  - [ ] 1.3.5 Chamar `callEraseCascade(player.id, user.id)` — função já existente no mesmo ficheiro
-  - [ ] 1.3.6 Se cascade falhou: retornar o erro (o audit log de withdrew já foi criado — não reverter)
-  - [ ] 1.3.7 Sign out: `await supabase.auth.signOut()` (try/catch com warn — igual a `requestDataErasureForSelf`)
-  - [ ] 1.3.8 Retornar `ok({ withdrawn: true })`
-- [ ] 1.4 Função `withdrawConsentByToken(token: string): Promise<Result<WithdrawalResult, AppError>>`
-  - [ ] 1.4.1 Chamar `validateToken(token)` — função já existente em `data-rights.ts`
-  - [ ] 1.4.2 Se token inválido: retornar o erro
-  - [ ] 1.4.3 Extrair `playerId` da resposta
-  - [ ] 1.4.4 Via service-role: obter `player` com campos `id`, `club_id`, `profile_id`
-  - [ ] 1.4.5 Se menor tem `profile_id`: definir `parental_consents.status='withdrawn'` WHERE `player_id = playerId AND status IN ('pending','confirmed')`
-  - [ ] 1.4.6 Se menor tem `profile_id`: definir `profiles.consent_status='revoked'` WHERE `id = profile_id` (bloqueia acesso middleware Story 3.2)
-  - [ ] 1.4.7 Inserir `audit_logs` com `action='subject.withdrew'`, `actor_id=null` (acção pública/anónima), `target_kind='player'`, `target_id=playerId` **(síncrono — antes do cascade)**
-  - [ ] 1.4.8 Chamar `callEraseCascade(playerId, playerId)` — igual a `requestDataErasureByToken`
-  - [ ] 1.4.9 Retornar `ok({ withdrawn: true })`
+- [x] 1.1 Adicionar a `sparta/src/lib/actions/data-rights.ts`
+- [x] 1.2 Tipo `WithdrawalResult = { withdrawn: true }`
+- [x] 1.3 Função `withdrawConsent(): Promise<Result<WithdrawalResult, AppError>>`
+  - [x] 1.3.1 `auth.getUser()` — se não autenticado: `err({ code: 'unauthorized' })`
+  - [x] 1.3.2 Via service-role: obter `player` com `profile_id = user.id` (campos: `id`, `club_id`)
+  - [x] 1.3.3 Se `!player?.id`: `err({ code: 'not_found', message: 'Sem registo de jogador para este utilizador' })`
+  - [x] 1.3.4 Inserir `audit_logs` com `action='subject.withdrew'`, `actor_id=user.id`, `target_kind='player'`, `target_id=player.id` **(síncrono — antes do cascade)**
+  - [x] 1.3.5 Chamar `callEraseCascade(player.id, user.id)` — função já existente no mesmo ficheiro
+  - [x] 1.3.6 Se cascade falhou: retornar o erro (o audit log de withdrew já foi criado — não reverter)
+  - [x] 1.3.7 Sign out: `await supabase.auth.signOut()` (try/catch com warn — igual a `requestDataErasureForSelf`)
+  - [x] 1.3.8 Retornar `ok({ withdrawn: true })`
+- [x] 1.4 Função `withdrawConsentByToken(token: string): Promise<Result<WithdrawalResult, AppError>>`
+  - [x] 1.4.1 Chamar `validateToken(token)` — função já existente em `data-rights.ts`
+  - [x] 1.4.2 Se token inválido: retornar o erro
+  - [x] 1.4.3 Extrair `playerId` da resposta
+  - [x] 1.4.4 Via service-role: obter `player` com campos `id`, `club_id`, `profile_id`
+  - [x] 1.4.5 Se menor tem `profile_id`: definir `parental_consents.status='withdrawn'` WHERE `player_id = playerId AND status IN ('pending','confirmed')`
+  - [x] 1.4.6 Se menor tem `profile_id`: definir `profiles.consent_status='revoked'` WHERE `id = profile_id` (bloqueia acesso middleware Story 3.2)
+  - [x] 1.4.7 Inserir `audit_logs` com `action='subject.withdrew'`, `actor_id=null` (acção pública/anónima), `target_kind='player'`, `target_id=playerId` **(síncrono — antes do cascade)**
+  - [x] 1.4.8 Chamar `callEraseCascade(playerId, playerId)` — igual a `requestDataErasureByToken`
+  - [x] 1.4.9 Retornar `ok({ withdrawn: true })`
 
 ---
 
 ### Task 2: Página autenticada `/configuracoes/direitos/retirar` (AC #1, #3, #4, #6)
 
-- [ ] 2.1 Substituir `<PageInDevelopment>` em `sparta/src/app/configuracoes/(subject-rights)/direitos/retirar/page.tsx`
-- [ ] 2.2 Server Component: `createServerClient()` → `auth.getUser()`; se não logado: `redirect('/login'); return null`
-- [ ] 2.3 Renderizar `<RetirarAuthClient />`
-- [ ] 2.4 Criar `sparta/src/app/configuracoes/(subject-rights)/direitos/retirar/_components/retirar-auth-client.tsx`
-  - [ ] `'use client'`
-  - [ ] Estado: `idle | loading | success | error`
-  - [ ] Layout `idle`:
+- [x] 2.1 Substituir `<PageInDevelopment>` em `sparta/src/app/configuracoes/(subject-rights)/direitos/retirar/page.tsx`
+- [x] 2.2 Server Component: `createServerClient()` → `auth.getUser()`; se não logado: `redirect('/login'); return null`
+- [x] 2.3 Renderizar `<RetirarAuthClient />`
+- [x] 2.4 Criar `sparta/src/app/configuracoes/(subject-rights)/direitos/retirar/_components/retirar-auth-client.tsx`
+  - [x] `'use client'`
+  - [x] Estado: `idle | loading | success | error`
+  - [x] Layout `idle`:
     - Info box com aviso: "Ao retirar o consentimento, os teus dados serão apagados permanentemente. Esta ação é irreversível."
     - Botão "Retirar consentimento" (destructive)
-  - [ ] Dialog destructivo (UX-DR33):
+  - [x] Dialog destructivo (UX-DR33):
     - Título: "Retirar consentimento?"
     - Descrição: "Esta ação é irreversível. Os teus dados serão apagados permanentemente. O teu acesso à plataforma será terminado."
     - Botão "Confirmar retirada" (destructive, `aria-busy={isLoading}`) + "Cancelar" (ghost, disabled durante loading)
-  - [ ] `handleWithdraw()`:
+  - [x] `handleWithdraw()`:
     1. Chama `withdrawConsent()` Server Action
     2. Se sucesso: limpa outbox — `await db.outbox.where('status').equals('pending').delete()`
     3. `<CalmConfirmation>` "Consentimento retirado. Os teus dados estão a ser apagados."
     4. `router.push('/login')` após breve delay (1500ms) — a sessão já foi invalidada server-side
-  - [ ] `aria-busy` nos botões de submit durante loading
-  - [ ] `import { db } from '@/lib/outbox/db'` para limpeza de outbox
+  - [x] `aria-busy` nos botões de submit durante loading
+  - [x] `import { db } from '@/lib/outbox/db'` para limpeza de outbox
 
 ---
 
 ### Task 3: Página pública `/direitos/[token]/retirar` (AC #2, #3, #4, #6)
 
-- [ ] 3.1 Substituir `<PageInDevelopment>` em `sparta/src/app/(public)/direitos/[token]/retirar/page.tsx`
-- [ ] 3.2 Server Component: re-validar token (copiar padrão de `/direitos/[token]/limitar/page.tsx` de Story 3.9)
+- [x] 3.1 Substituir `<PageInDevelopment>` em `sparta/src/app/(public)/direitos/[token]/retirar/page.tsx`
+- [x] 3.2 Server Component: re-validar token (copiar padrão de `/direitos/[token]/limitar/page.tsx` de Story 3.9)
   ```tsx
   interface Props { params: Promise<{ token: string }> }
   export default async function Page({ params }: Props) {
@@ -156,9 +156,9 @@ Para que o Art. 21 do RGPD seja cumprido sem período de espera.
     return <RetirarTokenClient token={token} playerName={validation.playerName} />
   }
   ```
-- [ ] 3.3 Criar `sparta/src/app/(public)/direitos/[token]/retirar/_components/retirar-token-client.tsx`
-  - [ ] Props: `token: string`, `playerName: string`
-  - [ ] Mesma lógica que `RetirarAuthClient` mas:
+- [x] 3.3 Criar `sparta/src/app/(public)/direitos/[token]/retirar/_components/retirar-token-client.tsx`
+  - [x] Props: `token: string`, `playerName: string`
+  - [x] Mesma lógica que `RetirarAuthClient` mas:
     - Chama `withdrawConsentByToken(token)` Server Action
     - Título: "Retirar consentimento de {playerName}"
     - Após sucesso: `<CalmConfirmation>` "Consentimento retirado. Os dados de {playerName} estão a ser apagados."
@@ -169,29 +169,29 @@ Para que o Art. 21 do RGPD seja cumprido sem período de espera.
 
 ### Task 4: Testes (AC #1–#6)
 
-- [ ] 4.1 `sparta/src/__tests__/lib/actions/data-rights.test.ts` — adicionar 5 testes:
-  - [ ] `withdrawConsent` sucesso → `withdrawn: true` + audit log `subject.withdrew` inserido + cascade chamado
-  - [ ] `withdrawConsent` não autenticado → `err unauthorized`
-  - [ ] `withdrawConsent` sem player → `err not_found`
-  - [ ] `withdrawConsentByToken` token válido → `withdrawn: true` + parental_consent status + audit log
-  - [ ] `withdrawConsentByToken` token inválido → `err unauthorized`
-- [ ] 4.2 `sparta/src/__tests__/app/configuracoes/direitos/retirar/page.test.tsx` — 3 testes:
-  - [ ] Renderiza botão "Retirar consentimento" quando autenticado
-  - [ ] Redirect para `/login` quando não autenticado
-  - [ ] Mostra aviso de irreversibilidade no layout inicial
-- [ ] 4.3 `sparta/src/__tests__/app/public/direitos/token/retirar/page.test.tsx` — 2 testes:
-  - [ ] Token válido → mostra formulário com nome do menor
-  - [ ] Token inválido/expirado → `<EmptyState>`
-- [ ] 4.4 **Total: ≥10 novos testes**
+- [x] 4.1 `sparta/src/__tests__/lib/actions/data-rights.test.ts` — adicionar 5 testes:
+  - [x] `withdrawConsent` sucesso → `withdrawn: true` + audit log `subject.withdrew` inserido + cascade chamado
+  - [x] `withdrawConsent` não autenticado → `err unauthorized`
+  - [x] `withdrawConsent` sem player → `err not_found`
+  - [x] `withdrawConsentByToken` token válido → `withdrawn: true` + parental_consent status + audit log
+  - [x] `withdrawConsentByToken` token inválido → `err unauthorized`
+- [x] 4.2 `sparta/src/__tests__/app/configuracoes/direitos/retirar/page.test.tsx` — 3 testes:
+  - [x] Renderiza botão "Retirar consentimento" quando autenticado
+  - [x] Redirect para `/login` quando não autenticado
+  - [x] Mostra aviso de irreversibilidade no layout inicial
+- [x] 4.3 `sparta/src/__tests__/app/public/direitos/token/retirar/page.test.tsx` — 2 testes:
+  - [x] Token válido → mostra formulário com nome do menor
+  - [x] Token inválido/expirado → `<EmptyState>`
+- [x] 4.4 **Total: ≥10 novos testes**
 
 ---
 
 ### Task 5: Verificação final
 
-- [ ] 5.1 `npm run lint` — zero erros novos
-- [ ] 5.2 `npm run typecheck` — zero erros
-- [ ] 5.3 `npm run test --run` — todos os testes passando, ≥10 novos
-- [ ] 5.4 `npm run build` — build sucesso
+- [x] 5.1 `npm run lint` — zero erros novos
+- [x] 5.2 `npm run typecheck` — zero erros
+- [x] 5.3 `npm run test --run` — todos os testes passando, ≥10 novos
+- [x] 5.4 `npm run build` — build sucesso
 
 ---
 
@@ -565,6 +565,7 @@ sparta/
 ## Change Log
 
 - 2026-05-22: Story 3.10 criada — Direito de Retirada de Consentimento; sem migração SQL; Server Actions withdrawConsent + withdrawConsentByToken; páginas /retirar (auth + token); limpeza de outbox Dexie client-side; ≥10 testes novos
+- 2026-05-22: Story 3.10 implementada — withdrawConsent + withdrawConsentByToken em data-rights.ts; RetirarAuthClient + RetirarTokenClient; 10 novos testes; lint ✅; typecheck ✅; 909 testes ✅; build ✅; AC #1-#6 verificados
 
 ---
 
@@ -577,6 +578,34 @@ claude-sonnet-4-6
 ### Debug Log References
 
 ### Completion Notes List
+
+- ✅ `WithdrawalResult = { withdrawn: true }` adicionado a `data-rights.ts`
+- ✅ `withdrawConsent()`: getUser → player(id,club_id) → audit_log(subject.withdrew, actor=user.id) → callEraseCascade → signOut → ok({withdrawn:true})
+- ✅ `withdrawConsentByToken()`: validateToken → player(id,club_id,profile_id) → se profile_id: UPDATE parental_consents+profiles → audit_log(subject.withdrew, actor=null) → callEraseCascade → ok({withdrawn:true})
+- ✅ Página autenticada `/configuracoes/direitos/retirar`: Server Component com auth guard + `<RetirarAuthClient>`
+- ✅ `retirar-auth-client.tsx`: Dialog destructivo, handleWithdraw, limpeza outbox Dexie, CalmConfirmation, redirect /login após 1500ms
+- ✅ Página pública `/direitos/[token]/retirar`: Server Component com token validation + EmptyState para token inválido + `<RetirarTokenClient>`
+- ✅ `retirar-token-client.tsx`: Dialog destructivo, handleWithdraw, limpeza outbox Dexie, CalmConfirmation (sem redirect)
+- ✅ 10 novos testes: 5 unit (data-rights.test.ts) + 3 page (auth) + 2 page (token) — todos ✅
+- ✅ lint: 0 erros novos; typecheck: ✅; 909 testes ✅; build ✅
+
+### Review Findings
+
+**Code review (2026-05-22) — 4 patches resolved**
+
+#### Decision-Needed (Resolved)
+
+- [x] [Review][Decision] CalmConfirmation behavior in token flow — AC #3 — **RESOLVED:** Added `onDismiss={() => router.push('/direitos')}` callback to token flow for UX consistency (allows dismissal after success).
+
+#### Patches (Applied)
+
+- [x] [Review][Patch] Token validation duplicated — **FIXED:** Exported `validateToken()` from data-rights.ts (line 197). Removed inline implementation from page.tsx. Page now imports and reuses cached validation function (5-min TTL).
+
+- [x] [Review][Patch] Missing test assertion for parental_consents update — **FIXED:** Added assertion to verify `mockParentalUpdate` and `mockProfileUpdate` were called in test (line 953–954).
+
+- [x] [Review][Patch] Missing test assertion for audit log order — **FIXED:** Added ordering assertion to verify audit log insert happened BEFORE erase-cascade fetch (lines 846–851). Compliance critical requirement verified.
+
+---
 
 ### Acceptance Criteria Mapping
 

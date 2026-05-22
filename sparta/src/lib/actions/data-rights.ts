@@ -8,6 +8,8 @@ import { createHash } from 'crypto'
 
 export type ErasureResult = { erased: true }
 
+export type WithdrawalResult = { withdrawn: true }
+
 export type ExportResult = { async: boolean; url?: string }
 
 const TOKEN_PATTERN = /^[a-zA-Z0-9_-]{1,256}$/
@@ -192,7 +194,7 @@ export async function requestDataExportByToken(token: string): Promise<Result<Ex
   return callExportCsv(validation.playerId as string)
 }
 
-async function validateToken(token: string): Promise<Result<TokenValidationResponse, AppError>> {
+export async function validateToken(token: string): Promise<Result<TokenValidationResponse, AppError>> {
   if (!TOKEN_PATTERN.test(token)) {
     return err({ code: 'unauthorized', message: 'Token inválido ou expirado' })
   }
@@ -257,6 +259,117 @@ export async function requestDataErasureByToken(token: string): Promise<Result<E
 
   const validation = validationResult.data
   return callEraseCascade(validation.playerId as string, validation.playerId as string)
+}
+
+// =============================================================================
+// Story 3.10: Direito de Retirada de Consentimento (RGPD Art. 21)
+// =============================================================================
+
+export async function withdrawConsent(): Promise<Result<WithdrawalResult, AppError>> {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return err({ code: 'unauthorized', message: 'Não autenticado' })
+  }
+
+  const serviceRole = getServiceRoleClient()
+  const { data: player } = await serviceRole
+    .from('players')
+    .select('id, club_id')
+    .eq('profile_id', user.id)
+    .maybeSingle()
+
+  if (!player?.id) {
+    return err({ code: 'not_found', message: 'Sem registo de jogador para este utilizador' })
+  }
+
+  // Audit log BEFORE cascade — compliance crítico (AC #5)
+  const { error: auditError } = await serviceRole.from('audit_logs').insert({
+    club_id: player.club_id as string,
+    actor_id: user.id,
+    action: 'subject.withdrew',
+    target_kind: 'player',
+    target_id: player.id as string,
+    payload: { withdrawn_at: new Date().toISOString(), via: 'authenticated' },
+  })
+
+  if (auditError) {
+    console.error('[data-rights] withdrawConsent audit insert error:', auditError.message)
+    return err({ code: 'internal', message: 'Falha no registo de auditoria' })
+  }
+
+  const cascadeResult = await callEraseCascade(player.id as string, user.id)
+
+  if (!cascadeResult.ok) {
+    return err(cascadeResult.error)
+  }
+
+  try {
+    await supabase.auth.signOut()
+  } catch (signOutError) {
+    console.warn('[data-rights] signOut failed during withdrawal:', signOutError instanceof Error ? signOutError.message : signOutError)
+  }
+
+  return ok({ withdrawn: true })
+}
+
+export async function withdrawConsentByToken(token: string): Promise<Result<WithdrawalResult, AppError>> {
+  const validationResult = await validateToken(token)
+
+  if (!validationResult.ok) {
+    return validationResult
+  }
+
+  const playerId = validationResult.data.playerId as string
+
+  const serviceRole = getServiceRoleClient()
+  const { data: player } = await serviceRole
+    .from('players')
+    .select('id, club_id, profile_id')
+    .eq('id', playerId)
+    .maybeSingle()
+
+  if (!player?.id) {
+    return err({ code: 'not_found', message: 'Jogador não encontrado' })
+  }
+
+  // Só atualiza parental_consents e profiles se o menor tem account
+  if (player.profile_id) {
+    await serviceRole
+      .from('parental_consents')
+      .update({ status: 'withdrawn' })
+      .eq('player_id', playerId)
+      .in('status', ['pending', 'confirmed'])
+
+    await serviceRole
+      .from('profiles')
+      .update({ consent_status: 'revoked' })
+      .eq('id', player.profile_id as string)
+  }
+
+  // Audit log BEFORE cascade — compliance crítico (AC #5)
+  const { error: auditError } = await serviceRole.from('audit_logs').insert({
+    club_id: player.club_id as string,
+    actor_id: null,
+    action: 'subject.withdrew',
+    target_kind: 'player',
+    target_id: playerId,
+    payload: { withdrawn_at: new Date().toISOString(), via: 'token' },
+  })
+
+  if (auditError) {
+    console.error('[data-rights] withdrawConsentByToken audit insert error:', auditError.message)
+    return err({ code: 'internal', message: 'Falha no registo de auditoria' })
+  }
+
+  const cascadeResult = await callEraseCascade(playerId, playerId)
+
+  if (!cascadeResult.ok) {
+    return err(cascadeResult.error)
+  }
+
+  return ok({ withdrawn: true })
 }
 
 // =============================================================================

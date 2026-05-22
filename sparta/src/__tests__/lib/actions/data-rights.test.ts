@@ -23,6 +23,8 @@ import {
   unrestrictProcessing,
   restrictProcessingByToken,
   checkProcessingRestricted,
+  withdrawConsent,
+  withdrawConsentByToken,
   __clearTokenValidationCache,
 } from '@/lib/actions/data-rights'
 
@@ -767,6 +769,226 @@ describe('restrictProcessingByToken', () => {
         actor_id: null,
       })
     )
+  })
+})
+
+// =============================================================================
+// Story 3.10: Direito de Retirada de Consentimento
+// =============================================================================
+
+const CLUB_ID_3_10 = 'f0000000-0000-7000-8000-000000000010'
+
+describe('withdrawConsent', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://localhost:54321')
+    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role-key')
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
+  })
+
+  it('sucesso: retorna withdrawn:true, audit log subject.withdrew inserido, cascade chamado', async () => {
+    const mockSignOut = vi.fn().mockResolvedValue({ error: null })
+    mockCreateServerClient.mockResolvedValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: { id: USER_ID } } }),
+        signOut: mockSignOut,
+      },
+    })
+
+    const mockAuditInsert = vi.fn().mockResolvedValue({ error: null })
+
+    mockGetServiceRoleClient.mockReturnValue({
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === 'players') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: { id: PLAYER_ID, club_id: CLUB_ID_3_10 },
+              error: null,
+            }),
+          }
+        }
+        if (table === 'audit_logs') {
+          return { insert: mockAuditInsert }
+        }
+        return {}
+      }),
+    })
+
+    // Mock erase-cascade Edge Function
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ ok: true, erased: true }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    ))
+
+    const result = await withdrawConsent()
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.data.withdrawn).toBe(true)
+    }
+
+    // Verify audit log was inserted with correct action (compliance critical)
+    expect(mockAuditInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'subject.withdrew',
+        actor_id: USER_ID,
+        target_kind: 'player',
+        target_id: PLAYER_ID,
+      })
+    )
+
+    // Verify audit log was inserted BEFORE cascade (fetch call)
+    // This ensures compliance ordering: audit log must exist before erasure
+    const mockFetch = global.fetch as ReturnType<typeof vi.fn>
+    expect(mockAuditInsert.mock.invocationCallOrder[0]).toBeLessThan(
+      mockFetch.mock.invocationCallOrder[0] ?? Infinity
+    )
+
+    expect(mockSignOut).toHaveBeenCalled()
+  })
+
+  it('não autenticado: retorna err unauthorized', async () => {
+    mockCreateServerClient.mockResolvedValue({
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: null } }) },
+    })
+
+    const result = await withdrawConsent()
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.error.code).toBe('unauthorized')
+    }
+  })
+
+  it('sem player: retorna err not_found', async () => {
+    mockCreateServerClient.mockResolvedValue({
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: USER_ID } } }) },
+    })
+    mockGetServiceRoleClient.mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      }),
+    })
+
+    const result = await withdrawConsent()
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.error.code).toBe('not_found')
+    }
+  })
+})
+
+describe('withdrawConsentByToken', () => {
+  beforeEach(async () => {
+    vi.clearAllMocks()
+    await __clearTokenValidationCache()
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://localhost:54321')
+    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role-key')
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
+  })
+
+  it('token válido: retorna withdrawn:true, parental_consents atualizado, audit log inserido', async () => {
+    const mockAuditInsert = vi.fn().mockResolvedValue({ error: null })
+    const mockParentalUpdate = vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockResolvedValue({ error: null }),
+    })
+    const mockProfileUpdate = vi.fn().mockReturnValue({
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    })
+
+    const mockFetch = vi.fn()
+      // Primeira chamada: validate-subject-token
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ valid: true, playerId: PLAYER_ID, playerName: 'João' }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      )
+      // Segunda chamada: erase-cascade
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ ok: true, erased: true }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      )
+    vi.stubGlobal('fetch', mockFetch)
+
+    mockGetServiceRoleClient.mockReturnValue({
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === 'players') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: { id: PLAYER_ID, club_id: CLUB_ID_3_10, profile_id: USER_ID },
+              error: null,
+            }),
+          }
+        }
+        if (table === 'parental_consents') {
+          return { update: mockParentalUpdate }
+        }
+        if (table === 'profiles') {
+          return { update: mockProfileUpdate }
+        }
+        if (table === 'audit_logs') {
+          return { insert: mockAuditInsert }
+        }
+        return {}
+      }),
+    })
+
+    const result = await withdrawConsentByToken('valid-token-abc123')
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.data.withdrawn).toBe(true)
+    }
+
+    // Verify parental_consents.status update was called
+    expect(mockParentalUpdate).toHaveBeenCalled()
+
+    // Verify profiles.consent_status update was called
+    expect(mockProfileUpdate).toHaveBeenCalled()
+
+    // Verify audit log was inserted
+    expect(mockAuditInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'subject.withdrew',
+        actor_id: null,
+        target_kind: 'player',
+        target_id: PLAYER_ID,
+      })
+    )
+  })
+
+  it('token inválido (formato errado): retorna err unauthorized sem fetch', async () => {
+    const mockFetch = vi.fn()
+    vi.stubGlobal('fetch', mockFetch)
+
+    const result = await withdrawConsentByToken('bad token!!!')
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.error.code).toBe('unauthorized')
+    }
+    expect(mockFetch).not.toHaveBeenCalled()
   })
 })
 
