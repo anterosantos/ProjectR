@@ -57,9 +57,10 @@ export async function proxy(request: NextRequest) {
       .eq("id", typedUser.id)
       .single();
 
-    // Block access unless consent is confirmed. 'not_required' (default) also blocks minors
+    // Block access unless consent is granted. 'not_required' (default) also blocks minors
     // because consent may not have been requested yet. NULL edge case also blocks (safe default).
-    if (profileData?.consent_status !== "confirmed") {
+    // Note: profiles.consent_status uses 'granted' (not 'confirmed') — see migration 000170.
+    if (profileData?.consent_status !== "granted") {
       const { data: playerData } = await supabase
         .from("players")
         .select("birthdate")

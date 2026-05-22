@@ -91,8 +91,8 @@ describe("Consent Gate — proxy.ts", () => {
     expect(res?.status).not.toBe(307);
   });
 
-  it("confirmed → flow normal (não redireciona)", async () => {
-    mockUpdateSession.mockResolvedValue(sessionForPlayer("confirmed", BIRTHDATE_14));
+  it("granted → flow normal (consentimento confirmado, não redireciona)", async () => {
+    mockUpdateSession.mockResolvedValue(sessionForPlayer("granted", BIRTHDATE_14));
     const req = new NextRequest(new URL("http://localhost:3000/hoje"));
     const res = await proxy(req);
     expect(res?.status).not.toBe(307);
