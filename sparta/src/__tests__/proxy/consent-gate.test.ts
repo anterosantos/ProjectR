@@ -141,6 +141,24 @@ describe("Consent Gate — proxy.ts", () => {
     expect(res?.headers.get("location")).toContain("/aguardar-consentimento");
   });
 
+  it("apenas claims.role='authenticated' (sem user_role) + player menor → redireciona", async () => {
+    // Regression: claims.role is the Supabase DB role ("authenticated"), NOT the app role.
+    // Previously proxy.ts fell back to claims.role, causing effectiveRole="authenticated"
+    // which bypassed the gate for all players. Fix: only use claims.user_role.
+    mockGetServiceRoleClient.mockReturnValue(
+      makeServiceRoleMock("player", "not_required", BIRTHDATE_14)
+    );
+    mockUpdateSession.mockResolvedValue({
+      user: { id: PLAYER_ID, email: "player@test.test" },
+      claims: { role: "authenticated" }, // Supabase DB role, no app role
+      response: NextResponse.next(),
+    });
+    const req = new NextRequest(new URL("http://localhost:3000/hoje"));
+    const res = await proxy(req);
+    expect(res?.status).toBe(307);
+    expect(res?.headers.get("location")).toContain("/aguardar-consentimento");
+  });
+
   it("sem JWT claims + analyst → não aplica gate (DB confirma role não-player)", async () => {
     mockGetServiceRoleClient.mockReturnValue(
       makeServiceRoleMock("analyst", "not_required", null)
