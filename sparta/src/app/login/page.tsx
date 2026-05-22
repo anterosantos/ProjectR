@@ -32,13 +32,30 @@ export default function LoginPage() {
     if (!hash.includes("type=invite")) return;
 
     const supabase = createClient();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
-        subscription.unsubscribe();
+    let cancelled = false;
+    let subscription: { unsubscribe: () => void } | null = null;
+
+    // SDK may have already processed the hash before this effect ran — check session first
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (cancelled) return;
+      if (session) {
         router.replace("/reset-password?from=invite");
+        return;
       }
+      // Session not ready yet — wait for SIGNED_IN
+      const { data } = supabase.auth.onAuthStateChange((event, s) => {
+        if (event === "SIGNED_IN" && s && !cancelled) {
+          data.subscription.unsubscribe();
+          router.replace("/reset-password?from=invite");
+        }
+      });
+      subscription = data.subscription;
     });
-    return () => subscription.unsubscribe();
+
+    return () => {
+      cancelled = true;
+      subscription?.unsubscribe();
+    };
   }, [router]);
 
   useEffect(() => {
