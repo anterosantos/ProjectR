@@ -11,7 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { restrictProcessing, unrestrictProcessing } from '@/lib/actions/data-rights'
+import { restrictProcessing, unrestrictProcessing, type RestrictionResult } from '@/lib/actions/data-rights'
+import type { Result, AppError } from '@/lib/types'
 
 interface LimitarAuthClientProps {
   initialRestricted: boolean
@@ -37,7 +38,7 @@ export function LimitarAuthClient({ initialRestricted, initialRestrictedAt }: Li
   const [errorMessage, setErrorMessage] = useState('')
   const [isRestrictDialogOpen, setIsRestrictDialogOpen] = useState(false)
   const [isUnrestrictDialogOpen, setIsUnrestrictDialogOpen] = useState(false)
-  const pendingRequestRef = useRef<Promise<any> | null>(null)
+  const pendingRequestRef = useRef<Promise<Result<RestrictionResult, AppError>> | null>(null)
 
   const isLoading = state === 'loading'
 

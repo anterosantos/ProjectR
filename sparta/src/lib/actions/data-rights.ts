@@ -6,9 +6,6 @@ import type { Result, AppError } from '@/lib/types'
 import { ok, err } from '@/lib/types'
 import { createHash } from 'crypto'
 
-// Memoization cache for validateToken with 5-minute TTL
-const tokenValidationCache = new Map<string, { data: any; expiry: number }>()
-
 export type ErasureResult = { erased: true }
 
 export type ExportResult = { async: boolean; url?: string }
@@ -21,6 +18,14 @@ interface TokenValidationResponse {
   playerName?: string
   reason?: string
 }
+
+interface CacheEntry {
+  data: TokenValidationResponse
+  expiry: number
+}
+
+// Memoization cache for validateToken with 5-minute TTL
+const tokenValidationCache = new Map<string, CacheEntry>()
 
 async function callExportCsv(playerId: string): Promise<Result<ExportResult, AppError>> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL

@@ -11,7 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { restrictProcessingByToken, unrestrictProcessingByToken } from '@/lib/actions/data-rights'
+import { restrictProcessingByToken, unrestrictProcessingByToken, type RestrictionResult } from '@/lib/actions/data-rights'
+import type { Result, AppError } from '@/lib/types'
 
 interface LimitarTokenClientProps {
   token: string
@@ -28,7 +29,7 @@ export function LimitarTokenClient({ token, playerName, initialRestricted }: Lim
   const [isRestrictDialogOpen, setIsRestrictDialogOpen] = useState(false)
   const [isUnrestrictDialogOpen, setIsUnrestrictDialogOpen] = useState(false)
   const [cooldownSeconds, setCooldownSeconds] = useState(0)
-  const pendingRequestRef = useRef<Promise<any> | null>(null)
+  const pendingRequestRef = useRef<Promise<Result<RestrictionResult, AppError>> | null>(null)
 
   const isLoading = state === 'loading'
   const isCoolingDown = state === 'cooldown' && cooldownSeconds > 0
