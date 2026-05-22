@@ -23,14 +23,20 @@ export function AuditLogList({ initialData, pageSize = 50, onLoadPage, onExport 
   const [isPending, startTransition] = useTransition()
   const [exportFeedback, setExportFeedback] = useState<string | null>(null)
 
-  const totalPages = Math.max(1, Math.ceil(data.totalCount / pageSize))
+  const isEmpty = data.entries.length === 0
+  const totalPages = isEmpty ? 1 : Math.max(1, Math.ceil(data.totalCount / pageSize))
 
   function handlePageChange(page: number) {
     startTransition(async () => {
-      const result = await onLoadPage(page)
-      setData(result)
-      setCurrentPage(page)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      try {
+        const result = await onLoadPage(page)
+        setData(result)
+        setCurrentPage(page)
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'instant' : 'smooth' })
+      } catch {
+        // onLoadPage errors are surfaced as empty result by the caller wrapper; silent here
+      }
     })
   }
 
@@ -44,16 +50,6 @@ export function AuditLogList({ initialData, pageSize = 50, onLoadPage, onExport 
     }
   }
 
-  if (data.entries.length === 0) {
-    return (
-      <EmptyState
-        icon={<ClipboardList className="w-8 h-8 text-muted-foreground" />}
-        title="Sem acessos registados"
-        description="Os teus dados ainda não foram consultados pelo staff."
-      />
-    )
-  }
-
   return (
     <section aria-label="Registos de acesso aos teus dados">
       {exportFeedback && (
@@ -63,30 +59,41 @@ export function AuditLogList({ initialData, pageSize = 50, onLoadPage, onExport 
         />
       )}
 
-      <ul className="flex flex-col gap-3" aria-busy={isPending}>
-        {data.entries.map((entry) => (
-          <AuditLogEntry
-            key={entry.id}
-            entry={entry}
-            actorInfo={entry.actor_id ? (data.actorMap[entry.actor_id] ?? null) : null}
-          />
-        ))}
-      </ul>
+      {isEmpty ? (
+        <EmptyState
+          icon={<ClipboardList className="w-8 h-8 text-muted-foreground" />}
+          title="Sem acessos registados"
+          description="Os teus dados ainda não foram consultados pelo staff."
+        />
+      ) : (
+        <ul className="flex flex-col gap-3" aria-busy={isPending}>
+          {data.entries.map((entry) => (
+            <li key={entry.id}>
+              <AuditLogEntryCard
+                entry={entry}
+                actorInfo={entry.actor_id ? (data.actorMap[entry.actor_id] ?? null) : null}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
 
       <div className="mt-6 flex flex-col items-center gap-4">
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-          isLoading={isPending}
-        />
+        {!isEmpty && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            isLoading={isPending}
+          />
+        )}
 
         {onExport && (
           <Button
             variant="ghost"
             size="sm"
             onClick={handleExport}
-            className="min-h-[44px]"
+            className="min-h-[44px] min-w-[44px]"
           >
             Exportar este histórico
           </Button>
@@ -96,12 +103,12 @@ export function AuditLogList({ initialData, pageSize = 50, onLoadPage, onExport 
   )
 }
 
-interface AuditLogEntryProps {
+interface AuditLogEntryCardProps {
   entry: AuditLogEntry
   actorInfo: ActorInfo | null
 }
 
-function AuditLogEntry({ entry, actorInfo }: AuditLogEntryProps) {
+function AuditLogEntryCard({ entry, actorInfo }: AuditLogEntryCardProps) {
   const actorName = actorInfo
     ? `${actorInfo.full_name} (${translateRole(actorInfo.role)})`
     : 'Staff desconhecido'

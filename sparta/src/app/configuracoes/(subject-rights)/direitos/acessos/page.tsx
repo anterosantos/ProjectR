@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { getAuditLogForSubject } from '@/lib/actions/audit-visibility'
@@ -26,22 +27,22 @@ export default async function AcessosPage() {
         aria-label="Breadcrumb"
       >
         <ol className="flex items-center gap-2">
-          <li>Configurações</li>
-          <li>/</li>
-          <li>Os meus direitos</li>
-          <li>/</li>
-          <li className="text-foreground font-medium">Acessos</li>
+          <li><Link href="/configuracoes" className="hover:underline">Configurações</Link></li>
+          <li aria-hidden="true">/</li>
+          <li><Link href="/configuracoes/direitos" className="hover:underline">Os meus direitos</Link></li>
+          <li aria-hidden="true">/</li>
+          <li aria-current="page" className="text-foreground font-medium">Acessos</li>
         </ol>
       </nav>
 
-      <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold">Quem consultou os teus dados?</h1>
-        <p className="text-muted-foreground text-sm">
-          Registos dos últimos 12 meses. Apenas acessos a dados de saúde.
-        </p>
-      </header>
+      <main id="main-content" className="flex flex-col gap-6">
+        <header className="flex flex-col gap-2">
+          <h1 className="text-2xl font-bold">Quem consultou os teus dados?</h1>
+          <p className="text-muted-foreground text-sm">
+            Registos dos últimos 12 meses. Apenas acessos a dados de saúde.
+          </p>
+        </header>
 
-      <main id="main-content">
         <AuditLogListClient
           initialData={initialData}
           subjectId={user.id}

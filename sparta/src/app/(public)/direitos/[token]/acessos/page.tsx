@@ -1,7 +1,8 @@
+import Link from 'next/link'
 import { XCircle } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { getAuditLogForSubjectByToken } from '@/lib/actions/audit-visibility'
-import { requestDataExportByToken, validateToken } from '@/lib/actions/data-rights'
+import { requestDataExportByToken } from '@/lib/actions/data-rights'
 import { AuditLogListTokenClient } from './_components/audit-log-list-token-client'
 
 interface AcessosTokenPageProps {
@@ -11,10 +12,11 @@ interface AcessosTokenPageProps {
 export default async function AcessosTokenPage({ params }: AcessosTokenPageProps) {
   const { token } = await params
 
-  const validationResult = await validateToken(token)
+  const PAGE_SIZE = 50
+  const result = await getAuditLogForSubjectByToken(token, 1, PAGE_SIZE)
 
-  if (!validationResult.ok) {
-    const isTimeout = validationResult.error.code === 'token_validation_timeout'
+  if (!result.ok) {
+    const isTimeout = result.error.code === 'token_validation_timeout'
 
     return (
       <div className="flex items-center justify-center min-h-screen p-4">
@@ -31,14 +33,8 @@ export default async function AcessosTokenPage({ params }: AcessosTokenPageProps
     )
   }
 
-  const playerName = validationResult.data.playerName ?? 'Jogador'
-  const PAGE_SIZE = 50
-
-  const result = await getAuditLogForSubjectByToken(token, 1, PAGE_SIZE)
-
-  const initialData = result.ok
-    ? result.data
-    : { entries: [], actorMap: {}, totalCount: 0, hasMore: false }
+  const playerName = result.data.playerName ?? 'Jogador'
+  const initialData = result.data
 
   return (
     <div className="flex flex-col gap-8 p-4 lg:p-6 max-w-2xl mx-auto">
@@ -47,22 +43,22 @@ export default async function AcessosTokenPage({ params }: AcessosTokenPageProps
         aria-label="Breadcrumb"
       >
         <ol className="flex items-center gap-2">
-          <li>Os meus direitos</li>
-          <li>/</li>
-          <li className="text-foreground font-medium">Acessos</li>
+          <li><Link href={`/direitos/${token}`} className="hover:underline">Os meus direitos</Link></li>
+          <li aria-hidden="true">/</li>
+          <li aria-current="page" className="text-foreground font-medium">Acessos</li>
         </ol>
       </nav>
 
-      <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold">
-          Quem consultou os dados de {playerName}?
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          Registos dos últimos 12 meses. Apenas acessos a dados de saúde.
-        </p>
-      </header>
+      <main id="main-content" className="flex flex-col gap-6">
+        <header className="flex flex-col gap-2">
+          <h1 className="text-2xl font-bold">
+            Quem consultou os dados de {playerName}?
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Registos dos últimos 12 meses. Apenas acessos a dados de saúde.
+          </p>
+        </header>
 
-      <main id="main-content">
         <AuditLogListTokenClient
           initialData={initialData}
           token={token}

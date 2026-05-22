@@ -43,5 +43,5 @@ export function translateTargetKind(kind: string): string {
 }
 
 export function translateRole(role: string): string {
-  return ROLE_TRANSLATIONS[role] ?? role
+  return ROLE_TRANSLATIONS[role] ?? 'Staff'
 }

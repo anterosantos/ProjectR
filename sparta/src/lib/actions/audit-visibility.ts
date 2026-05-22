@@ -26,6 +26,26 @@ export interface AuditVisibilityResult {
   actorMap: Record<string, ActorInfo>
   totalCount: number
   hasMore: boolean
+  playerName?: string
+}
+
+// Health-data target_kinds shown to data subjects (AC #9 / D2 decision)
+const HEALTH_TARGET_KINDS = [
+  'fatigue_response',
+  'match_event',
+  'readiness_snapshot',
+  'session_metrics',
+  'player',
+  'profile',
+  'decision',
+]
+
+function sanitizePage(page: number): number {
+  return Math.max(1, Math.floor(page))
+}
+
+function sanitizePageSize(pageSize: number): number {
+  return Math.min(200, Math.max(1, Math.floor(pageSize)))
 }
 
 // =============================================================================
@@ -48,7 +68,7 @@ export async function getAuditLogForSubject(
     return err({ code: 'forbidden', message: 'Sem permissão para ver estes registos' })
   }
 
-  return fetchAuditLogs(subjectId, page, pageSize)
+  return fetchAuditLogs(subjectId, sanitizePage(page), sanitizePageSize(pageSize))
 }
 
 // =============================================================================
@@ -66,7 +86,12 @@ export async function getAuditLogForSubjectByToken(
     return validationResult
   }
 
-  const playerId = validationResult.data.playerId as string
+  const playerId = validationResult.data.playerId
+  if (!playerId) {
+    return err({ code: 'unauthorized', message: 'Token sem jogador associado' })
+  }
+
+  const playerName = validationResult.data.playerName ?? undefined
 
   // Resolve player → profile_id (the uuid stored as target_id in audit_logs for player-based entries)
   const serviceRole = getServiceRoleClient()
@@ -82,7 +107,15 @@ export async function getAuditLogForSubjectByToken(
 
   // audit_logs.target_id can be either player.id or player.profile_id depending on context.
   // We query by player.id (used in most health-data writes) AND profile_id to cover both.
-  return fetchAuditLogsForPlayer(playerId, player.profile_id as string | null, page, pageSize)
+  const result = await fetchAuditLogsForPlayer(
+    playerId,
+    player.profile_id as string | null,
+    sanitizePage(page),
+    sanitizePageSize(pageSize),
+  )
+
+  if (!result.ok) return result
+  return ok({ ...result.data, playerName })
 }
 
 // =============================================================================
@@ -104,7 +137,7 @@ async function fetchAuditLogs(
 
   const { data: rows, error: fetchError, count } = await supabase
     .from('audit_logs')
-    .select('id, actor_id, action, target_kind, target_id, occurred_at, payload', { count: 'exact' })
+    .select('id, actor_id, action, target_kind, target_id, occurred_at', { count: 'exact' })
     .eq('target_id', subjectId)
     .gte('occurred_at', twelveMonthsAgo.toISOString())
     .order('occurred_at', { ascending: false })
@@ -145,8 +178,9 @@ async function fetchAuditLogsForPlayer(
 
   const { data: rows, error: fetchError, count } = await serviceRole
     .from('audit_logs')
-    .select('id, actor_id, action, target_kind, target_id, occurred_at, payload', { count: 'exact' })
+    .select('id, actor_id, action, target_kind, target_id, occurred_at', { count: 'exact' })
     .in('target_id', targetIds)
+    .in('target_kind', HEALTH_TARGET_KINDS)
     .gte('occurred_at', twelveMonthsAgo.toISOString())
     .order('occurred_at', { ascending: false })
     .range(offset, offset + pageSize - 1)
@@ -177,7 +211,6 @@ function rowToEntry(row: Record<string, unknown>): AuditLogEntry {
     target_kind: row.target_kind as string,
     target_id: (row.target_id as string | null) ?? null,
     occurred_at: row.occurred_at as string,
-    payload: (row.payload as Record<string, unknown> | null) ?? null,
   }
 }
 
@@ -189,10 +222,14 @@ async function buildActorMap(entries: AuditLogEntry[]): Promise<Record<string, A
   }
 
   const serviceRole = getServiceRoleClient()
-  const { data: profiles } = await serviceRole
+  const { data: profiles, error: profilesError } = await serviceRole
     .from('profiles')
     .select('id, full_name, role')
     .in('id', actorIds)
+
+  if (profilesError) {
+    console.error('[audit-visibility] buildActorMap error:', profilesError.message)
+  }
 
   const actorMap: Record<string, ActorInfo> = {}
   for (const profile of profiles ?? []) {

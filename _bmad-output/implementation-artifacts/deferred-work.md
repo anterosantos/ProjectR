@@ -2,6 +2,14 @@
 
 Items deferred from code reviews — pre-existing issues, out-of-scope work, or items blocked by future stories.
 
+## Deferred from: code review of 3-12-subject-visibility-who-accessed-my-health-data (2026-05-23)
+
+- **W-1: Cache `tokenValidationCache` serve tokens revogados durante 5 min** [`sparta/src/lib/actions/data-rights.ts`]: Comportamento herdado de Story 3.10; sem mecanismo de invalidação; tokens revogados podem continuar a aceder ao audit log do menor durante até 5 minutos. Mitigar com Redis/Supabase KV quando o volume justificar.
+- **W-2: `createServerClient()` chamado duas vezes em `getAuditLogForSubject`** [`sparta/src/lib/actions/audit-visibility.ts`]: Pattern estabelecido nas stories anteriores; risco de race de sessão negligenciável em condições normais. Refactorizar quando a camada de Supabase for centralizada.
+- **W-3: Campo `hasMore` calculado mas não usado pela paginação** [`sparta/src/lib/actions/audit-visibility.ts`, `sparta/src/components/domain/AuditLogList.tsx`]: Paginação usa `totalCount` directamente; `hasMore` é redundante e induz confusão em leitores futuros. Remover ou usar consistentemente numa refactorização futura.
+- **W-4: Teste de wiring do botão Export a nível de integração em falta** [`sparta/src/components/domain/AuditLogList.test.tsx`]: Wiring testado a nível de componente (prop `onExport`); integração end-to-end requer DB real. Implementar quando infra de testes de integração estiver disponível.
+- **W-5: Teste de isolamento RLS (policy real) em falta** [`sparta/src/lib/actions/audit-visibility.integration.test.ts`]: Testes actuais verificam a guarda aplicacional (`user.id !== subjectId`), não a policy RLS em si. Requer DB Supabase com seed; implementar quando infra de integração estiver pronta.
+
 ## Deferred from: code review of 3-11-health-data-access-audit-logging-auto-wrapper-for-staff-reads (2026-05-22)
 
 - **W-1: Testes de integração todos `.skip`** [`src/lib/data/audited.integration.test.ts`]: Scaffolding presente mas testes não executam — requerem DB Supabase de testes real com seed data, autenticação e acesso a pg_cron. Implementar quando a infra de testes de integração estiver disponível.

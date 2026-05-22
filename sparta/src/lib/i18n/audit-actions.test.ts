@@ -86,8 +86,8 @@ describe('translateRole()', () => {
     expect(translateRole('player')).toBe('Jogador')
   })
 
-  it('returns role unchanged for unknown role', () => {
-    expect(translateRole('unknown_role')).toBe('unknown_role')
+  it('returns "Staff" for unknown role', () => {
+    expect(translateRole('unknown_role')).toBe('Staff')
   })
 })
 
