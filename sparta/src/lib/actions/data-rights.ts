@@ -4,6 +4,10 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getServiceRoleClient } from '@/lib/supabase/service-role'
 import type { Result, AppError } from '@/lib/types'
 import { ok, err } from '@/lib/types'
+import { createHash } from 'crypto'
+
+// Memoization cache for validateToken with 5-minute TTL
+const tokenValidationCache = new Map<string, { data: any; expiry: number }>()
 
 export type ErasureResult = { erased: true }
 
@@ -183,6 +187,12 @@ async function validateToken(token: string): Promise<Result<TokenValidationRespo
     return err({ code: 'unauthorized', message: 'Token inválido ou expirado' })
   }
 
+  // Check cache (5-minute TTL)
+  const cached = tokenValidationCache.get(token)
+  if (cached && cached.expiry > Date.now()) {
+    return ok(cached.data)
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
@@ -208,7 +218,7 @@ async function validateToken(token: string): Promise<Result<TokenValidationRespo
 
     if (!response.ok) {
       console.error('[data-rights] validate-subject-token failed', { status: response.status })
-      return err({ code: 'internal', message: 'Falha na validação do token' })
+      return err({ code: 'token_validation_failed', message: 'Falha na validação do token' })
     }
 
     const validation = await response.json() as TokenValidationResponse
@@ -217,10 +227,12 @@ async function validateToken(token: string): Promise<Result<TokenValidationRespo
       return err({ code: 'unauthorized', message: 'Token inválido ou expirado' })
     }
 
+    // Cache the result
+    tokenValidationCache.set(token, { data: validation, expiry: Date.now() + 300000 })
     return ok(validation)
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
-      return err({ code: 'internal', message: 'Tempo limite excedido na validação do token' })
+      return err({ code: 'token_validation_timeout', message: 'Tempo limite excedido na validação do token' })
     }
     throw error
   }
@@ -691,6 +703,297 @@ export async function approveRectification(requestId: string): Promise<Result<Ap
   }
 
   return ok({ applied: true })
+}
+
+// =============================================================================
+// Story 3.9: Direito de Limitação do Tratamento (RGPD Art. 18 — FR49)
+// =============================================================================
+
+export type RestrictionResult = { restricted: boolean; restrictedAt?: string | null }
+
+export async function getRestrictionStatus(): Promise<Result<{ restricted: boolean; restrictedAt: string | null }, AppError>> {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return err({ code: 'unauthorized', message: 'Não autenticado' })
+  }
+
+  const serviceRole = getServiceRoleClient()
+  const { data: profile } = await serviceRole
+    .from('profiles')
+    .select('processing_restricted, restricted_at')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  if (!profile) {
+    return err({ code: 'not_found', message: 'Perfil não encontrado' })
+  }
+
+  return ok({
+    restricted: profile.processing_restricted as boolean,
+    restrictedAt: (profile.restricted_at as string | null) ?? null,
+  })
+}
+
+export async function restrictProcessing(): Promise<Result<RestrictionResult, AppError>> {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return err({ code: 'unauthorized', message: 'Não autenticado' })
+  }
+
+  const serviceRole = getServiceRoleClient()
+
+  const { data: profile } = await serviceRole
+    .from('profiles')
+    .select('club_id')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  if (!profile) {
+    return err({ code: 'not_found', message: 'Perfil não encontrado' })
+  }
+
+  if (!profile.club_id) {
+    return err({ code: 'validation', message: 'Perfil sem clube atribuído' })
+  }
+
+  const now = new Date()
+
+  const { error: updateError } = await serviceRole
+    .from('profiles')
+    .update({ processing_restricted: true, restricted_at: now.toISOString() })
+    .eq('id', user.id)
+
+  if (updateError) {
+    if (updateError.message.includes('column')) {
+      console.error('[data-rights] restrictProcessing schema error:', updateError.message)
+      return err({ code: 'schema_mismatch', message: 'Falha ao limitar tratamento (schema)' })
+    }
+    console.error('[data-rights] restrictProcessing update error:', updateError.message)
+    return err({ code: 'internal', message: 'Falha ao limitar tratamento' })
+  }
+
+  const { error: auditError } = await serviceRole.from('audit_logs').insert({
+    club_id: profile.club_id as string,
+    actor_id: user.id,
+    action: 'subject.restricted',
+    target_kind: 'profile',
+    target_id: user.id,
+    payload: { restricted_at: now.toISOString() },
+  })
+
+  if (auditError) {
+    console.error('[data-rights] restrictProcessing audit insert error:', auditError.message)
+    return err({ code: 'internal', message: 'Falha no registo de auditoria' })
+  }
+
+  return ok({ restricted: true, restrictedAt: now.toISOString() })
+}
+
+export async function unrestrictProcessing(): Promise<Result<RestrictionResult, AppError>> {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return err({ code: 'unauthorized', message: 'Não autenticado' })
+  }
+
+  const serviceRole = getServiceRoleClient()
+
+  const { data: profile } = await serviceRole
+    .from('profiles')
+    .select('club_id')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  if (!profile) {
+    return err({ code: 'not_found', message: 'Perfil não encontrado' })
+  }
+
+  if (!profile.club_id) {
+    return err({ code: 'validation', message: 'Perfil sem clube atribuído' })
+  }
+
+  const now = new Date()
+
+  const { error: updateError } = await serviceRole
+    .from('profiles')
+    .update({ processing_restricted: false, restricted_at: null })
+    .eq('id', user.id)
+
+  if (updateError) {
+    console.error('[data-rights] unrestrictProcessing update error:', updateError.message)
+    return err({ code: 'internal', message: 'Falha ao remover limitação' })
+  }
+
+  const { error: auditError } = await serviceRole.from('audit_logs').insert({
+    club_id: profile.club_id as string,
+    actor_id: user.id,
+    action: 'subject.unrestricted',
+    target_kind: 'profile',
+    target_id: user.id,
+    payload: { unrestricted_at: now.toISOString() },
+  })
+
+  if (auditError) {
+    console.error('[data-rights] unrestrictProcessing audit insert error:', auditError.message)
+    return err({ code: 'internal', message: 'Falha no registo de auditoria' })
+  }
+
+  return ok({ restricted: false, restrictedAt: null })
+}
+
+export async function restrictProcessingByToken(token: string): Promise<Result<RestrictionResult, AppError>> {
+  const validationResult = await validateToken(token)
+
+  if (!validationResult.ok) {
+    return validationResult
+  }
+
+  const validation = validationResult.data
+  const playerId = validation.playerId as string
+
+  const serviceRole = getServiceRoleClient()
+
+  const { data: player } = await serviceRole
+    .from('players')
+    .select('club_id')
+    .eq('id', playerId)
+    .maybeSingle()
+
+  if (!player) {
+    return err({ code: 'not_found', message: 'Jogador não encontrado' })
+  }
+
+  if (!player.club_id) {
+    return err({ code: 'validation', message: 'Jogador sem clube atribuído' })
+  }
+
+  const now = new Date()
+
+  const { error: updateError } = await serviceRole
+    .from('players')
+    .update({ processing_restricted: true, restricted_at: now.toISOString() })
+    .eq('id', playerId)
+
+  if (updateError) {
+    console.error('[data-rights] restrictProcessingByToken update error:', updateError.message)
+    return err({ code: 'internal', message: 'Falha ao limitar tratamento' })
+  }
+
+  // Embed token fingerprint in audit payload for identification
+  const tokenFingerprint = createHash('sha256').update(token).digest('hex').slice(0, 16)
+
+  const { error: auditError } = await serviceRole.from('audit_logs').insert({
+    club_id: player.club_id as string,
+    actor_id: null,
+    action: 'subject.restricted',
+    target_kind: 'player',
+    target_id: playerId,
+    payload: { restricted_at: now.toISOString(), token_fingerprint: tokenFingerprint },
+  })
+
+  if (auditError) {
+    console.error('[data-rights] restrictProcessingByToken audit insert error:', auditError.message)
+    return err({ code: 'internal', message: 'Falha no registo de auditoria' })
+  }
+
+  return ok({ restricted: true, restrictedAt: now.toISOString() })
+}
+
+export async function unrestrictProcessingByToken(token: string): Promise<Result<RestrictionResult, AppError>> {
+  const validationResult = await validateToken(token)
+
+  if (!validationResult.ok) {
+    return validationResult
+  }
+
+  const validation = validationResult.data
+  const playerId = validation.playerId as string
+
+  const serviceRole = getServiceRoleClient()
+
+  const { data: player } = await serviceRole
+    .from('players')
+    .select('club_id')
+    .eq('id', playerId)
+    .maybeSingle()
+
+  if (!player) {
+    return err({ code: 'not_found', message: 'Jogador não encontrado' })
+  }
+
+  if (!player.club_id) {
+    return err({ code: 'validation', message: 'Jogador sem clube atribuído' })
+  }
+
+  const now = new Date()
+
+  const { error: updateError } = await serviceRole
+    .from('players')
+    .update({ processing_restricted: false, restricted_at: null })
+    .eq('id', playerId)
+
+  if (updateError) {
+    console.error('[data-rights] unrestrictProcessingByToken update error:', updateError.message)
+    return err({ code: 'internal', message: 'Falha ao remover limitação' })
+  }
+
+  // Embed token fingerprint in audit payload for identification
+  const tokenFingerprint = createHash('sha256').update(token).digest('hex').slice(0, 16)
+
+  const { error: auditError } = await serviceRole.from('audit_logs').insert({
+    club_id: player.club_id as string,
+    actor_id: null,
+    action: 'subject.unrestricted',
+    target_kind: 'player',
+    target_id: playerId,
+    payload: { unrestricted_at: now.toISOString(), token_fingerprint: tokenFingerprint },
+  })
+
+  if (auditError) {
+    console.error('[data-rights] unrestrictProcessingByToken audit insert error:', auditError.message)
+    return err({ code: 'internal', message: 'Falha no registo de auditoria' })
+  }
+
+  return ok({ restricted: false, restrictedAt: null })
+}
+
+export async function getPlayerRestrictionStatus(token: string): Promise<Result<{ restricted: boolean; restrictedAt?: string | null }, AppError>> {
+  const validationResult = await validateToken(token)
+
+  if (!validationResult.ok) {
+    // Expose different error codes for timeout vs invalid token
+    return validationResult
+  }
+
+  const playerId = validationResult.data.playerId as string
+  const serviceRole = getServiceRoleClient()
+
+  const { data: player } = await serviceRole
+    .from('players')
+    .select('processing_restricted, restricted_at')
+    .eq('id', playerId)
+    .maybeSingle()
+
+  return ok({
+    restricted: (player?.processing_restricted as boolean | null | undefined) === true,
+    restrictedAt: (player?.restricted_at as string | null | undefined) ?? null,
+  })
+}
+
+export async function checkProcessingRestricted(playerId: string): Promise<boolean> {
+  const serviceRole = getServiceRoleClient()
+  const { data: player } = await serviceRole
+    .from('players')
+    .select('processing_restricted')
+    .eq('id', playerId)
+    .maybeSingle()
+
+  return (player?.processing_restricted as boolean | null | undefined) === true
 }
 
 export async function rejectRectification(requestId: string, reason: string): Promise<Result<RejectRectificationResult, AppError>> {

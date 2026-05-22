@@ -19,6 +19,10 @@ import {
   submitRectificationRequestByToken,
   approveRectification,
   rejectRectification,
+  restrictProcessing,
+  unrestrictProcessing,
+  restrictProcessingByToken,
+  checkProcessingRestricted,
 } from '@/lib/actions/data-rights'
 
 const mockCreateServerClient = createServerClient as ReturnType<typeof vi.fn>
@@ -592,5 +596,203 @@ describe('rejectRectification', () => {
     if (result.ok) {
       expect(result.data.rejected).toBe(true)
     }
+  })
+})
+
+// =============================================================================
+// Story 3.9: Direito de Limitação do Tratamento
+// =============================================================================
+
+const CLUB_ID = 'e0000000-0000-7000-8000-000000000005'
+
+describe('restrictProcessing', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('sucesso: retorna restricted:true e audit log inserido', async () => {
+    const mockAuditInsert = vi.fn().mockResolvedValue({ error: null })
+    const mockProfileUpdate = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) })
+
+    mockCreateServerClient.mockResolvedValue({
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: USER_ID } } }) },
+    })
+    mockGetServiceRoleClient.mockReturnValue({
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === 'profiles') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: { club_id: CLUB_ID }, error: null }),
+            update: mockProfileUpdate,
+          }
+        }
+        if (table === 'audit_logs') {
+          return { insert: mockAuditInsert }
+        }
+        return {}
+      }),
+    })
+
+    const result = await restrictProcessing()
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.data.restricted).toBe(true)
+    }
+    expect(mockAuditInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'subject.restricted',
+        target_kind: 'profile',
+        target_id: USER_ID,
+      })
+    )
+  })
+
+  it('não autenticado: retorna err unauthorized', async () => {
+    mockCreateServerClient.mockResolvedValue({
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: null } }) },
+    })
+
+    const result = await restrictProcessing()
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.error.code).toBe('unauthorized')
+    }
+  })
+})
+
+describe('unrestrictProcessing', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('sucesso: retorna restricted:false e audit log inserido', async () => {
+    const mockAuditInsert = vi.fn().mockResolvedValue({ error: null })
+    const mockProfileUpdate = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) })
+
+    mockCreateServerClient.mockResolvedValue({
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: USER_ID } } }) },
+    })
+    mockGetServiceRoleClient.mockReturnValue({
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === 'profiles') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: { club_id: CLUB_ID }, error: null }),
+            update: mockProfileUpdate,
+          }
+        }
+        if (table === 'audit_logs') {
+          return { insert: mockAuditInsert }
+        }
+        return {}
+      }),
+    })
+
+    const result = await unrestrictProcessing()
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.data.restricted).toBe(false)
+    }
+    expect(mockAuditInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'subject.unrestricted',
+        target_kind: 'profile',
+        target_id: USER_ID,
+      })
+    )
+  })
+})
+
+describe('restrictProcessingByToken', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://localhost:54321')
+    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role-key')
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
+  })
+
+  it('token válido: retorna restricted:true', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ valid: true, playerId: PLAYER_ID, playerName: 'João' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    ))
+
+    const mockAuditInsert = vi.fn().mockResolvedValue({ error: null })
+    const mockPlayerUpdate = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) })
+
+    mockGetServiceRoleClient.mockReturnValue({
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === 'players') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: { club_id: CLUB_ID }, error: null }),
+            update: mockPlayerUpdate,
+          }
+        }
+        if (table === 'audit_logs') {
+          return { insert: mockAuditInsert }
+        }
+        return {}
+      }),
+    })
+
+    const result = await restrictProcessingByToken('valid-token-abc123')
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.data.restricted).toBe(true)
+    }
+    expect(mockAuditInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'subject.restricted',
+        target_kind: 'player',
+        target_id: PLAYER_ID,
+        actor_id: null,
+      })
+    )
+  })
+})
+
+describe('checkProcessingRestricted', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('retorna true quando processing_restricted=true', async () => {
+    mockGetServiceRoleClient.mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: { processing_restricted: true }, error: null }),
+      }),
+    })
+
+    const result = await checkProcessingRestricted(PLAYER_ID)
+    expect(result).toBe(true)
+  })
+
+  it('retorna false quando processing_restricted=false', async () => {
+    mockGetServiceRoleClient.mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: { processing_restricted: false }, error: null }),
+      }),
+    })
+
+    const result = await checkProcessingRestricted(PLAYER_ID)
+    expect(result).toBe(false)
   })
 })

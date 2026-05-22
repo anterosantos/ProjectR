@@ -43,6 +43,8 @@ export type Database = {
           full_name: string | null
           id: string
           role: string
+          processing_restricted: boolean
+          restricted_at: string | null
         }
         Insert: {
           club_id: string
@@ -51,6 +53,8 @@ export type Database = {
           full_name?: string | null
           id: string
           role: string
+          processing_restricted?: boolean
+          restricted_at?: string | null
         }
         Update: {
           club_id?: string
@@ -59,6 +63,8 @@ export type Database = {
           full_name?: string | null
           id?: string
           role?: string
+          processing_restricted?: boolean
+          restricted_at?: string | null
         }
         Relationships: [
           {
@@ -264,6 +270,8 @@ export type Database = {
           invite_sent_at: string | null
           created_at: string
           updated_at: string
+          processing_restricted: boolean
+          restricted_at: string | null
         }
         Insert: {
           id?: string
@@ -282,6 +290,8 @@ export type Database = {
           invite_sent_at?: string | null
           created_at?: string
           updated_at?: string
+          processing_restricted?: boolean
+          restricted_at?: string | null
         }
         Update: {
           id?: string
@@ -300,6 +310,8 @@ export type Database = {
           invite_sent_at?: string | null
           created_at?: string
           updated_at?: string
+          processing_restricted?: boolean
+          restricted_at?: string | null
         }
         Relationships: [
           {
