@@ -109,9 +109,9 @@ describe('requestDataExportForSelf', () => {
 })
 
 describe('requestDataExportByToken', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
-    __clearTokenValidationCache()
+    await __clearTokenValidationCache()
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://localhost:54321')
     vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role-key')
   })
@@ -217,9 +217,9 @@ describe('requestDataErasureForSelf', () => {
 })
 
 describe('requestDataErasureByToken', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
-    __clearTokenValidationCache()
+    await __clearTokenValidationCache()
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://localhost:54321')
     vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role-key')
   })
@@ -356,9 +356,9 @@ describe('submitRectificationRequest', () => {
 })
 
 describe('submitRectificationRequestByToken', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
-    __clearTokenValidationCache()
+    await __clearTokenValidationCache()
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://localhost:54321')
     vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role-key')
   })
@@ -713,9 +713,9 @@ describe('unrestrictProcessing', () => {
 })
 
 describe('restrictProcessingByToken', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
-    __clearTokenValidationCache()
+    await __clearTokenValidationCache()
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://localhost:54321')
     vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role-key')
   })

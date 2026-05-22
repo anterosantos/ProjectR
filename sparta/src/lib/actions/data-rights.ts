@@ -28,7 +28,7 @@ interface CacheEntry {
 const tokenValidationCache = new Map<string, CacheEntry>()
 
 // Internal: clear cache for testing purposes
-export function __clearTokenValidationCache() {
+export async function __clearTokenValidationCache() {
   tokenValidationCache.clear()
 }
 
