@@ -4,7 +4,7 @@ import { FormEvent, useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { updatePassword, getSupabaseClient } from "@/lib/supabase/client";
+import { updatePassword, getSupabaseClient, createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
 export default function ResetPasswordForm() {
@@ -76,6 +76,21 @@ export default function ResetPasswordForm() {
       if (password.length < 6) {
         setError("A password deve ter pelo menos 6 caracteres");
         setIsLoading(false);
+        return;
+      }
+
+      if (isInviteFlow) {
+        // Invite flow: call updateUser directly and navigate immediately.
+        // Using updatePassword (which calls signOut internally) fires SIGNED_OUT
+        // before setSucceeded can render, causing the component to re-mount
+        // with invalidToken=true before the redirect.
+        const { error: updateError } = await createClient().auth.updateUser({ password });
+        if (updateError) {
+          setError("Erro ao atualizar password");
+          setIsLoading(false);
+          return;
+        }
+        window.location.replace("/login");
         return;
       }
 
