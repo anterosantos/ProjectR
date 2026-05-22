@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
+import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { ageInYears } from "@/lib/utils/age";
 
 const PUBLIC_PATHS = new Set([
@@ -49,11 +50,13 @@ export async function proxy(request: NextRequest) {
   const userRole = (claims.user_role || claims.role) as string | undefined;
 
   // Consent gate para jogadores (Story 3.2) — precede ROLE_ALLOWED_ROUTES
-  // Runs when userRole is "player" (from JWT) OR when JWT claims are absent (auth hook disabled).
-  // Queries profiles directly so the gate works regardless of whether the auth hook is active.
-  if (userRole === "player" || !userRole) {
+  // Uses service role client to bypass RLS — required because player SELECT policies
+  // depend on public.club_id() (JWT claim) which may be absent when auth hook is disabled.
+  {
     const typedUser = user as { id: string };
-    const { data: profileData } = await supabase
+    const db = getServiceRoleClient();
+
+    const { data: profileData } = await db
       .from("profiles")
       .select("role, consent_status")
       .eq("id", typedUser.id)
@@ -66,7 +69,7 @@ export async function proxy(request: NextRequest) {
     // because consent may not have been requested yet. NULL edge case also blocks (safe default).
     // Note: profiles.consent_status uses 'granted' (not 'confirmed') — see migration 000170.
     if (effectiveRole === "player" && profileData?.consent_status !== "granted") {
-      const { data: playerData } = await supabase
+      const { data: playerData } = await db
         .from("players")
         .select("birthdate")
         .eq("profile_id", typedUser.id)

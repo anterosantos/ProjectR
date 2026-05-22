@@ -6,42 +6,42 @@ vi.mock("@/lib/supabase/middleware", () => ({
   updateSession: vi.fn(),
 }));
 
+vi.mock("@/lib/supabase/service-role", () => ({
+  getServiceRoleClient: vi.fn(),
+}));
+
 import { updateSession } from "@/lib/supabase/middleware";
+import { getServiceRoleClient } from "@/lib/supabase/service-role";
 
 const mockUpdateSession = updateSession as ReturnType<typeof vi.fn>;
+const mockGetServiceRoleClient = getServiceRoleClient as ReturnType<typeof vi.fn>;
 
 const PLAYER_ID = "aa000000-0000-7000-8000-000000000001";
 
-function makeProfileChain(consentStatus: string, role = "player") {
-  return {
+function makeServiceRoleMock(role: string, consentStatus: string, birthdate: string | null) {
+  const profileChain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
     single: vi.fn().mockResolvedValue({ data: { role, consent_status: consentStatus } }),
   };
-}
-
-function makePlayerChain(birthdate: string | null) {
-  return {
+  const playerChain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
     maybeSingle: vi.fn().mockResolvedValue({ data: birthdate ? { birthdate } : null }),
   };
-}
-
-function makeSupabase(consentStatus: string, birthdate: string | null) {
-  const profileChain = makeProfileChain(consentStatus);
-  const playerChain = makePlayerChain(birthdate);
   return {
     from: vi.fn((table: string) => (table === "players" ? playerChain : profileChain)),
   };
 }
 
 function sessionForPlayer(consentStatus: string, birthdate: string | null) {
+  mockGetServiceRoleClient.mockReturnValue(
+    makeServiceRoleMock("player", consentStatus, birthdate)
+  );
   return {
     user: { id: PLAYER_ID, email: "player@test.test" },
     claims: { user_role: "player" },
     response: NextResponse.next(),
-    supabase: makeSupabase(consentStatus, birthdate),
   };
 }
 
@@ -51,6 +51,7 @@ const BIRTHDATE_16 = "2009-01-01"; // ~17 anos em 2026
 describe("Consent Gate — proxy.ts", () => {
   beforeEach(() => {
     mockUpdateSession.mockClear();
+    mockGetServiceRoleClient.mockClear();
   });
 
   it("pending + birthdate < 16 → redireciona para /aguardar-consentimento", async () => {
@@ -102,7 +103,6 @@ describe("Consent Gate — proxy.ts", () => {
     mockUpdateSession.mockResolvedValue(sessionForPlayer("pending", BIRTHDATE_14));
     const req = new NextRequest(new URL("http://localhost:3000/aguardar-consentimento"));
     const res = await proxy(req);
-    // Sem redirect: status != 307 e sem header location apontando para a mesma página
     expect(res?.status).not.toBe(307);
     const location = res?.headers.get("location");
     if (location) {
@@ -111,26 +111,29 @@ describe("Consent Gate — proxy.ts", () => {
   });
 
   it("role coach com consent_status pending → não aplica gate (apenas para players)", async () => {
+    mockGetServiceRoleClient.mockReturnValue(
+      makeServiceRoleMock("coach", "pending", BIRTHDATE_14)
+    );
     mockUpdateSession.mockResolvedValue({
       user: { id: PLAYER_ID, email: "coach@test.test" },
       claims: { user_role: "coach" },
       response: NextResponse.next(),
-      supabase: makeSupabase("pending", BIRTHDATE_14),
     });
     const req = new NextRequest(new URL("http://localhost:3000/prontidao"));
     const res = await proxy(req);
-    // Não deve redirecionar para /aguardar-consentimento
     expect(res?.headers.get("location") ?? "").not.toContain("/aguardar-consentimento");
   });
 
   it("sem JWT claims + player menor → redireciona (auth hook desativado, fallback via DB)", async () => {
-    // Reproduz o bug real: auth hook não configurado → userRole undefined → gate ignorado
-    // Fix: gate consulta profiles diretamente e usa role da DB como fallback
+    // Reproduz o bug real: auth hook não configurado → userRole undefined → gate ignorava
+    // Fix: gate usa service role client que não depende de JWT/RLS
+    mockGetServiceRoleClient.mockReturnValue(
+      makeServiceRoleMock("player", "not_required", BIRTHDATE_14)
+    );
     mockUpdateSession.mockResolvedValue({
       user: { id: PLAYER_ID, email: "player@test.test" },
       claims: {}, // sem user_role — auth hook ausente
       response: NextResponse.next(),
-      supabase: makeSupabase("not_required", BIRTHDATE_14), // minor, sem consentimento
     });
     const req = new NextRequest(new URL("http://localhost:3000/hoje"));
     const res = await proxy(req);
@@ -139,19 +142,13 @@ describe("Consent Gate — proxy.ts", () => {
   });
 
   it("sem JWT claims + analyst → não aplica gate (DB confirma role não-player)", async () => {
-    const analystSupabase = {
-      from: vi.fn(() => ({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: { role: "analyst", consent_status: "not_required" } }),
-        maybeSingle: vi.fn().mockResolvedValue({ data: null }),
-      })),
-    };
+    mockGetServiceRoleClient.mockReturnValue(
+      makeServiceRoleMock("analyst", "not_required", null)
+    );
     mockUpdateSession.mockResolvedValue({
       user: { id: PLAYER_ID, email: "analyst@test.test" },
       claims: {}, // sem user_role
       response: NextResponse.next(),
-      supabase: analystSupabase,
     });
     const req = new NextRequest(new URL("http://localhost:3000/sessoes"));
     const res = await proxy(req);

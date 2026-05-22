@@ -7,16 +7,24 @@ vi.mock("@/lib/supabase/middleware", () => ({
   updateSession: vi.fn(),
 }));
 
+vi.mock("@/lib/supabase/service-role", () => ({
+  getServiceRoleClient: vi.fn(),
+}));
+
 import { updateSession } from "@/lib/supabase/middleware";
+import { getServiceRoleClient } from "@/lib/supabase/service-role";
 
 const mockUpdateSession = updateSession as any;
+const mockGetServiceRoleClient = getServiceRoleClient as ReturnType<typeof vi.fn>;
 
-// Helper: supabase mock — default 'granted' bypasses the consent gate in player route tests
-function makeSupabaseMock(consentStatus = "granted", role = "player") {
+// Helper: service role mock for the consent gate
+// role="player" + consentStatus="granted" bypasses the gate (consent confirmed)
+// role="player" + consentStatus="not_required" with no birthdate would block minors
+function makeServiceRoleMock(consentStatus = "granted", role = "player") {
   const playerChain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+    maybeSingle: vi.fn().mockResolvedValue({ data: null }), // no birthdate → treated as adult (null → isNowAdult=false)
   };
   const profileChain = {
     select: vi.fn().mockReturnThis(),
@@ -31,6 +39,9 @@ function makeSupabaseMock(consentStatus = "granted", role = "player") {
 describe("Middleware: Authentication and Route Access", () => {
   beforeEach(() => {
     mockUpdateSession.mockClear();
+    mockGetServiceRoleClient.mockClear();
+    // Default: analyst profile — bypasses consent gate for non-player tests
+    mockGetServiceRoleClient.mockReturnValue(makeServiceRoleMock("not_required", "analyst"));
   });
 
   describe("Unauthenticated Users", () => {
@@ -71,7 +82,6 @@ describe("Middleware: Authentication and Route Access", () => {
         user: { id: "user-123", email: "test@test.test" },
         claims: {}, // No user_role claim
         response: NextResponse.next(),
-        supabase: makeSupabaseMock("not_required", "analyst"), // DB fallback: non-player bypasses consent gate
       });
 
       const request = new NextRequest(new URL("http://localhost:3000/sessoes"));
@@ -86,7 +96,6 @@ describe("Middleware: Authentication and Route Access", () => {
         user: { id: "user-123", email: "test@test.test" },
         claims: {}, // No user_role claim
         response: NextResponse.next(),
-        supabase: makeSupabaseMock("not_required", "analyst"), // DB fallback: non-player bypasses consent gate
       });
 
       const request = new NextRequest(
@@ -144,11 +153,11 @@ describe("Middleware: Authentication and Route Access", () => {
     });
 
     it("player should access /hoje with user_role claim", async () => {
+      mockGetServiceRoleClient.mockReturnValue(makeServiceRoleMock("granted", "player"));
       mockUpdateSession.mockResolvedValue({
         user: { id: "user-123", email: "player@test.test" },
         claims: { user_role: "player" },
         response: NextResponse.next(),
-        supabase: makeSupabaseMock("granted"),
       });
 
       const request = new NextRequest(new URL("http://localhost:3000/hoje"));
@@ -158,11 +167,11 @@ describe("Middleware: Authentication and Route Access", () => {
     });
 
     it("should redirect to default role route if accessing unauthorized route", async () => {
+      mockGetServiceRoleClient.mockReturnValue(makeServiceRoleMock("granted", "player"));
       mockUpdateSession.mockResolvedValue({
         user: { id: "user-123", email: "player@test.test" },
         claims: { user_role: "player" },
         response: NextResponse.next(),
-        supabase: makeSupabaseMock("granted"),
       });
 
       // Player trying to access coach route
@@ -214,7 +223,6 @@ describe("Middleware: Authentication and Route Access", () => {
         },
         claims: {}, // Auth Hook not configured, no user_role claim
         response: NextResponse.next(),
-        supabase: makeSupabaseMock("not_required", "analyst"), // DB fallback: analyst role bypasses consent gate
       });
 
       const request = new NextRequest(
@@ -239,7 +247,6 @@ describe("Middleware: Authentication and Route Access", () => {
           // No user_role claim - simulating Auth Hook failure
         },
         response: NextResponse.next(),
-        supabase: makeSupabaseMock("not_required", "analyst"), // DB fallback: analyst role bypasses consent gate
       });
 
       const request = new NextRequest(
