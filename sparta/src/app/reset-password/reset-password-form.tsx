@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { updatePassword, getSupabaseClient } from "@/lib/supabase/client";
@@ -9,6 +9,8 @@ import Link from "next/link";
 
 export default function ResetPasswordForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isInviteFlow = searchParams.get("from") === "invite";
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -21,8 +23,21 @@ export default function ResetPasswordForm() {
   useEffect(() => {
     const supabase = getSupabaseClient();
 
-    // Listen for PASSWORD_RECOVERY event — emitted by Supabase SDK when a valid
-    // recovery link is clicked (works for both PKCE ?code= and implicit #access_token= flows)
+    if (isInviteFlow) {
+      // Invite flow: session already established by Supabase SDK on /login before redirect
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          resolvedRef.current = true;
+          setIsValidating(false);
+        } else {
+          setInvalidToken(true);
+          setIsValidating(false);
+        }
+      });
+      return;
+    }
+
+    // Password recovery flow: wait for PASSWORD_RECOVERY event
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
@@ -44,7 +59,7 @@ export default function ResetPasswordForm() {
       subscription.unsubscribe();
       clearTimeout(fallback);
     };
-  }, []);
+  }, [isInviteFlow]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -131,10 +146,12 @@ export default function ResetPasswordForm() {
       <div className="w-full max-w-md space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-            Definir nova password
+            {isInviteFlow ? "Activar conta" : "Definir nova password"}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Introduza a sua nova password abaixo
+            {isInviteFlow
+              ? "Define uma password para aceder à tua conta"
+              : "Introduza a sua nova password abaixo"}
           </p>
         </div>
 
@@ -183,7 +200,11 @@ export default function ResetPasswordForm() {
           </div>
 
           <Button type="submit" disabled={isLoading} className="w-full">
-            {isLoading ? "A atualizar..." : "Atualizar password"}
+            {isLoading
+              ? "A guardar..."
+              : isInviteFlow
+              ? "Activar conta"
+              : "Atualizar password"}
           </Button>
         </form>
       </div>

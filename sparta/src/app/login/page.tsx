@@ -27,6 +27,21 @@ export default function LoginPage() {
   const mfaStartTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash;
+    if (!hash.includes("type=invite")) return;
+
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        subscription.unsubscribe();
+        router.replace("/reset-password?from=invite");
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [router]);
+
+  useEffect(() => {
     if (stage === "mfa") {
       mfaStartTimeRef.current = Date.now();
       const timeout = setTimeout(() => {
