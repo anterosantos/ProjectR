@@ -56,7 +56,7 @@ export async function proxy(request: NextRequest) {
     const typedUser = user as { id: string };
     const db = getServiceRoleClient();
 
-    const { data: profileData } = await db
+    const { data: profileData, error: profileError } = await db
       .from("profiles")
       .select("role, consent_status")
       .eq("id", typedUser.id)
@@ -65,11 +65,21 @@ export async function proxy(request: NextRequest) {
     // Resolve role: JWT claim takes precedence, DB profile as fallback
     const effectiveRole = userRole ?? (profileData?.role as string | undefined);
 
+    console.log("[consent-gate]", {
+      userId: typedUser.id,
+      userRole,
+      profileRole: profileData?.role,
+      consentStatus: profileData?.consent_status,
+      effectiveRole,
+      profileError: profileError?.message,
+      pathname,
+    });
+
     // Block access unless consent is granted. 'not_required' (default) also blocks minors
     // because consent may not have been requested yet. NULL edge case also blocks (safe default).
     // Note: profiles.consent_status uses 'granted' (not 'confirmed') — see migration 000170.
     if (effectiveRole === "player" && profileData?.consent_status !== "granted") {
-      const { data: playerData } = await db
+      const { data: playerData, error: playerError } = await db
         .from("players")
         .select("birthdate")
         .eq("profile_id", typedUser.id)
@@ -77,6 +87,13 @@ export async function proxy(request: NextRequest) {
 
       const birthdate = playerData?.birthdate ?? null;
       const isNowAdult = birthdate !== null && ageInYears(birthdate) >= 16;
+
+      console.log("[consent-gate/player]", {
+        birthdate,
+        isNowAdult,
+        playerError: playerError?.message,
+        willRedirect: !isNowAdult && !pathname.startsWith("/aguardar-consentimento"),
+      });
 
       if (!isNowAdult) {
         // Allow access to /aguardar-consentimento and child routes (e.g. /aguardar-consentimento/resend)
