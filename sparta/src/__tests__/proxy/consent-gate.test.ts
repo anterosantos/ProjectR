@@ -76,8 +76,16 @@ describe("Consent Gate — proxy.ts", () => {
     expect(res?.headers.get("location")).toContain("/aguardar-consentimento");
   });
 
-  it("not_required → flow normal (não redireciona)", async () => {
+  it("not_required + birthdate < 16 → redireciona (consentimento ainda não pedido)", async () => {
     mockUpdateSession.mockResolvedValue(sessionForPlayer("not_required", BIRTHDATE_14));
+    const req = new NextRequest(new URL("http://localhost:3000/hoje"));
+    const res = await proxy(req);
+    expect(res?.status).toBe(307);
+    expect(res?.headers.get("location")).toContain("/aguardar-consentimento");
+  });
+
+  it("not_required + birthdate >= 16 → flow normal (adulto sem consentimento obrigatório)", async () => {
+    mockUpdateSession.mockResolvedValue(sessionForPlayer("not_required", BIRTHDATE_16));
     const req = new NextRequest(new URL("http://localhost:3000/hoje"));
     const res = await proxy(req);
     expect(res?.status).not.toBe(307);

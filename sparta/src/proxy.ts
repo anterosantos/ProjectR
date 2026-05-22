@@ -57,9 +57,9 @@ export async function proxy(request: NextRequest) {
       .eq("id", typedUser.id)
       .single();
 
-    // Note: consent_status has DEFAULT 'not_required', never NULL. If NULL occurs (edge case),
-    // null !== "pending" is true, granting access. This is intentional fail-safe.
-    if (profileData?.consent_status === "pending") {
+    // Block access unless consent is confirmed. 'not_required' (default) also blocks minors
+    // because consent may not have been requested yet. NULL edge case also blocks (safe default).
+    if (profileData?.consent_status !== "confirmed") {
       const { data: playerData } = await supabase
         .from("players")
         .select("birthdate")

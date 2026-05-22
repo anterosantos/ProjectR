@@ -11,8 +11,8 @@ import { updateSession } from "@/lib/supabase/middleware";
 
 const mockUpdateSession = updateSession as any;
 
-// Helper: supabase mock that simulates consent_status = 'not_required' (no gate triggered)
-function makeSupabaseMock(consentStatus = "not_required") {
+// Helper: supabase mock — default 'confirmed' bypasses the consent gate in player route tests
+function makeSupabaseMock(consentStatus = "confirmed") {
   const playerChain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
@@ -146,7 +146,7 @@ describe("Middleware: Authentication and Route Access", () => {
         user: { id: "user-123", email: "player@test.test" },
         claims: { user_role: "player" },
         response: NextResponse.next(),
-        supabase: makeSupabaseMock("not_required"),
+        supabase: makeSupabaseMock("confirmed"),
       });
 
       const request = new NextRequest(new URL("http://localhost:3000/hoje"));
@@ -160,7 +160,7 @@ describe("Middleware: Authentication and Route Access", () => {
         user: { id: "user-123", email: "player@test.test" },
         claims: { user_role: "player" },
         response: NextResponse.next(),
-        supabase: makeSupabaseMock("not_required"),
+        supabase: makeSupabaseMock("confirmed"),
       });
 
       // Player trying to access coach route
