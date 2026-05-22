@@ -2,6 +2,15 @@
 
 Items deferred from code reviews — pre-existing issues, out-of-scope work, or items blocked by future stories.
 
+## Deferred from: code review of 3-11-health-data-access-audit-logging-auto-wrapper-for-staff-reads (2026-05-22)
+
+- **W-1: Testes de integração todos `.skip`** [`src/lib/data/audited.integration.test.ts`]: Scaffolding presente mas testes não executam — requerem DB Supabase de testes real com seed data, autenticação e acesso a pg_cron. Implementar quando a infra de testes de integração estiver disponível.
+- **W-2: Over-logging com resposta Supabase `{ data, error }`** [`src/lib/data/audited.ts:74`]: `fn()` retorna `{ data: null, error: ... }` (pattern Supabase) sem lançar excepção — o audit é inserido mesmo sem dados retornados. Comportamento aceitável (audita tentativas); documentar na doc de uso.
+- **W-3: `payload` sem limite de tamanho** [`src/lib/data/audited.ts:19`]: Sem cap de tamanho na camada da aplicação. Restrições de coluna do DB (se existirem) tratam overflows; adicionar validação explícita quando o volume real de `audit_logs` justificar.
+- **W-4: ESLint rule não detecta cliente Supabase com alias** [`eslint-rules/no-direct-health-data-read.js`]: `const db = supabase; db.from('fatigue_responses').select()` escapa a regra. Limitação conhecida de análise estática sem type-awareness; mitigar com convention de nomenclatura de clientes.
+- **W-5: ESLint rule falsos positivos/negativos em RPCs** [`eslint-rules/no-direct-health-data-read.js:68`]: Keywords heurísticas causam false positives (`check_payment_readiness`) e false negatives (`get_athlete_load`). Melhorar com lista explícita de RPCs proibidas quando o namespace RPC estabilizar.
+- **W-6: `actor_id` re-resolved via `getUser()` em vez de passado pelo caller** [`src/lib/data/audited.ts:93`]: Risco teórico em edge cases extremos (sessão alterada entre leitura e audit). Mitigar passando `actorId` como parâmetro opcional se surgirem problemas em prod.
+
 ## Deferred from: code review of 3-5-subject-rights-hub-routing-for-adult-titular-encarregado (2026-05-21)
 
 - **Rate limit em memória reset em cada cold start de Edge Function** [`supabase/functions/validate-subject-token/index.ts`]: Spec documenta "básico; Redis preferido, fallback em memória" — limitação conhecida e aceite. Implementar com Redis/Supabase KV quando o volume de GDPR requests justificar.

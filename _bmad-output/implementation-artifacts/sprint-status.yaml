@@ -1,4 +1,6 @@
+# 2026-05-22: 3-11 → done (code-review complete; 11 patches aplicados: after() serverless lifecycle, ESLint flat config registration, service-role whitelist, chain traversal + template literals + Windows path fix in ESLint rule, "use server" removido, occurred_at removido (DB default), vi.waitFor testes, actorId hoistado, fn() failure audit; lint ✅; typecheck ✅; build ✅; 6/6 testes ✅)
 # generated: 2026-05-08
+# 2026-05-22: 3-11 → review (dev-story complete; auditedRead() wrapper with fire-and-forget audit logging, ESLint rule no-direct-health-data-read, 6/6 unit tests ✅, integration test structure ready; src/lib/data/audited.ts + .test.ts + .integration.test.ts, eslint-rules/no-direct-health-data-read.js, docs/GDPR/audit-logging.md, .eslintrc.json updated; lint ✅; typecheck ✅; build ✅)
 # 2026-05-22: 3-10 → done (code-review complete; 4 patches aplicados: validateToken exported + caching reused in page.tsx, CalmConfirmation onDismiss callback added, audit log ordering assertion added, parental_consents update assertion added; 24/24 testes ✅; typecheck ✅; lint ✅; build ✅)
 # 2026-05-20: 3-1 → done (code-review complete; 8 patches aplicados: search_path guard trigger SECURITY DEFINER, renderWithGlossary children mistos + renderer li, keys monotónicas, playerError check, testes assertions correctas + validação eq args + caminhos erro DB; seed u14 prose com RGPD/dados pessoais; 7/7 testes ✅; typecheck ✅)
 # last_updated: 2026-05-18 (2-3 → ready-for-dev: migração 000090_player_metrics, recharts dual-axis, DrillDownSheet form, janela 24h edição)
@@ -158,7 +160,7 @@ development_status:
   3-8-right-to-rectification-staff-mediated-with-audit-log: done
   3-9-right-to-restrict-processing-freeze-state: done
   3-10-right-to-withdraw-consent-immediate-effect: done
-  3-11-health-data-access-audit-logging-auto-wrapper-for-staff-reads: ready-for-dev
+  3-11-health-data-access-audit-logging-auto-wrapper-for-staff-reads: done
   3-12-subject-visibility-who-accessed-my-health-data: ready-for-dev
   epic-3-retrospective: optional
 

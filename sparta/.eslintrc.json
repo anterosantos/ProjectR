@@ -13,5 +13,19 @@
         ]
       }
     ]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["src/**/*.ts", "src/**/*.tsx"],
+      "rules": {
+        "custom/no-direct-health-data-read": "warn"
+      }
+    },
+    {
+      "files": ["src/lib/data/audited.ts", "src/lib/actions/audit.ts"],
+      "rules": {
+        "custom/no-direct-health-data-read": "off"
+      }
+    }
+  ]
 }

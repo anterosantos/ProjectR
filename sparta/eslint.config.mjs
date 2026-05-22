@@ -1,6 +1,9 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const noDirectHealthDataRead = require("./eslint-rules/no-direct-health-data-read.js");
 
 // Note: `eslint-config-next/core-web-vitals` bundles `eslint-plugin-jsx-a11y` (verified with @16.2.6).
 // Do NOT register jsx-a11y separately (causes ConfigError: "Cannot redefine plugin jsx-a11y").
@@ -46,12 +49,34 @@ const eslintConfig = defineConfig([
       "supabase/functions/**",
       "src/lib/supabase/service-role.ts",
       "src/lib/actions/**",
+      "src/lib/data/**",
       "scripts/**",
     ],
     rules: {
       "no-restricted-imports": "off",
       // scripts/ uses CommonJS require() — Node.js scripts run outside ESM bundler
       "@typescript-eslint/no-require-imports": "off",
+    },
+  },
+  // Enforce auditedRead() wrapper for health data access (FR50 compliance).
+  // Rule file is CommonJS — loaded via createRequire for ESM flat-config compatibility.
+  {
+    plugins: {
+      custom: {
+        rules: {
+          "no-direct-health-data-read": noDirectHealthDataRead,
+        },
+      },
+    },
+    files: ["src/**/*.ts", "src/**/*.tsx"],
+    rules: {
+      "custom/no-direct-health-data-read": "error",
+    },
+  },
+  {
+    files: ["src/lib/data/audited.ts", "src/lib/actions/audit.ts"],
+    rules: {
+      "custom/no-direct-health-data-read": "off",
     },
   },
   // Test files: relax rules that don't apply cleanly to mocking patterns.
