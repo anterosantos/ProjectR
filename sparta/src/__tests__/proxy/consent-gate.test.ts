@@ -12,11 +12,11 @@ const mockUpdateSession = updateSession as ReturnType<typeof vi.fn>;
 
 const PLAYER_ID = "aa000000-0000-7000-8000-000000000001";
 
-function makeProfileChain(consentStatus: string) {
+function makeProfileChain(consentStatus: string, role = "player") {
   return {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
-    single: vi.fn().mockResolvedValue({ data: { consent_status: consentStatus } }),
+    single: vi.fn().mockResolvedValue({ data: { role, consent_status: consentStatus } }),
   };
 }
 
@@ -120,6 +120,41 @@ describe("Consent Gate — proxy.ts", () => {
     const req = new NextRequest(new URL("http://localhost:3000/prontidao"));
     const res = await proxy(req);
     // Não deve redirecionar para /aguardar-consentimento
+    expect(res?.headers.get("location") ?? "").not.toContain("/aguardar-consentimento");
+  });
+
+  it("sem JWT claims + player menor → redireciona (auth hook desativado, fallback via DB)", async () => {
+    // Reproduz o bug real: auth hook não configurado → userRole undefined → gate ignorado
+    // Fix: gate consulta profiles diretamente e usa role da DB como fallback
+    mockUpdateSession.mockResolvedValue({
+      user: { id: PLAYER_ID, email: "player@test.test" },
+      claims: {}, // sem user_role — auth hook ausente
+      response: NextResponse.next(),
+      supabase: makeSupabase("not_required", BIRTHDATE_14), // minor, sem consentimento
+    });
+    const req = new NextRequest(new URL("http://localhost:3000/hoje"));
+    const res = await proxy(req);
+    expect(res?.status).toBe(307);
+    expect(res?.headers.get("location")).toContain("/aguardar-consentimento");
+  });
+
+  it("sem JWT claims + analyst → não aplica gate (DB confirma role não-player)", async () => {
+    const analystSupabase = {
+      from: vi.fn(() => ({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { role: "analyst", consent_status: "not_required" } }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+      })),
+    };
+    mockUpdateSession.mockResolvedValue({
+      user: { id: PLAYER_ID, email: "analyst@test.test" },
+      claims: {}, // sem user_role
+      response: NextResponse.next(),
+      supabase: analystSupabase,
+    });
+    const req = new NextRequest(new URL("http://localhost:3000/sessoes"));
+    const res = await proxy(req);
     expect(res?.headers.get("location") ?? "").not.toContain("/aguardar-consentimento");
   });
 });

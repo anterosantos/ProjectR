@@ -48,19 +48,24 @@ export async function proxy(request: NextRequest) {
   // The auth hook adds user_role as a top-level JWT claim; it is not in user_metadata.
   const userRole = (claims.user_role || claims.role) as string | undefined;
 
-  // Consent gate para jogadores sub-14/15 (Story 3.2) — precede ROLE_ALLOWED_ROUTES
-  if (userRole === "player" && user) {
+  // Consent gate para jogadores (Story 3.2) — precede ROLE_ALLOWED_ROUTES
+  // Runs when userRole is "player" (from JWT) OR when JWT claims are absent (auth hook disabled).
+  // Queries profiles directly so the gate works regardless of whether the auth hook is active.
+  if (userRole === "player" || !userRole) {
     const typedUser = user as { id: string };
     const { data: profileData } = await supabase
       .from("profiles")
-      .select("consent_status")
+      .select("role, consent_status")
       .eq("id", typedUser.id)
       .single();
+
+    // Resolve role: JWT claim takes precedence, DB profile as fallback
+    const effectiveRole = userRole ?? (profileData?.role as string | undefined);
 
     // Block access unless consent is granted. 'not_required' (default) also blocks minors
     // because consent may not have been requested yet. NULL edge case also blocks (safe default).
     // Note: profiles.consent_status uses 'granted' (not 'confirmed') — see migration 000170.
-    if (profileData?.consent_status !== "granted") {
+    if (effectiveRole === "player" && profileData?.consent_status !== "granted") {
       const { data: playerData } = await supabase
         .from("players")
         .select("birthdate")
