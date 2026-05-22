@@ -1,4 +1,4 @@
-import { Download, Trash2, Edit, Lock, XCircle, Users } from 'lucide-react'
+import { Download, Trash2, Edit, Lock, XCircle, Users, Eye } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -50,6 +50,13 @@ const rights = [
     title: 'Retirar consentimento',
     description: 'Remove o teu consentimento — sem volta atrás',
     href: (token: string) => `/direitos/${token}/retirar`,
+  },
+  {
+    id: 'access-log',
+    icon: Eye,
+    title: 'Quem consultou os dados',
+    description: 'Vê quem acedeu aos dados de saúde nos últimos 12 meses',
+    href: (token: string) => `/direitos/${token}/acessos`,
   },
 ]
 

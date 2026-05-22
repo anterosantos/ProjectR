@@ -161,7 +161,7 @@ development_status:
   3-9-right-to-restrict-processing-freeze-state: done
   3-10-right-to-withdraw-consent-immediate-effect: done
   3-11-health-data-access-audit-logging-auto-wrapper-for-staff-reads: done
-  3-12-subject-visibility-who-accessed-my-health-data: ready-for-dev
+  3-12-subject-visibility-who-accessed-my-health-data: in-progress
   epic-3-retrospective: optional
 
   # Epic 4: Recolha de Fadiga & Notificações (jornada do Tomás)

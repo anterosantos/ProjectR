@@ -7,6 +7,7 @@ import {
   Edit,
   Lock,
   XCircle,
+  Eye,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -45,6 +46,13 @@ const rights = [
     title: 'Retirar consentimento',
     description: 'Remove o teu consentimento — sem volta atrás',
     href: '/configuracoes/direitos/retirar',
+  },
+  {
+    id: 'access-log',
+    icon: Eye,
+    title: 'Quem consultou os meus dados',
+    description: 'Vê quem acedeu aos teus dados de saúde nos últimos 12 meses',
+    href: '/configuracoes/direitos/acessos',
   },
 ]
 
