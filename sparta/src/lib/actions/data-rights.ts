@@ -27,6 +27,11 @@ interface CacheEntry {
 // Memoization cache for validateToken with 5-minute TTL
 const tokenValidationCache = new Map<string, CacheEntry>()
 
+// Internal: clear cache for testing purposes
+export function __clearTokenValidationCache() {
+  tokenValidationCache.clear()
+}
+
 async function callExportCsv(playerId: string): Promise<Result<ExportResult, AppError>> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
