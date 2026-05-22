@@ -32,7 +32,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next({ request: { headers: request.headers } });
   }
 
-  const { user, response, claims, supabase } = await updateSession(request);
+  const { user, response, claims } = await updateSession(request);
 
   // Redirect unauthenticated users to /login (307 Temporary Redirect).
   if (!user) {

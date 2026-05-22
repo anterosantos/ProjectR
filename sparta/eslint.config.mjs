@@ -50,6 +50,7 @@ const eslintConfig = defineConfig([
       "src/lib/supabase/service-role.ts",
       "src/lib/actions/**",
       "src/lib/data/**",
+      "src/proxy.ts",
       "scripts/**",
     ],
     rules: {
