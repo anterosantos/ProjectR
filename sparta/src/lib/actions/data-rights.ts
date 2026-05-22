@@ -236,3 +236,543 @@ export async function requestDataErasureByToken(token: string): Promise<Result<E
   const validation = validationResult.data
   return callEraseCascade(validation.playerId as string, validation.playerId as string)
 }
+
+// =============================================================================
+// Story 3.8: Direito de Retificação — Server Action para busca de pendentes
+// =============================================================================
+
+export interface PendingRectificationRequest {
+  id: string
+  player_id: string
+  field_name: string
+  requested_value: string
+  current_value: string | null
+  reason: string | null
+  created_at: string
+  player_name: string
+}
+
+export async function getPendingRectifications(): Promise<Result<{ requests: PendingRectificationRequest[]; isStaff: boolean }, AppError>> {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return err({ code: 'unauthorized', message: 'Não autenticado' })
+  }
+
+  const serviceRole = getServiceRoleClient()
+  const { data: profile } = await serviceRole
+    .from('profiles')
+    .select('role, club_id')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  if (!profile || !['coach', 'analyst'].includes(profile.role as string)) {
+    return ok({ requests: [], isStaff: false })
+  }
+
+  const clubId = profile.club_id as string
+
+  const { data: rawRequests, error: reqError } = await serviceRole
+    .from('rectification_requests')
+    .select('id, player_id, field_name, requested_value, current_value, reason, created_at')
+    .eq('club_id', clubId)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true })
+
+  if (reqError) {
+    return err({ code: 'internal', message: 'Falha ao carregar pedidos' })
+  }
+
+  const requests = rawRequests ?? []
+  const playerIds = [...new Set(requests.map(r => r.player_id as string))]
+  const playerNameMap = new Map<string, string>()
+
+  if (playerIds.length > 0) {
+    const { data: players } = await serviceRole
+      .from('players')
+      .select('id, full_name')
+      .in('id', playerIds)
+
+    if (players) {
+      for (const p of players as Array<{ id: string; full_name: string }>) {
+        playerNameMap.set(p.id, p.full_name)
+      }
+    }
+  }
+
+  const enriched: PendingRectificationRequest[] = requests.map(r => ({
+    id: r.id as string,
+    player_id: r.player_id as string,
+    field_name: r.field_name as string,
+    requested_value: r.requested_value as string,
+    current_value: (r.current_value as string | null) ?? null,
+    reason: (r.reason as string | null) ?? null,
+    created_at: r.created_at as string,
+    player_name: playerNameMap.get(r.player_id as string) ?? 'Jogador desconhecido',
+  }))
+
+  return ok({ requests: enriched, isStaff: true })
+}
+
+// =============================================================================
+// Story 3.8: Direito de Retificação
+// =============================================================================
+
+export type RectificationResult = { submitted: true; requestId: string }
+
+export type ApproveRectificationResult = { applied: true }
+
+export type RejectRectificationResult = { rejected: true }
+
+export type RectificationPayload = {
+  fieldName: 'full_name' | 'birthdate' | 'jersey_num'
+  requestedValue: string
+  reason?: string
+}
+
+const ALLOWED_FIELDS = ['full_name', 'birthdate', 'jersey_num'] as const
+
+function calcAgeGroup(birthdate: Date): string {
+  const now = new Date()
+  let age = now.getFullYear() - birthdate.getFullYear()
+  const hadBirthdayThisYear = now >= new Date(now.getFullYear(), birthdate.getMonth(), birthdate.getDate())
+  if (!hadBirthdayThisYear) age--
+  if (age <= 14) return 'u14'
+  if (age <= 15) return 'u15'
+  if (age <= 17) return 'u17'
+  if (age <= 19) return 'u19'
+  return 'senior'
+}
+
+async function sendRectificationNotification(
+  playerEmail: string,
+  playerName: string,
+  fieldLabel: string,
+  outcome: 'applied' | 'rejected',
+  rejectReason?: string
+): Promise<void> {
+  const brevoApiKey = process.env.BREVO_API_KEY
+  const brevoSenderEmail = process.env.BREVO_SENDER_EMAIL
+
+  if (!brevoApiKey || !brevoSenderEmail) {
+    console.warn('[data-rights] Brevo credentials em falta — email de notificação não enviado')
+    return
+  }
+
+  const outcomeText = outcome === 'applied'
+    ? `O campo "${fieldLabel}" foi atualizado conforme pedido.`
+    : `O pedido de correção do campo "${fieldLabel}" foi rejeitado.${rejectReason ? ` Motivo: ${rejectReason}` : ''}`
+
+  const htmlContent = `<!DOCTYPE html>
+<html lang="pt-PT">
+<head><meta charset="UTF-8"><title>Pedido de retificação processado</title></head>
+<body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#171717;">
+  <h1 style="font-size:20px;font-weight:600;margin-bottom:16px;">Pedido de retificação processado</h1>
+  <p style="font-size:14px;line-height:1.6;margin-bottom:16px;">
+    ${playerName}, o teu pedido de retificação de dados pessoais foi processado pelo staff do clube.
+  </p>
+  <p style="font-size:14px;line-height:1.6;margin-bottom:24px;">${outcomeText}</p>
+  <hr style="border:none;border-top:1px solid #E5E5E5;margin:24px 0;">
+  <p style="font-size:11px;color:#A3A3A3;">SPARTA — Gestão desportiva</p>
+</body>
+</html>`
+
+  try {
+    await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'api-key': brevoApiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sender: { name: 'SPARTA', email: brevoSenderEmail },
+        to: [{ email: playerEmail }],
+        subject: '[SPARTA] Pedido de retificação processado',
+        htmlContent,
+      }),
+    })
+  } catch (emailError) {
+    console.warn('[data-rights] Falha ao enviar email de notificação:', emailError instanceof Error ? emailError.message : emailError)
+  }
+}
+
+export async function submitRectificationRequest(payload: RectificationPayload): Promise<Result<RectificationResult, AppError>> {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return err({ code: 'unauthorized', message: 'Não autenticado' })
+  }
+
+  if (!(ALLOWED_FIELDS as readonly string[]).includes(payload.fieldName)) {
+    return err({ code: 'validation', message: 'Campo não permitido' })
+  }
+
+  if (!payload.requestedValue || payload.requestedValue.trim().length === 0 || payload.requestedValue.length > 500) {
+    return err({ code: 'validation', message: 'Valor inválido (máximo 500 caracteres)' })
+  }
+
+  const serviceRole = getServiceRoleClient()
+
+  const { data: player } = await serviceRole
+    .from('players')
+    .select('id, club_id, full_name, birthdate, jersey_num')
+    .eq('profile_id', user.id)
+    .maybeSingle()
+
+  if (!player?.id) {
+    return err({ code: 'not_found', message: 'Sem registo de jogador para este utilizador' })
+  }
+
+  const { data: dup } = await serviceRole
+    .from('rectification_requests')
+    .select('id')
+    .eq('player_id', player.id)
+    .eq('field_name', payload.fieldName)
+    .eq('status', 'pending')
+    .maybeSingle()
+
+  if (dup) {
+    return err({ code: 'conflict', message: 'Já existe um pedido pendente para este campo' })
+  }
+
+  const currentValueMap: Record<string, string | null> = {
+    full_name: player.full_name as string | null,
+    birthdate: player.birthdate as string | null,
+    jersey_num: player.jersey_num != null ? String(player.jersey_num) : null,
+  }
+
+  const currentValue = currentValueMap[payload.fieldName] ?? null
+
+  const { data: inserted, error: insertError } = await serviceRole
+    .from('rectification_requests')
+    .insert({
+      club_id: player.club_id,
+      player_id: player.id,
+      field_name: payload.fieldName,
+      requested_value: payload.requestedValue,
+      current_value: currentValue,
+      reason: payload.reason ?? null,
+    })
+    .select('id')
+    .single()
+
+  if (insertError || !inserted) {
+    console.error('[data-rights] submitRectificationRequest insert error:', insertError?.message)
+    return err({ code: 'internal', message: 'Falha ao submeter pedido' })
+  }
+
+  return ok({ submitted: true, requestId: inserted.id as string })
+}
+
+export async function submitRectificationRequestByToken(token: string, payload: RectificationPayload): Promise<Result<RectificationResult, AppError>> {
+  const validationResult = await validateToken(token)
+
+  if (!validationResult.ok) {
+    return validationResult
+  }
+
+  const validation = validationResult.data
+
+  if (!(ALLOWED_FIELDS as readonly string[]).includes(payload.fieldName)) {
+    return err({ code: 'validation', message: 'Campo não permitido' })
+  }
+
+  if (!payload.requestedValue || payload.requestedValue.trim().length === 0 || payload.requestedValue.length > 500) {
+    return err({ code: 'validation', message: 'Valor inválido (máximo 500 caracteres)' })
+  }
+
+  const serviceRole = getServiceRoleClient()
+
+  const { data: player } = await serviceRole
+    .from('players')
+    .select('id, club_id, full_name, birthdate, jersey_num')
+    .eq('id', validation.playerId as string)
+    .maybeSingle()
+
+  if (!player?.id) {
+    return err({ code: 'not_found', message: 'Jogador não encontrado' })
+  }
+
+  const { data: dup } = await serviceRole
+    .from('rectification_requests')
+    .select('id')
+    .eq('player_id', player.id)
+    .eq('field_name', payload.fieldName)
+    .eq('status', 'pending')
+    .maybeSingle()
+
+  if (dup) {
+    return err({ code: 'conflict', message: 'Já existe um pedido pendente para este campo' })
+  }
+
+  const currentValueMap: Record<string, string | null> = {
+    full_name: player.full_name as string | null,
+    birthdate: player.birthdate as string | null,
+    jersey_num: player.jersey_num != null ? String(player.jersey_num) : null,
+  }
+
+  const currentValue = currentValueMap[payload.fieldName] ?? null
+
+  const { data: inserted, error: insertError } = await serviceRole
+    .from('rectification_requests')
+    .insert({
+      club_id: player.club_id,
+      player_id: player.id,
+      field_name: payload.fieldName,
+      requested_value: payload.requestedValue,
+      current_value: currentValue,
+      reason: payload.reason ?? null,
+    })
+    .select('id')
+    .single()
+
+  if (insertError || !inserted) {
+    console.error('[data-rights] submitRectificationRequestByToken insert error:', insertError?.message)
+    return err({ code: 'internal', message: 'Falha ao submeter pedido' })
+  }
+
+  return ok({ submitted: true, requestId: inserted.id as string })
+}
+
+export async function approveRectification(requestId: string): Promise<Result<ApproveRectificationResult, AppError>> {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return err({ code: 'unauthorized', message: 'Não autenticado' })
+  }
+
+  // Verificar papel via service-role (fonte de verdade)
+  const serviceRole = getServiceRoleClient()
+  const { data: profile } = await serviceRole
+    .from('profiles')
+    .select('role, club_id')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  if (!profile || !['coach', 'analyst'].includes(profile.role as string)) {
+    return err({ code: 'forbidden', message: 'Apenas staff pode aprovar retificações' })
+  }
+
+  // Carregar request verificando club_id
+  const { data: request } = await serviceRole
+    .from('rectification_requests')
+    .select('id, status, club_id, player_id, field_name, requested_value, current_value')
+    .eq('id', requestId)
+    .eq('club_id', profile.club_id)
+    .maybeSingle()
+
+  if (!request) {
+    return err({ code: 'not_found', message: 'Pedido não encontrado' })
+  }
+
+  if (request.status !== 'pending') {
+    return err({ code: 'validation', message: 'Pedido já processado' })
+  }
+
+  const fieldName = request.field_name as string
+  const requestedValue = request.requested_value as string
+  const playerId = request.player_id as string
+
+  // Aplicar alteração na tabela de origem
+  if (fieldName === 'full_name') {
+    const { error: updateError } = await serviceRole
+      .from('players')
+      .update({ full_name: requestedValue })
+      .eq('id', playerId)
+
+    if (updateError) {
+      console.error('[data-rights] approveRectification full_name update error:', updateError.message)
+      return err({ code: 'internal', message: 'Falha ao aplicar retificação' })
+    }
+  } else if (fieldName === 'birthdate') {
+    const parsedDate = new Date(requestedValue)
+    if (isNaN(parsedDate.getTime())) {
+      return err({ code: 'validation', message: 'Data de nascimento inválida' })
+    }
+    if (parsedDate.getFullYear() < 1900 || parsedDate > new Date()) {
+      return err({ code: 'validation', message: 'Data de nascimento fora do intervalo permitido' })
+    }
+
+    const ageGroup = calcAgeGroup(parsedDate)
+    const { error: updateError } = await serviceRole
+      .from('players')
+      .update({ birthdate: requestedValue, age_group: ageGroup })
+      .eq('id', playerId)
+
+    if (updateError) {
+      console.error('[data-rights] approveRectification birthdate update error:', updateError.message)
+      return err({ code: 'internal', message: 'Falha ao aplicar retificação' })
+    }
+  } else if (fieldName === 'jersey_num') {
+    const newJerseyNum = parseInt(requestedValue, 10)
+    if (isNaN(newJerseyNum) || newJerseyNum < 1 || newJerseyNum > 99) {
+      return err({ code: 'validation', message: 'Número de camisola inválido (1-99)' })
+    }
+
+    const { error: updateError } = await serviceRole
+      .from('players')
+      .update({ jersey_num: newJerseyNum })
+      .eq('id', playerId)
+
+    if (updateError) {
+      if (updateError.message.includes('idx_players_jersey_club_active') || updateError.code === '23505') {
+        return err({ code: 'conflict', message: 'Número de camisola já em uso neste clube' })
+      }
+      console.error('[data-rights] approveRectification jersey_num update error:', updateError.message)
+      return err({ code: 'internal', message: 'Falha ao aplicar retificação' })
+    }
+  } else {
+    return err({ code: 'validation', message: 'Campo não permitido' })
+  }
+
+  // Actualizar status do request
+  const { error: statusError } = await serviceRole
+    .from('rectification_requests')
+    .update({
+      status: 'applied',
+      applied_at: new Date().toISOString(),
+      applied_by: user.id,
+    })
+    .eq('id', requestId)
+
+  if (statusError) {
+    console.error('[data-rights] approveRectification status update error:', statusError.message)
+    return err({ code: 'internal', message: 'Falha ao actualizar estado do pedido' })
+  }
+
+  // Audit log (síncrono — compliance crítico)
+  const { error: auditError } = await serviceRole.from('audit_logs').insert({
+    club_id: request.club_id as string,
+    actor_id: user.id,
+    action: 'subject.rectified',
+    target_kind: 'player',
+    target_id: playerId,
+    payload: {
+      field: fieldName,
+      before: request.current_value as string | null,
+      after: requestedValue,
+    },
+  })
+
+  if (auditError) {
+    console.error('[data-rights] audit insert failed:', auditError.message)
+    return err({ code: 'internal', message: 'Falha no registo de auditoria' })
+  }
+
+  // Obter email do titular para notificação (fire-and-forget)
+  const { data: playerProfile } = await serviceRole
+    .from('players')
+    .select('profile_id, full_name')
+    .eq('id', playerId)
+    .maybeSingle()
+
+  if (playerProfile?.profile_id) {
+    const { data: authUserData } = await serviceRole.auth.admin.getUserById(playerProfile.profile_id as string)
+    const playerEmail = authUserData?.user?.email
+    const playerName = playerProfile.full_name as string ?? 'Jogador'
+
+    const FIELD_LABELS: Record<string, string> = {
+      full_name: 'Nome completo',
+      birthdate: 'Data de nascimento',
+      jersey_num: 'Número de camisola',
+    }
+    const fieldLabel = FIELD_LABELS[fieldName] ?? fieldName
+
+    if (playerEmail) {
+      void sendRectificationNotification(playerEmail, playerName, fieldLabel, 'applied')
+      void serviceRole
+        .from('rectification_requests')
+        .update({ notified_at: new Date().toISOString() })
+        .eq('id', requestId)
+    }
+  }
+
+  return ok({ applied: true })
+}
+
+export async function rejectRectification(requestId: string, reason: string): Promise<Result<RejectRectificationResult, AppError>> {
+  if (!reason || reason.trim().length === 0 || reason.length > 1000) {
+    return err({ code: 'validation', message: 'Motivo obrigatório (máx. 1000 caracteres)' })
+  }
+
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return err({ code: 'unauthorized', message: 'Não autenticado' })
+  }
+
+  const serviceRole = getServiceRoleClient()
+  const { data: profile } = await serviceRole
+    .from('profiles')
+    .select('role, club_id')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  if (!profile || !['coach', 'analyst'].includes(profile.role as string)) {
+    return err({ code: 'forbidden', message: 'Apenas staff pode rejeitar retificações' })
+  }
+
+  const { data: request } = await serviceRole
+    .from('rectification_requests')
+    .select('id, status, club_id, player_id, field_name')
+    .eq('id', requestId)
+    .eq('club_id', profile.club_id)
+    .maybeSingle()
+
+  if (!request) {
+    return err({ code: 'not_found', message: 'Pedido não encontrado' })
+  }
+
+  if (request.status !== 'pending') {
+    return err({ code: 'validation', message: 'Pedido já processado' })
+  }
+
+  const { error: rejectError } = await serviceRole
+    .from('rectification_requests')
+    .update({
+      status: 'rejected',
+      rejected_at: new Date().toISOString(),
+      rejected_by: user.id,
+      reject_reason: reason,
+    })
+    .eq('id', requestId)
+
+  if (rejectError) {
+    console.error('[data-rights] rejectRectification update error:', rejectError.message)
+    return err({ code: 'internal', message: 'Falha ao rejeitar pedido' })
+  }
+
+  // Notificar titular (fire-and-forget)
+  const { data: playerProfile } = await serviceRole
+    .from('players')
+    .select('profile_id, full_name')
+    .eq('id', request.player_id)
+    .maybeSingle()
+
+  if (playerProfile?.profile_id) {
+    const { data: authUserData } = await serviceRole.auth.admin.getUserById(playerProfile.profile_id as string)
+    const playerEmail = authUserData?.user?.email
+    const playerName = playerProfile.full_name as string ?? 'Jogador'
+
+    const FIELD_LABELS: Record<string, string> = {
+      full_name: 'Nome completo',
+      birthdate: 'Data de nascimento',
+      jersey_num: 'Número de camisola',
+    }
+    const fieldLabel = FIELD_LABELS[request.field_name as string] ?? (request.field_name as string)
+
+    if (playerEmail) {
+      void sendRectificationNotification(playerEmail, playerName, fieldLabel, 'rejected', reason)
+      void serviceRole
+        .from('rectification_requests')
+        .update({ notified_at: new Date().toISOString() })
+        .eq('id', requestId)
+    }
+  }
+
+  return ok({ rejected: true })
+}

@@ -537,6 +537,89 @@ export type Database = {
         }
         Relationships: []
       }
+      rectification_requests: {
+        Row: {
+          id: string
+          club_id: string
+          player_id: string
+          status: string
+          field_name: string
+          requested_value: string
+          current_value: string | null
+          reason: string | null
+          applied_at: string | null
+          applied_by: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          reject_reason: string | null
+          notified_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          club_id: string
+          player_id: string
+          status?: string
+          field_name: string
+          requested_value: string
+          current_value?: string | null
+          reason?: string | null
+          applied_at?: string | null
+          applied_by?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          reject_reason?: string | null
+          notified_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          club_id?: string
+          player_id?: string
+          status?: string
+          field_name?: string
+          requested_value?: string
+          current_value?: string | null
+          reason?: string | null
+          applied_at?: string | null
+          applied_by?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          reject_reason?: string | null
+          notified_at?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rectification_requests_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rectification_requests_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rectification_requests_applied_by_fkey"
+            columns: ["applied_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rectification_requests_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

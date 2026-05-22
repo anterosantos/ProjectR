@@ -15,6 +15,10 @@ import {
   requestDataExportByToken,
   requestDataErasureForSelf,
   requestDataErasureByToken,
+  submitRectificationRequest,
+  submitRectificationRequestByToken,
+  approveRectification,
+  rejectRectification,
 } from '@/lib/actions/data-rights'
 
 const mockCreateServerClient = createServerClient as ReturnType<typeof vi.fn>
@@ -253,5 +257,340 @@ describe('requestDataErasureByToken', () => {
       expect(result.error.code).toBe('unauthorized')
     }
     expect(mockFetch).not.toHaveBeenCalled()
+  })
+})
+
+// =============================================================================
+// Story 3.8: Direito de Retificação
+// =============================================================================
+
+const PLAYER_ID_3 = 'c0000000-0000-7000-8000-000000000003'
+const REQUEST_ID = 'd0000000-0000-7000-8000-000000000004'
+
+describe('submitRectificationRequest', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://localhost:54321')
+    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role-key')
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
+  })
+
+  it('sucesso: retorna submitted:true com requestId', async () => {
+    const mockSingle = vi.fn().mockResolvedValue({ data: { id: REQUEST_ID }, error: null })
+    const mockInsertChain = {
+      select: vi.fn().mockReturnThis(),
+      single: mockSingle,
+    }
+    mockCreateServerClient.mockResolvedValue({
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: USER_ID } } }) },
+    })
+    mockGetServiceRoleClient.mockReturnValue({
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === 'players') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: { id: PLAYER_ID_3, club_id: 'club-1', full_name: 'João', birthdate: '2010-01-01', jersey_num: 5 },
+              error: null,
+            }),
+          }
+        }
+        if (table === 'rectification_requests') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+            insert: vi.fn().mockReturnValue(mockInsertChain),
+          }
+        }
+        return {}
+      }),
+    })
+
+    const result = await submitRectificationRequest({
+      fieldName: 'full_name',
+      requestedValue: 'João Manuel Silva',
+    })
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.data.submitted).toBe(true)
+      expect(result.data.requestId).toBe(REQUEST_ID)
+    }
+  })
+
+  it('sem player: retorna err not_found', async () => {
+    mockCreateServerClient.mockResolvedValue({
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: USER_ID } } }) },
+    })
+    mockGetServiceRoleClient.mockReturnValue({
+      from: vi.fn().mockImplementation(() => ({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      })),
+    })
+
+    const result = await submitRectificationRequest({
+      fieldName: 'full_name',
+      requestedValue: 'Novo Nome',
+    })
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.error.code).toBe('not_found')
+    }
+  })
+})
+
+describe('submitRectificationRequestByToken', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://localhost:54321')
+    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role-key')
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
+  })
+
+  it('token válido: retorna submitted:true', async () => {
+    const mockSingle = vi.fn().mockResolvedValue({ data: { id: REQUEST_ID }, error: null })
+    const mockInsertChain = { select: vi.fn().mockReturnThis(), single: mockSingle }
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ valid: true, playerId: PLAYER_ID_3, playerName: 'João' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    ))
+    mockGetServiceRoleClient.mockReturnValue({
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === 'players') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: { id: PLAYER_ID_3, club_id: 'club-1', full_name: 'João', birthdate: '2010-01-01', jersey_num: 5 },
+              error: null,
+            }),
+          }
+        }
+        if (table === 'rectification_requests') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+            insert: vi.fn().mockReturnValue(mockInsertChain),
+          }
+        }
+        return {}
+      }),
+    })
+
+    const result = await submitRectificationRequestByToken('valid-token-abc123', {
+      fieldName: 'full_name',
+      requestedValue: 'João Manuel',
+    })
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.data.submitted).toBe(true)
+    }
+  })
+})
+
+describe('approveRectification', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://localhost:54321')
+    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role-key')
+    vi.stubEnv('BREVO_API_KEY', 'test-brevo-key')
+    vi.stubEnv('BREVO_SENDER_EMAIL', 'sender@test.com')
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
+  })
+
+  it('staff aprova: retorna applied:true e audit log inserido', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ id: 'msg1' }), { status: 200 })
+    ))
+
+    const mockAuditInsert = vi.fn().mockResolvedValue({ error: null })
+    const mockRequestUpdate = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) })
+    const mockPlayerUpdate = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) })
+
+    mockCreateServerClient.mockResolvedValue({
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: USER_ID } } }) },
+    })
+
+    mockGetServiceRoleClient.mockReturnValue({
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === 'profiles') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: { role: 'coach', club_id: 'club-1' },
+              error: null,
+            }),
+          }
+        }
+        if (table === 'rectification_requests') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            update: mockRequestUpdate,
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: {
+                id: REQUEST_ID,
+                status: 'pending',
+                club_id: 'club-1',
+                player_id: PLAYER_ID_3,
+                field_name: 'full_name',
+                requested_value: 'Novo Nome',
+                current_value: 'Nome Antigo',
+              },
+              error: null,
+            }),
+          }
+        }
+        if (table === 'players') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            update: mockPlayerUpdate,
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: { profile_id: USER_ID, full_name: 'João' },
+              error: null,
+            }),
+          }
+        }
+        if (table === 'audit_logs') {
+          return { insert: mockAuditInsert }
+        }
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          update: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) }),
+          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+        }
+      }),
+      auth: {
+        admin: {
+          getUserById: vi.fn().mockResolvedValue({ data: { user: { email: 'joao@example.com' } }, error: null }),
+        },
+      },
+    })
+
+    const result = await approveRectification(REQUEST_ID)
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.data.applied).toBe(true)
+    }
+    expect(mockAuditInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'subject.rectified',
+        target_kind: 'player',
+        target_id: PLAYER_ID_3,
+      })
+    )
+  })
+})
+
+describe('rejectRectification', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://localhost:54321')
+    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role-key')
+    vi.stubEnv('BREVO_API_KEY', 'test-brevo-key')
+    vi.stubEnv('BREVO_SENDER_EMAIL', 'sender@test.com')
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
+  })
+
+  it('staff rejeita com motivo: retorna rejected:true', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ id: 'msg1' }), { status: 200 })
+    ))
+
+    const mockRequestUpdate = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) })
+
+    mockCreateServerClient.mockResolvedValue({
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: USER_ID } } }) },
+    })
+
+    mockGetServiceRoleClient.mockReturnValue({
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === 'profiles') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: { role: 'coach', club_id: 'club-1' },
+              error: null,
+            }),
+          }
+        }
+        if (table === 'rectification_requests') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            update: mockRequestUpdate,
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: {
+                id: REQUEST_ID,
+                status: 'pending',
+                club_id: 'club-1',
+                player_id: PLAYER_ID_3,
+                field_name: 'full_name',
+              },
+              error: null,
+            }),
+          }
+        }
+        if (table === 'players') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: { profile_id: USER_ID, full_name: 'João' },
+              error: null,
+            }),
+          }
+        }
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          update: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) }),
+          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+        }
+      }),
+      auth: {
+        admin: {
+          getUserById: vi.fn().mockResolvedValue({ data: { user: { email: 'joao@example.com' } }, error: null }),
+        },
+      },
+    })
+
+    const result = await rejectRectification(REQUEST_ID, 'Dados já estão corretos no sistema')
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.data.rejected).toBe(true)
+    }
   })
 })
