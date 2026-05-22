@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { validateToken } from '@/app/(public)/direitos/[token]/lib/validate-token'
 import ApagarPage from '@/app/(public)/direitos/[token]/apagar/page'
 
 vi.mock('@/lib/supabase/server', () => ({
@@ -10,12 +11,7 @@ vi.mock('@/app/(public)/direitos/[token]/lib/validate-token', () => ({
   validateToken: vi.fn(),
 }))
 
-const mockCreateServerClient = vi.mocked(
-  require('@/lib/supabase/server').createServerClient
-)
-const mockValidateToken = vi.mocked(
-  require('@/app/(public)/direitos/[token]/lib/validate-token').validateToken
-)
+const mockValidateToken = vi.mocked(validateToken)
 
 describe('Apagar Page (Token)', () => {
   beforeEach(() => {

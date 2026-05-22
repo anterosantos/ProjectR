@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { redirect } from 'next/navigation'
+import { createServerClient } from '@/lib/supabase/server'
 import ApagarPage from '@/app/configuracoes/(subject-rights)/direitos/apagar/page'
 
 vi.mock('next/navigation', () => ({
@@ -11,9 +12,7 @@ vi.mock('@/lib/supabase/server', () => ({
   createServerClient: vi.fn(),
 }))
 
-const mockCreateServerClient = vi.mocked(
-  require('@/lib/supabase/server').createServerClient
-)
+const mockCreateServerClient = vi.mocked(createServerClient)
 const mockRedirect = vi.mocked(redirect)
 
 describe('Apagar Page (Auth)', () => {
