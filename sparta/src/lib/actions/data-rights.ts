@@ -174,7 +174,7 @@ export async function requestDataExportByToken(token: string): Promise<Result<Ex
     return validationResult
   }
 
-  const validation = validationResult.value
+  const validation = validationResult.data
   return callExportCsv(validation.playerId as string)
 }
 
@@ -233,6 +233,6 @@ export async function requestDataErasureByToken(token: string): Promise<Result<E
     return validationResult
   }
 
-  const validation = validationResult.value
+  const validation = validationResult.data
   return callEraseCascade(validation.playerId as string, validation.playerId as string)
 }
