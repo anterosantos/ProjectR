@@ -305,7 +305,8 @@ export async function getConsentByPlayerId(playerId: string) {
 
 async function sendConsentConfirmationEmail(
   parentEmail: string,
-  playerName: string
+  playerName: string,
+  token: string
 ): Promise<void> {
   const resendApiKey = process.env.RESEND_API_KEY;
   if (!resendApiKey) {
@@ -314,6 +315,8 @@ async function sendConsentConfirmationEmail(
   }
 
   const confirmedAt = new Date().toLocaleDateString("pt-PT");
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://sparta-red.vercel.app";
+  const direitosUrl = `${siteUrl}/direitos/${token}`;
   const resend = new Resend(resendApiKey);
 
   try {
@@ -322,7 +325,9 @@ async function sendConsentConfirmationEmail(
       to: [parentEmail],
       subject: `Consentimento registado em ${confirmedAt}`,
       html: `<p>O seu consentimento para <strong>${playerName}</strong> foi registado em ${confirmedAt}.</p>
-<p>${playerName} pode agora aceder à plataforma SPARTA.</p>`,
+<p>${playerName} pode agora aceder à plataforma SPARTA.</p>
+<p>Enquanto encarregado, pode exercer os seus direitos RGPD (exportar, apagar, retificar dados, entre outros) durante os próximos 30 dias através do link abaixo:</p>
+<p><a href="${direitosUrl}">Gerir direitos RGPD</a></p>`,
     });
   } catch (e) {
     console.error("[consent] sendConsentConfirmationEmail falhou:", e);
@@ -338,12 +343,12 @@ export async function processConsentDecision(
 
   const { data: consent } = await serviceRole
     .from("parental_consents")
-    .select("id, player_id, club_id, parent_email, token_expires_at")
+    .select("id, player_id, club_id, parent_email, token_expires_at, token")
     .eq("token", token)
     .eq("status", "pending")
     .maybeSingle();
 
-  if (!consent) return;
+  if (!consent?.parent_email) return;
 
   if (new Date(consent.token_expires_at as string) < new Date()) {
     await serviceRole
@@ -361,7 +366,7 @@ export async function processConsentDecision(
 
   if (!player?.profile_id) return;
 
-  const playerName = (player.full_name as string) ?? "o seu educando";
+  const playerName = (player.full_name as string | null) ?? "o seu educando";
 
   if (action === "confirm") {
     await serviceRole
@@ -386,7 +391,7 @@ export async function processConsentDecision(
       payload: { consent_id: consent.id, confirmed_ip: ip },
     });
 
-    await sendConsentConfirmationEmail(consent.parent_email as string, playerName);
+    await sendConsentConfirmationEmail(consent.parent_email as string, playerName, token);
     return;
   }
 

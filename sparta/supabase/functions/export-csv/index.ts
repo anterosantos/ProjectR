@@ -170,6 +170,15 @@ export async function handler(req: Request): Promise<Response> {
       'parental_consents',
     ]
 
+    // Helper to safely cast and validate data is array
+    function safeRowsCsv(data: unknown, tableName: string): string {
+      if (!Array.isArray(data)) {
+        console.warn(`[export-csv] ${tableName} returned non-array — skipping`)
+        return ''
+      }
+      return rowsToCsv(data as Record<string, unknown>[])
+    }
+
     // profiles uses id directly
     {
       const { data, error } = await supabase
@@ -177,8 +186,11 @@ export async function handler(req: Request): Promise<Response> {
         .select(getSelectColumns('profiles'))
         .eq('id', playerId)
       if (!error && data) {
-        zip.file('profiles.csv', rowsToCsv(data))
-        includedTables.push('profiles')
+        const csv = safeRowsCsv(data, 'profiles')
+        if (csv) {
+          zip.file('profiles.csv', csv)
+          includedTables.push('profiles')
+        }
       } else if (error) {
         console.warn('[export-csv] tabela profiles não disponível — omitindo CSV')
       }
@@ -191,8 +203,11 @@ export async function handler(req: Request): Promise<Response> {
         .select(getSelectColumns('players'))
         .eq('id', playerId)
       if (!error && data) {
-        zip.file('players.csv', rowsToCsv(data))
-        includedTables.push('players')
+        const csv = safeRowsCsv(data, 'players')
+        if (csv) {
+          zip.file('players.csv', csv)
+          includedTables.push('players')
+        }
       } else if (error) {
         console.warn('[export-csv] tabela players não disponível — omitindo CSV')
       }
@@ -205,8 +220,11 @@ export async function handler(req: Request): Promise<Response> {
         .select(getSelectColumns(tableName))
         .eq('player_id', playerId)
       if (!error && data) {
-        zip.file(`${tableName}.csv`, rowsToCsv(data))
-        includedTables.push(tableName)
+        const csv = safeRowsCsv(data, tableName)
+        if (csv) {
+          zip.file(`${tableName}.csv`, csv)
+          includedTables.push(tableName)
+        }
       } else if (error) {
         console.warn(`[export-csv] tabela ${tableName} não disponível — omitindo CSV`)
       }
@@ -219,8 +237,11 @@ export async function handler(req: Request): Promise<Response> {
         .select(getSelectColumns('match_lineups'))
         .eq('player_id', playerId)
       if (!error && data) {
-        zip.file('match_lineups.csv', rowsToCsv(data))
-        includedTables.push('match_lineups')
+        const csv = safeRowsCsv(data, 'match_lineups')
+        if (csv) {
+          zip.file('match_lineups.csv', csv)
+          includedTables.push('match_lineups')
+        }
       }
     } catch {
       console.warn('[export-csv] tabela match_lineups não disponível — omitindo CSV')
@@ -233,8 +254,11 @@ export async function handler(req: Request): Promise<Response> {
         .select(getSelectColumns('audit_logs'))
         .eq('target_id', playerId)
       if (!error && data) {
-        zip.file('audit_logs.csv', rowsToCsv(data))
-        includedTables.push('audit_logs')
+        const csv = safeRowsCsv(data, 'audit_logs')
+        if (csv) {
+          zip.file('audit_logs.csv', csv)
+          includedTables.push('audit_logs')
+        }
       } else if (error) {
         console.warn('[export-csv] tabela audit_logs não disponível — omitindo CSV')
       }
@@ -257,8 +281,11 @@ export async function handler(req: Request): Promise<Response> {
           .select(getSelectColumns(tableName))
           .eq('player_id', playerId)
         if (!error && data) {
-          zip.file(`${tableName}.csv`, rowsToCsv(data))
-          includedTables.push(tableName)
+          const csv = safeRowsCsv(data, tableName)
+          if (csv) {
+            zip.file(`${tableName}.csv`, csv)
+            includedTables.push(tableName)
+          }
         }
       } catch {
         console.warn(`[export-csv] tabela ${tableName} não disponível — omitindo CSV`)
@@ -415,7 +442,8 @@ export async function handler(req: Request): Promise<Response> {
             action: 'subject.export_failed',
             target_kind: 'player',
             target_id: playerId,
-          }).catch(() => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          }).then(undefined, () => {
             // Silently fail if audit log fails — already error state
           })
         }
