@@ -1,5 +1,6 @@
 "use server";
 
+import { after } from "next/server";
 import { z } from "zod";
 import { Resend } from "resend";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
@@ -100,25 +101,29 @@ export async function initiateParentalConsent(
     payload: { consent_id: consent.id, parent_email: parentEmail },
   });
 
-  // Fire-and-forget — não bloqueia o retorno da Server Action
-  void fetch(
-    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-parental-consent`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-      },
-      body: JSON.stringify({ consentId: consent.id }),
-    }
-  )
-    .then(async (res) => {
+  // after() keeps the serverless function alive until the fetch completes.
+  // Without it, Vercel terminates the function before the email is sent.
+  after(async () => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-parental-consent`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+          },
+          body: JSON.stringify({ consentId: consent.id }),
+        }
+      );
       if (!res.ok) {
         const errBody = await res.text();
         console.error("[consent] send-parental-consent failed:", res.status, errBody);
       }
-    })
-    .catch((e) => console.error("[consent] send-parental-consent fetch error:", e));
+    } catch (e) {
+      console.error("[consent] send-parental-consent fetch error:", e);
+    }
+  });
 
   return ok({ consentId: consent.id });
 }
