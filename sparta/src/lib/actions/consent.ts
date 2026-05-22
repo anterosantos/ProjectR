@@ -203,7 +203,7 @@ export async function resendConsentEmail(
     return err({ code: "internal", message: "Configuração de email em falta" });
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://sparta-red.vercel.app";
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://sparta-webapp.vercel.app";
 
   const { data: consentRecord } = await serviceRole
     .from("parental_consents")
@@ -320,7 +320,7 @@ async function sendConsentConfirmationEmail(
   }
 
   const confirmedAt = new Date().toLocaleDateString("pt-PT");
-  const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://sparta-red.vercel.app";
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://sparta-webapp.vercel.app";
   const direitosUrl = `${siteUrl}/direitos/${token}`;
   const resend = new Resend(resendApiKey);
 
