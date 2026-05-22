@@ -30,9 +30,41 @@ export default function LoginPage() {
     if (typeof window === "undefined") return;
     const hash = window.location.hash;
     if (!hash.includes("type=invite")) return;
-    // Hard redirect so Supabase SDK processes the hash on /reset-password fresh page load
-    window.location.replace("/reset-password?from=invite" + hash);
-  }, []);
+
+    const supabase = createClient();
+    let redirected = false;
+    const doRedirect = () => {
+      if (!redirected) {
+        redirected = true;
+        // Redirect WITHOUT hash — session is in localStorage, reset-password reads it there
+        router.replace("/reset-password?from=invite");
+      }
+    };
+
+    // Register listener SYNCHRONOUSLY first to avoid missing SIGNED_IN
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        subscription.unsubscribe();
+        doRedirect();
+      }
+    });
+
+    // Check if SDK already processed the hash before this effect ran
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        subscription.unsubscribe();
+        doRedirect();
+      }
+    });
+
+    // Fallback: if token is expired/invalid, redirect anyway so reset-password shows the error
+    const fallback = setTimeout(doRedirect, 4000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(fallback);
+    };
+  }, [router]);
 
   useEffect(() => {
     if (stage === "mfa") {

@@ -24,36 +24,17 @@ export default function ResetPasswordForm() {
     const supabase = getSupabaseClient();
 
     if (isInviteFlow) {
-      // Invite flow: hard redirect from /login preserves the hash so the SDK processes it here.
-      // Listen for SIGNED_IN (SDK exchanges the invite token) with a getSession() pre-check.
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-        if (event === "SIGNED_IN") {
-          resolvedRef.current = true;
-          setIsValidating(false);
-          subscription.unsubscribe();
-        }
-      });
-
-      // Also check for an existing session in case SDK already processed before listener attached
+      // Session was established by the SDK on /login before redirect — read from localStorage
       supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session && !resolvedRef.current) {
+        if (session) {
           resolvedRef.current = true;
           setIsValidating(false);
-          subscription.unsubscribe();
-        }
-      });
-
-      const fallback = setTimeout(() => {
-        if (!resolvedRef.current) {
+        } else {
           setInvalidToken(true);
           setIsValidating(false);
         }
-      }, 5000);
-
-      return () => {
-        subscription.unsubscribe();
-        clearTimeout(fallback);
-      };
+      });
+      return;
     }
 
     // Password recovery flow: wait for PASSWORD_RECOVERY event
