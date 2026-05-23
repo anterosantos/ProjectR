@@ -376,3 +376,100 @@ describe("FatigueQuestionnaire — acessibilidade", () => {
     expect(results).toHaveNoViolations();
   });
 });
+
+// ─── Variante sub-14 (ageGroup='u14') — Story 4.3 ─────────────────────────────
+
+describe("variante sub-14 (ageGroup='u14')", () => {
+  it("renderiza labels simplificados para dim_energy", async () => {
+    await renderAndSettle({ ...BASE_PROPS, ageGroup: "u14" });
+    expect(screen.getByText("Como te sentes de energia?")).toBeInTheDocument();
+    expect(screen.getByText("Cansado")).toBeInTheDocument();
+    expect(screen.getByText("Cheio de energia")).toBeInTheDocument();
+  });
+
+  it("renderiza labels simplificados para dim_focus", async () => {
+    await renderAndSettle({ ...BASE_PROPS, ageGroup: "u14" });
+    expect(screen.getByText("Estás atento?")).toBeInTheDocument();
+    expect(screen.getByText("Distraído")).toBeInTheDocument();
+    expect(screen.getByText("Atento")).toBeInTheDocument();
+  });
+
+  it("renderiza labels simplificados para dim_mood", async () => {
+    await renderAndSettle({ ...BASE_PROPS, ageGroup: "u14" });
+    expect(screen.getByText("Como estás de humor?")).toBeInTheDocument();
+    expect(screen.getByText("Triste/zangado")).toBeInTheDocument();
+    expect(screen.getByText("Bem-disposto")).toBeInTheDocument();
+  });
+
+  it("botão de submissão diz 'Pronto, terminámos'", async () => {
+    await renderAndSettle({ ...BASE_PROPS, ageGroup: "u14" });
+    expect(screen.getByRole("button", { name: /Pronto, terminámos/i })).toBeInTheDocument();
+  });
+
+  it("botão 'Submeter' NÃO aparece na variante u14", async () => {
+    await renderAndSettle({ ...BASE_PROPS, ageGroup: "u14" });
+    expect(screen.queryByRole("button", { name: /^Submeter$/i })).not.toBeInTheDocument();
+  });
+
+  it("exibe help text para sub-14", async () => {
+    await renderAndSettle({ ...BASE_PROPS, ageGroup: "u14" });
+    expect(
+      screen.getByText("Não há respostas certas. O que importa é como te sentes mesmo.")
+    ).toBeInTheDocument();
+  });
+
+  it("NÃO exibe help text para senior (sem prop ageGroup)", async () => {
+    await renderAndSettle(BASE_PROPS); // sem ageGroup → default "senior"
+    expect(
+      screen.queryByText("Não há respostas certas. O que importa é como te sentes mesmo.")
+    ).not.toBeInTheDocument();
+  });
+
+  it("renderiza label u14 ('Como te sentes de energia?') e NÃO renderiza senior ('Energia muscular')", async () => {
+    await renderAndSettle({ ...BASE_PROPS, ageGroup: "u14" });
+    // Positivo: o label u14 aparece
+    expect(screen.getByText("Como te sentes de energia?")).toBeInTheDocument();
+    // Negativo: o label senior NÃO aparece
+    expect(screen.queryByText("Energia muscular")).not.toBeInTheDocument();
+  });
+
+  it("sem violações axe-core com ageGroup='u14'", async () => {
+    const { container } = render(
+      <FatigueQuestionnaire {...BASE_PROPS} ageGroup="u14" />
+    );
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+
+  it("sem violações axe-core com ageGroup='senior'", async () => {
+    const { container } = render(
+      <FatigueQuestionnaire {...BASE_PROPS} ageGroup="senior" />
+    );
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+
+  it("defaults to senior variant quando ageGroup prop é undefined (simula null age_group do DB)", async () => {
+    await renderAndSettle(BASE_PROPS); // sem ageGroup → defaults "senior"
+    // Verifica que os labels senior aparecem
+    expect(screen.getByText("Energia muscular")).toBeInTheDocument();
+    expect(screen.getByText("Concentração")).toBeInTheDocument();
+    expect(screen.getByText("Sono")).toBeInTheDocument();
+    expect(screen.getByText("Desconforto físico")).toBeInTheDocument();
+    expect(screen.getByText("Estado emocional")).toBeInTheDocument();
+    // Verifica que help text u14 NÃO aparece
+    expect(
+      screen.queryByText("Não há respostas certas. O que importa é como te sentes mesmo.")
+    ).not.toBeInTheDocument();
+    // Verifica que botão diz "Submeter" (não "Pronto, terminámos")
+    expect(screen.getByRole("button", { name: /^Submeter$/i })).toBeInTheDocument();
+  });
+});

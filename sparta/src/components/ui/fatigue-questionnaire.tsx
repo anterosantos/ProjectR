@@ -22,6 +22,7 @@ import { newId } from "@/lib/uuid";
 import { submitFatigueResponse } from "@/lib/actions/fatigue";
 import { CalmConfirmation } from "@/components/ui/calm-confirmation";
 import { FatigueSlider } from "@/components/ui/fatigue-slider";
+import { getFatigueCopy } from "@/lib/i18n/pt-PT/fatigue";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -32,6 +33,12 @@ export interface FatigueQuestionnaireProps {
   sessionDate: string;
   phase: "pre" | "post";
   playerId: string;
+  /**
+   * Grupo etário do jogador — controla adaptação linguística (Story 4.3, UX-DR32).
+   * "u14" | "u15" → versão simplificada sub-14; qualquer outro valor → versão senior.
+   * Default: "senior" (para não quebrar testes e chamadas existentes sem esta prop).
+   */
+  ageGroup?: "senior" | "u14";
 }
 
 interface DraftValues {
@@ -55,40 +62,9 @@ const DraftValuesSchema = z.object({
   srpe_value: z.number().int().min(1).max(10).nullable(),
 });
 
-// ─── Configuração das dimensões ───────────────────────────────────────────────
-
-const DIMENSIONS = [
-  {
-    key: "dim_energy" as const,
-    label: "Energia muscular",
-    minLabel: "Esgotado",
-    maxLabel: "Pleno",
-  },
-  {
-    key: "dim_focus" as const,
-    label: "Concentração",
-    minLabel: "Disperso",
-    maxLabel: "Concentrado",
-  },
-  {
-    key: "dim_sleep" as const,
-    label: "Sono",
-    minLabel: "Mau",
-    maxLabel: "Excelente sono",
-  },
-  {
-    key: "dim_soreness" as const,
-    label: "Desconforto físico",
-    minLabel: "Muito dor",
-    maxLabel: "Sem dor",
-  },
-  {
-    key: "dim_mood" as const,
-    label: "Estado emocional",
-    minLabel: "Mau",
-    maxLabel: "Bom estado",
-  },
-] as const;
+// ─── Configuração das dimensões (Story 4.3: substituída por getFatigueCopy) ───
+// A constante DIMENSIONS foi removida em Story 4.3.
+// As dimensões e labels vêm agora de @/lib/i18n/pt-PT/fatigue via getFatigueCopy(ageGroup).
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -121,8 +97,12 @@ export function FatigueQuestionnaire({
   sessionDate,
   phase,
   playerId,
+  ageGroup = "senior",
 }: FatigueQuestionnaireProps) {
   const router = useRouter();
+
+  // Copy adaptado ao grupo etário (Story 4.3)
+  const copy = getFatigueCopy(ageGroup);
 
   const draftKey = `draft:questionnaire:${sessionId}:${phase}:${playerId}`;
 
@@ -251,9 +231,16 @@ export function FatigueQuestionnaire({
         Questionário — {sessionLabel}
       </h1>
 
-      {/* 5 sliders de dimensão */}
+      {/* Help text sub-14 — só quando existe (AC #3) */}
+      {copy.helpText && (
+        <p className="text-sm text-[var(--color-ink-2,theme(colors.gray.600))]">
+          {copy.helpText}
+        </p>
+      )}
+
+      {/* 5 sliders de dimensão — copy vem do i18n (Story 4.3) */}
       <div className="flex flex-col gap-6">
-        {DIMENSIONS.map((dim) => (
+        {copy.dimensions.map((dim) => (
           <FatigueSlider
             key={dim.key}
             id={`slider-${dim.key}`}
@@ -265,6 +252,7 @@ export function FatigueQuestionnaire({
             value={values[dim.key]}
             onChange={(v) => handleChange(dim.key, v)}
             disabled={isSubmitting}
+            ageGroup={ageGroup}
           />
         ))}
 
@@ -291,20 +279,20 @@ export function FatigueQuestionnaire({
         </p>
       )}
 
-      {/* Botão Submeter (AC #4) */}
+      {/* Botão Submeter — copy adaptado ao grupo etário (AC #2, Story 4.3) */}
       <button
         type="button"
         disabled={!allSet || isSubmitting}
         onClick={() => void handleSubmit()}
         className="min-h-[44px] min-w-[44px] w-full rounded-lg bg-primary px-6 py-3 text-base font-semibold text-primary-foreground shadow-sm transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isSubmitting ? "A submeter…" : "Submeter"}
+        {isSubmitting ? copy.submittingLabel : copy.submitLabel}
       </button>
 
-      {/* Confirmação (AC #4) */}
+      {/* Confirmação (AC #4) — copy do i18n */}
       {showConfirmation && (
         <CalmConfirmation
-          message="Registado, bom treino"
+          message={copy.confirmationMessage}
           onDismiss={() => {
             void (async () => {
               try {

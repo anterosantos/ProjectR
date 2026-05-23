@@ -3,15 +3,17 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { axe } from "vitest-axe";
 import { FatigueSlider } from "@/components/ui/fatigue-slider";
 
+// defaultProps ao nível do módulo — acessível em todos os describes (incluindo Story 4.3)
+const defaultProps = {
+  id: "slider-energy",
+  label: "Energia muscular",
+  minLabel: "Esgotado",
+  maxLabel: "Pleno",
+  value: null as number | null,
+  onChange: vi.fn(),
+};
+
 describe("FatigueSlider", () => {
-  const defaultProps = {
-    id: "slider-energy",
-    label: "Energia muscular",
-    minLabel: "Esgotado",
-    maxLabel: "Pleno",
-    value: null,
-    onChange: vi.fn(),
-  };
 
   // ─── Renderização básica ───────────────────────────────────────────────────
 
@@ -163,5 +165,57 @@ describe("FatigueSlider", () => {
     );
     const input = screen.getByRole("slider");
     expect(input).toHaveAttribute("aria-valuetext", "6 de 10 — moderado");
+  });
+});
+
+// ─── Adaptação sub-14 (ageGroup prop) — Story 4.3 ──────────────────────────────
+
+describe("adaptação sub-14 (ageGroup prop)", () => {
+  it("aceita prop ageGroup='u14' sem erro", () => {
+    render(
+      <FatigueSlider
+        {...defaultProps}
+        ageGroup="u14"
+        label="Como te sentes de energia?"
+        minLabel="Cansado"
+        maxLabel="Cheio de energia"
+      />
+    );
+    expect(screen.getByText("Como te sentes de energia?")).toBeInTheDocument();
+    expect(screen.getByText("Cansado")).toBeInTheDocument();
+    expect(screen.getByText("Cheio de energia")).toBeInTheDocument();
+  });
+
+  it("prop ageGroup não altera ARIA quando labels correctos são passados pelo pai", () => {
+    render(
+      <FatigueSlider
+        {...defaultProps}
+        ageGroup="u14"
+        label="Como te sentes de energia?"
+        minLabel="Cansado"
+        maxLabel="Cheio de energia"
+        value={3}
+      />
+    );
+    const input = screen.getByRole("slider");
+    expect(input).toHaveAttribute("aria-label", "Como te sentes de energia?");
+    expect(input).toHaveAttribute("aria-valuemin", "1");
+    expect(input).toHaveAttribute("aria-valuemax", "5");
+    expect(input).toHaveAttribute("aria-valuenow", "3");
+  });
+
+  it("sem violações axe-core com ageGroup='u14'", async () => {
+    const { container } = render(
+      <FatigueSlider
+        {...defaultProps}
+        ageGroup="u14"
+        label="Como te sentes de energia?"
+        minLabel="Cansado"
+        maxLabel="Cheio de energia"
+        value={3}
+      />
+    );
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
   });
 });

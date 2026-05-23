@@ -30,6 +30,14 @@ export interface FatigueSliderProps {
   onChange: (value: number) => void;
   /** Se true, o slider está desactivado */
   disabled?: boolean;
+  /**
+   * Grupo etário do jogador — passado pelo FatigueQuestionnaire para
+   * consistência. Os labels já chegam adaptados via i18n; esta prop é
+   * informacional e pode ser usada por testes standalone ou futuros
+   * consumidores do componente.
+   * Story 4.3 — variante sub-14.
+   */
+  ageGroup?: "senior" | "u14";
 }
 
 /**
