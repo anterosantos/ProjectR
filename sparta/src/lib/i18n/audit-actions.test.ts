@@ -108,6 +108,9 @@ describe('translation lengths (≤15 words)', () => {
     'Marcou decisão de prontidão',
     'Pediu exportação de dados',
     'Pediu apagamento de dados',
+    'Iniciou processo de consentimento',
+    'Confirmou consentimento',
+    'Retirou consentimento',
   ]
 
   for (const translation of actionTranslations) {

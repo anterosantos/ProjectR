@@ -28,7 +28,8 @@ export function AuditLogListTokenClient({
   }
 
   async function handleExport(): Promise<void> {
-    await exportAction(token)
+    const result = await exportAction(token)
+    if (!result.ok) throw new Error(result.error.message)
   }
 
   return (

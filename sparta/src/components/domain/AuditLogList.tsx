@@ -55,6 +55,7 @@ export function AuditLogList({ initialData, pageSize = 50, onLoadPage, onExport 
       {exportFeedback && (
         <CalmConfirmation
           message={exportFeedback}
+          duration={3000}
           onDismiss={() => setExportFeedback(null)}
         />
       )}
@@ -109,9 +110,11 @@ interface AuditLogEntryCardProps {
 }
 
 function AuditLogEntryCard({ entry, actorInfo }: AuditLogEntryCardProps) {
-  const actorName = actorInfo
-    ? `${actorInfo.full_name} (${translateRole(actorInfo.role)})`
-    : 'Staff desconhecido'
+  const actorName = entry.actor_id === null
+    ? 'Tu próprio/a'
+    : actorInfo
+      ? `${actorInfo.full_name} (${translateRole(actorInfo.role)})`
+      : 'Staff desconhecido'
 
   return (
     <article

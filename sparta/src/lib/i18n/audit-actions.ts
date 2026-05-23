@@ -14,6 +14,9 @@ const AUDIT_ACTION_TRANSLATIONS: Record<string, string> = {
   'decision.marked': 'Marcou decisão de prontidão',
   'export.requested': 'Pediu exportação de dados',
   'erasure.requested': 'Pediu apagamento de dados',
+  'consent.initiate': 'Iniciou processo de consentimento',
+  'consent.confirmed': 'Confirmou consentimento',
+  'consent.withdrawn': 'Retirou consentimento',
 }
 
 const TARGET_KIND_TRANSLATIONS: Record<string, string> = {

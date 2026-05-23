@@ -28,7 +28,8 @@ export function AuditLogListClient({
   }
 
   async function handleExport(): Promise<void> {
-    await exportAction()
+    const result = await exportAction()
+    if (!result.ok) throw new Error(result.error.message)
   }
 
   return (

@@ -179,7 +179,7 @@ describe('AuditLogList', () => {
     expect(screen.getByText('Pedido de exportação submetido.')).toBeInTheDocument()
   })
 
-  it('renders "Staff desconhecido" when actor_id is null', () => {
+  it('renders "Tu próprio/a" when actor_id is null (subject-initiated action)', () => {
     const data = makeInitialData({
       entries: [{
         id: 'entry-3',
@@ -198,6 +198,6 @@ describe('AuditLogList', () => {
         onLoadPage={vi.fn()}
       />
     )
-    expect(screen.getByText('Staff desconhecido')).toBeInTheDocument()
+    expect(screen.getByText('Tu próprio/a')).toBeInTheDocument()
   })
 })
