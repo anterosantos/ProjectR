@@ -632,6 +632,76 @@ export type Database = {
           },
         ]
       }
+      fatigue_responses: {
+        Row: {
+          id: string
+          club_id: string
+          player_id: string
+          session_id: string
+          phase: string
+          dim_energy: number
+          dim_focus: number
+          dim_sleep: number
+          dim_soreness: number
+          dim_mood: number
+          srpe_value: number | null
+          submitted_at: string
+          submitted_via: string
+        }
+        Insert: {
+          id?: string
+          club_id: string
+          player_id: string
+          session_id: string
+          phase: string
+          dim_energy: number
+          dim_focus: number
+          dim_sleep: number
+          dim_soreness: number
+          dim_mood: number
+          srpe_value?: number | null
+          submitted_at?: string
+          submitted_via: string
+        }
+        Update: {
+          id?: string
+          club_id?: string
+          player_id?: string
+          session_id?: string
+          phase?: string
+          dim_energy?: number
+          dim_focus?: number
+          dim_sleep?: number
+          dim_soreness?: number
+          dim_mood?: number
+          srpe_value?: number | null
+          submitted_at?: string
+          submitted_via?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fatigue_responses_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fatigue_responses_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fatigue_responses_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

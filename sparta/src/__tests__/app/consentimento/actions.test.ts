@@ -16,15 +16,17 @@ vi.mock("@/lib/supabase/service-role", () => ({
   getServiceRoleClient: vi.fn(),
 }));
 
-const { mockResendSend } = vi.hoisted(() => ({
-  mockResendSend: vi.fn(),
+const { mockBrevoFetch } = vi.hoisted(() => ({
+  mockBrevoFetch: vi.fn(),
 }));
 
-vi.mock("resend", () => ({
-  Resend: vi.fn().mockImplementation(function () {
-    return { emails: { send: mockResendSend } };
-  }),
-}));
+// Mock global fetch for Brevo API calls
+global.fetch = vi.fn((url: string) => {
+  if (typeof url === "string" && url.includes("api.brevo.com")) {
+    return mockBrevoFetch();
+  }
+  return Promise.reject(new Error("Unexpected fetch call"));
+});
 
 import { submitConsentDecision } from "@/app/consentimento/[token]/actions";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
@@ -71,16 +73,18 @@ function buildServiceRole(overrides: { consent?: unknown; player?: unknown } = {
 describe("submitConsentDecision", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.RESEND_API_KEY = "re_test_key";
+    process.env.BREVO_API_KEY = "brevo_test_key";
+    process.env.BREVO_SENDER_EMAIL = "test@sparta.pt";
   });
 
   afterEach(() => {
-    delete process.env.RESEND_API_KEY;
+    delete process.env.BREVO_API_KEY;
+    delete process.env.BREVO_SENDER_EMAIL;
   });
 
   it("confirm: actualiza registo, envia email e redireciona para a página do token", async () => {
     mockGetServiceRoleClient.mockReturnValue(buildServiceRole());
-    mockResendSend.mockResolvedValue({ data: { id: "email-id" }, error: null });
+    mockBrevoFetch.mockResolvedValue({ ok: true, text: vi.fn().mockResolvedValue("") });
 
     const formData = new FormData();
     formData.set("token", "test-token-abc");
@@ -91,7 +95,7 @@ describe("submitConsentDecision", () => {
     );
 
     expect(mockGetServiceRoleClient).toHaveBeenCalled();
-    expect(mockResendSend).toHaveBeenCalled();
+    expect(mockBrevoFetch).toHaveBeenCalled();
   });
 
   it("withdraw: actualiza registo e redireciona (sem email de confirmação)", async () => {
@@ -106,7 +110,7 @@ describe("submitConsentDecision", () => {
     );
 
     expect(mockGetServiceRoleClient).toHaveBeenCalled();
-    expect(mockResendSend).not.toHaveBeenCalled();
+    expect(mockBrevoFetch).not.toHaveBeenCalled();
   });
 
   it("erro de BD: redireciona na mesma (gracioso — não propaga o erro)", async () => {
@@ -135,7 +139,7 @@ describe("submitConsentDecision", () => {
     await expect(submitConsentDecision(formData)).rejects.toThrow(
       "REDIRECT:/consentimento/test-token-abc"
     );
-    expect(mockResendSend).not.toHaveBeenCalled();
+    expect(mockBrevoFetch).not.toHaveBeenCalled();
   });
 
   it("token em falta: redireciona para path vazio", async () => {

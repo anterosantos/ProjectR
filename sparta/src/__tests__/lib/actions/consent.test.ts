@@ -16,15 +16,17 @@ vi.mock("@/lib/uuid", () => ({
   newId: vi.fn().mockReturnValue("token-uuid-12345"),
 }));
 
-const { mockResendSend } = vi.hoisted(() => ({
-  mockResendSend: vi.fn(),
+const { mockBrevoFetch } = vi.hoisted(() => ({
+  mockBrevoFetch: vi.fn(),
 }));
 
-vi.mock("resend", () => ({
-  Resend: vi.fn().mockImplementation(function () {
-    return { emails: { send: mockResendSend } };
-  }),
-}));
+// Mock global fetch for Brevo API
+global.fetch = vi.fn((url: string) => {
+  if (url.includes("api.brevo.com")) {
+    return mockBrevoFetch();
+  }
+  return Promise.reject(new Error("Unexpected fetch call"));
+});
 
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { createServerClient } from "@/lib/supabase/server";
@@ -263,14 +265,16 @@ function buildResendServiceRole(consentData: unknown) {
 describe("resendConsentEmail", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.RESEND_API_KEY = "re_test_key";
+    process.env.BREVO_API_KEY = "brevo_test_key";
+    process.env.BREVO_SENDER_EMAIL = "test@sparta.pt";
   });
 
   afterEach(() => {
-    delete process.env.RESEND_API_KEY;
+    delete process.env.BREVO_API_KEY;
+    delete process.env.BREVO_SENDER_EMAIL;
   });
 
-  it("envia email via Resend e retorna ok quando registo pending existe", async () => {
+  it("envia email via Brevo e retorna ok quando registo pending existe", async () => {
     mockCreateServerClient.mockResolvedValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({ data: { user: { id: "staff-id" } } }),
@@ -286,7 +290,7 @@ describe("resendConsentEmail", () => {
       data: { id: CONSENT_UUID, last_manual_resend_at: null },
     });
     mockGetServiceRoleClient.mockReturnValue(serviceRole);
-    mockResendSend.mockResolvedValue({ data: { id: "email-id" }, error: null });
+    mockBrevoFetch.mockResolvedValue({ ok: true, text: vi.fn().mockResolvedValue("") });
 
     const result = await resendConsentEmail(PLAYER_UUID);
 
@@ -294,10 +298,10 @@ describe("resendConsentEmail", () => {
     if (result.ok) {
       expect(result.data.message).toBe("Email de consentimento reenviado.");
     }
-    expect(mockResendSend).toHaveBeenCalled();
+    expect(mockBrevoFetch).toHaveBeenCalled();
   });
 
-  it("retorna err({ code: 'internal' }) se Resend falha", async () => {
+  it("retorna err({ code: 'internal' }) se Brevo falha", async () => {
     mockCreateServerClient.mockResolvedValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({ data: { user: { id: "staff-id" } } }),
@@ -313,7 +317,7 @@ describe("resendConsentEmail", () => {
       data: { id: CONSENT_UUID, last_manual_resend_at: null },
     });
     mockGetServiceRoleClient.mockReturnValue(serviceRole);
-    mockResendSend.mockResolvedValue({ data: null, error: { message: "API error" } });
+    mockBrevoFetch.mockResolvedValue({ ok: false, text: vi.fn().mockResolvedValue("API error") });
 
     const result = await resendConsentEmail(PLAYER_UUID);
 
@@ -387,8 +391,8 @@ describe("resendConsentEmail", () => {
       expect(result.error.code).toBe("rate_limited");
       expect(result.error.message).toMatch(/reenviar novamente em \d+ minuto/);
     }
-    // Resend NÃO deve ter sido chamado
-    expect(mockResendSend).not.toHaveBeenCalled();
+    // Brevo NÃO deve ter sido chamado
+    expect(mockBrevoFetch).not.toHaveBeenCalled();
   });
 
   it("rate-limit: permite reenvio após 5 minutos terem passado", async () => {
@@ -421,11 +425,11 @@ describe("resendConsentEmail", () => {
     });
     mockGetServiceRoleClient.mockReturnValue(serviceRole);
 
-    mockResendSend.mockResolvedValue({ data: { id: "email-id" }, error: null });
+    mockBrevoFetch.mockResolvedValue({ ok: true, text: vi.fn().mockResolvedValue("") });
 
     const result = await resendConsentEmail(PLAYER_UUID);
 
     expect(result.ok).toBe(true);
-    expect(mockResendSend).toHaveBeenCalled();
+    expect(mockBrevoFetch).toHaveBeenCalled();
   });
 });

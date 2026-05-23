@@ -2,7 +2,6 @@
 
 import { after } from "next/server";
 import { z } from "zod";
-import { Resend } from "resend";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { createServerClient } from "@/lib/supabase/server";
 import { newId } from "@/lib/uuid";
@@ -198,8 +197,9 @@ export async function resendConsentEmail(
     }
   }
 
-  const resendApiKey = process.env.RESEND_API_KEY;
-  if (!resendApiKey) {
+  const brevoApiKey = process.env.BREVO_API_KEY;
+  const brevoSenderEmail = process.env.BREVO_SENDER_EMAIL;
+  if (!brevoApiKey || !brevoSenderEmail) {
     return err({ code: "internal", message: "Configuração de email em falta" });
   }
 
@@ -225,18 +225,27 @@ export async function resendConsentEmail(
   const confirmUrl = `${siteUrl}/consentimento/${consentRecord.token}`;
   const expiresAt = new Date(consentRecord.token_expires_at as string).toLocaleDateString("pt-PT");
 
-  const resend = new Resend(resendApiKey);
-  const { error: emailError } = await resend.emails.send({
-    from: "SPARTA <onboarding@resend.dev>",
-    to: [consentRecord.parent_email as string],
-    subject: "[Lembrete] Consentimento parental — SPARTA",
-    html: `<p>Caro encarregado de educação,</p>
+  const emailHtml = `<p>Caro encarregado de educação,</p>
 <p>Este é um lembrete para confirmar o consentimento parental de <strong>${playerName}</strong>.</p>
-<p><a href="${confirmUrl}">Confirmar consentimento</a> (válido até ${expiresAt})</p>`,
+<p><a href="${confirmUrl}">Confirmar consentimento</a> (válido até ${expiresAt})</p>`;
+
+  const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "api-key": brevoApiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      sender: { name: "SPARTA", email: brevoSenderEmail },
+      to: [{ email: consentRecord.parent_email }],
+      subject: "[Lembrete] Consentimento parental — SPARTA",
+      htmlContent: emailHtml,
+    }),
   });
 
-  if (emailError) {
-    console.error("[resendConsentEmail] Resend error:", emailError);
+  if (!brevoRes.ok) {
+    const errBody = await brevoRes.text();
+    console.error("[resendConsentEmail] Brevo error:", errBody);
     return err({ code: "internal", message: "Falha ao enviar email de consentimento" });
   }
 
@@ -313,27 +322,39 @@ async function sendConsentConfirmationEmail(
   playerName: string,
   token: string
 ): Promise<void> {
-  const resendApiKey = process.env.RESEND_API_KEY;
-  if (!resendApiKey) {
-    console.error("[consent] RESEND_API_KEY em falta — email de confirmação não enviado");
+  const brevoApiKey = process.env.BREVO_API_KEY;
+  const brevoSenderEmail = process.env.BREVO_SENDER_EMAIL;
+  if (!brevoApiKey || !brevoSenderEmail) {
+    console.error("[consent] BREVO_API_KEY/BREVO_SENDER_EMAIL em falta — email de confirmação não enviado");
     return;
   }
 
   const confirmedAt = new Date().toLocaleDateString("pt-PT");
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://sparta-webapp.vercel.app";
   const direitosUrl = `${siteUrl}/direitos/${token}`;
-  const resend = new Resend(resendApiKey);
 
   try {
-    await resend.emails.send({
-      from: "SPARTA <onboarding@resend.dev>",
-      to: [parentEmail],
-      subject: `Consentimento registado em ${confirmedAt}`,
-      html: `<p>O seu consentimento para <strong>${playerName}</strong> foi registado em ${confirmedAt}.</p>
+    const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "api-key": brevoApiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        sender: { name: "SPARTA", email: brevoSenderEmail },
+        to: [{ email: parentEmail }],
+        subject: `Consentimento registado em ${confirmedAt}`,
+        htmlContent: `<p>O seu consentimento para <strong>${playerName}</strong> foi registado em ${confirmedAt}.</p>
 <p>${playerName} pode agora aceder à plataforma SPARTA.</p>
 <p>Enquanto encarregado, pode exercer os seus direitos RGPD (exportar, apagar, retificar dados, entre outros) durante os próximos 30 dias através do link abaixo:</p>
 <p><a href="${direitosUrl}">Gerir direitos RGPD</a></p>`,
+      }),
     });
+
+    if (!brevoRes.ok) {
+      const errBody = await brevoRes.text();
+      console.error("[consent] Brevo error:", errBody);
+    }
   } catch (e) {
     console.error("[consent] sendConsentConfirmationEmail falhou:", e);
   }
