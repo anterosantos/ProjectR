@@ -64,7 +64,10 @@ export default async function QuestionarioPage({
     .eq("profile_id", user.id)
     .maybeSingle();
 
-  if (!player) redirect("/hoje");
+  if (!player) {
+    console.error("[questionario] player not found for user:", user.id);
+    redirect("/hoje");
+  }
 
   // Derivar grupo etário para adaptação linguística (Story 4.3, AC #1)
   // u14 ou u15 → versão simplificada sub-14; qualquer outro → senior
@@ -74,12 +77,15 @@ export default async function QuestionarioPage({
   // Verificar sessão: existe, pertence ao clube, status='scheduled' (AC #1)
   const sessionResult = await getSessionById(sessionId);
   if (!sessionResult.ok) {
-    console.error("[questionario] getSessionById failed:", sessionResult.error);
-    redirect("/hoje");
+    const errMsg = `getSessionById failed: ${sessionResult.error?.message || JSON.stringify(sessionResult.error)}`;
+    console.error("[questionario]", errMsg);
+    // Redirecionar com erro na URL para debug em produção
+    redirect(`/hoje?error=${encodeURIComponent(errMsg)}`);
   }
   if (sessionResult.data.status !== "scheduled") {
-    console.error("[questionario] session status is not 'scheduled':", sessionResult.data.status);
-    redirect("/hoje");
+    const errMsg = `session status is '${sessionResult.data.status}', expected 'scheduled'`;
+    console.error("[questionario]", errMsg);
+    redirect(`/hoje?error=${encodeURIComponent(errMsg)}`);
   }
   const session = sessionResult.data;
 
