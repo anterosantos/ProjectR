@@ -17,9 +17,10 @@ const TYPE_CONFIG: Record<
 
 interface SessionCardProps {
   session: Session;
+  userRole?: "player" | "staff" | "analyst" | "coach";
 }
 
-export function SessionCard({ session }: SessionCardProps) {
+export function SessionCard({ session, userRole }: SessionCardProps) {
   const config = TYPE_CONFIG[session.type] ?? TYPE_CONFIG.training;
   const Icon = config.Icon;
   const isCancelled = session.status === "cancelled";
@@ -29,9 +30,15 @@ export function SessionCard({ session }: SessionCardProps) {
     locale: pt,
   });
 
+  // Jogadores vão para responder questionário; staff/analistas vão para gestão
+  const href =
+    userRole === "player"
+      ? `/questionario/${session.id}/pre`
+      : `/sessoes/${session.id}`;
+
   return (
     <Link
-      href={`/sessoes/${session.id}`}
+      href={href}
       className="flex min-h-[44px] items-center gap-3 rounded-lg border border-border bg-background px-4 py-3 transition-colors hover:bg-muted active:bg-muted"
       aria-label={`${config.label} - ${formattedDate}${isCancelled ? " (cancelada)" : ""}`}
     >

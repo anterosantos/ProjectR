@@ -46,7 +46,7 @@ export default async function HojePage() {
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                 Próxima sessão
               </h2>
-              <SessionCard session={nextSession} />
+              <SessionCard session={nextSession} userRole={profile.role} />
             </>
           ) : (
             <EmptyState

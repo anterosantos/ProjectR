@@ -18,7 +18,25 @@ const BASE_SESSION: Session = {
 };
 
 describe("SessionCard", () => {
-  it("renderiza sessão de treino com link correcto", () => {
+  it("renderiza sessão de treino com link para gestão quando role é staff", () => {
+    render(<SessionCard session={BASE_SESSION} userRole="staff" />);
+    const link = screen.getByRole("link");
+    expect(link).toHaveAttribute(
+      "href",
+      `/sessoes/${BASE_SESSION.id}`
+    );
+  });
+
+  it("renderiza sessão com link para questionário quando role é player", () => {
+    render(<SessionCard session={BASE_SESSION} userRole="player" />);
+    const link = screen.getByRole("link");
+    expect(link).toHaveAttribute(
+      "href",
+      `/questionario/${BASE_SESSION.id}/pre`
+    );
+  });
+
+  it("renderiza com link para gestão quando role não é especificado (default staff behavior)", () => {
     render(<SessionCard session={BASE_SESSION} />);
     const link = screen.getByRole("link");
     expect(link).toHaveAttribute(
