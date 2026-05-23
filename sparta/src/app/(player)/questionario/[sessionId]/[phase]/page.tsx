@@ -66,9 +66,19 @@ export default async function QuestionarioPage({
 
   if (!player) redirect("/hoje");
 
+  // Derivar grupo etário para adaptação linguística (Story 4.3, AC #1)
+  // u14 ou u15 → versão simplificada sub-14; qualquer outro → senior
+  const ageGroup: "senior" | "u14" =
+    player.age_group === "u14" || player.age_group === "u15" ? "u14" : "senior";
+
   // Verificar sessão: existe, pertence ao clube, status='scheduled' (AC #1)
   const sessionResult = await getSessionById(sessionId);
-  if (!sessionResult.ok || sessionResult.data.status !== "scheduled") {
+  if (!sessionResult.ok) {
+    console.error("[questionario] getSessionById failed:", sessionResult.error);
+    redirect("/hoje");
+  }
+  if (sessionResult.data.status !== "scheduled") {
+    console.error("[questionario] session status is not 'scheduled':", sessionResult.data.status);
     redirect("/hoje");
   }
   const session = sessionResult.data;
@@ -84,6 +94,7 @@ export default async function QuestionarioPage({
             sessionDate={session.scheduled_at}
             phase={phase as "pre" | "post"}
             playerId={player.id}
+            ageGroup={ageGroup}
           />
         </div>
       </main>
