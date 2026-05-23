@@ -14,7 +14,7 @@ const COLUMN_WHITELIST: Record<string, string[]> = {
   profiles: ['id', 'email', 'full_name', 'avatar_url', 'updated_at'],
   players: ['id', 'profile_id', 'full_name', 'date_of_birth', 'gender', 'position', 'shirt_number', 'status', 'created_at', 'updated_at'],
   player_metrics: ['id', 'player_id', 'recorded_at', 'weight_kg', 'height_cm', 'created_at'],
-  parental_consents: ['id', 'player_id', 'guardian_email', 'confirmed_at', 'created_at'],
+  parental_consents: ['id', 'player_id', 'parent_email', 'confirmed_at', 'created_at'],
   match_lineups: ['id', 'player_id', 'match_id', 'position', 'shirt_number', 'status'],
   audit_logs: ['id', 'action', 'actor_id', 'target_kind', 'target_id', 'reason', 'created_at'],
 }
