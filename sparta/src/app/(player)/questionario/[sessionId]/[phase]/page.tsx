@@ -78,14 +78,33 @@ export default async function QuestionarioPage({
   const sessionResult = await getSessionById(sessionId);
   if (!sessionResult.ok) {
     const errMsg = `getSessionById failed: ${sessionResult.error?.message || JSON.stringify(sessionResult.error)}`;
-    console.error("[questionario]", errMsg);
-    // Redirecionar com erro na URL para debug em produção
-    redirect(`/hoje?error=${encodeURIComponent(errMsg)}`);
+    console.error("[questionario] ERROR:", errMsg);
+    // Renderizar página de erro em vez de redirecionar
+    return (
+      <>
+        <StickyHeader title="Erro" backHref="/hoje" />
+        <main id="main-content">
+          <div className="px-4 py-6 sm:px-6">
+            <p className="text-red-600 font-mono text-sm">{errMsg}</p>
+          </div>
+        </main>
+      </>
+    );
   }
   if (sessionResult.data.status !== "scheduled") {
     const errMsg = `session status is '${sessionResult.data.status}', expected 'scheduled'`;
-    console.error("[questionario]", errMsg);
-    redirect(`/hoje?error=${encodeURIComponent(errMsg)}`);
+    console.error("[questionario] ERROR:", errMsg);
+    // Renderizar página de erro em vez de redirecionar
+    return (
+      <>
+        <StickyHeader title="Erro" backHref="/hoje" />
+        <main id="main-content">
+          <div className="px-4 py-6 sm:px-6">
+            <p className="text-red-600 font-mono text-sm">{errMsg}</p>
+          </div>
+        </main>
+      </>
+    );
   }
   const session = sessionResult.data;
 
