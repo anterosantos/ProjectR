@@ -88,18 +88,26 @@ CREATE POLICY "player_sees_own" ON fatigue_responses
 -- Staff (coach/analyst) lê e insere dentro do seu clube
 CREATE POLICY "staff_reads_club" ON fatigue_responses
   FOR ALL USING (
-    auth.user_role() IN ('coach', 'analyst')
-    AND club_id = auth.club_id()
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = auth.uid()
+        AND role IN ('coach', 'analyst')
+        AND club_id = fatigue_responses.club_id
+    )
   ) WITH CHECK (
-    auth.user_role() IN ('coach', 'analyst')
-    AND club_id = auth.club_id()
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = auth.uid()
+        AND role IN ('coach', 'analyst')
+        AND club_id = fatigue_responses.club_id
+    )
   );
 
 -- Jogador insere apenas a sua própria resposta no seu clube
 CREATE POLICY "player_inserts_own" ON fatigue_responses
   FOR INSERT WITH CHECK (
     player_id IN (SELECT id FROM players WHERE profile_id = auth.uid())
-    AND club_id = auth.club_id()
+    AND club_id = (SELECT club_id FROM profiles WHERE id = auth.uid() LIMIT 1)
   );
 
 -- =============================================================================
