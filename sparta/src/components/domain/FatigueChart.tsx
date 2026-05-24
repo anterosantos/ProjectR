@@ -107,14 +107,16 @@ export function FatigueChart({
   activeDimensions,
   activePhase,
 }: FatigueChartProps) {
-  // Lazy initializer reads matchMedia once at mount — avoids synchronous setState in effect body
+  // Lazy initializer reads matchMedia once at mount — avoids synchronous setState in effect body.
+  // Guard against jsdom / SSR environments where matchMedia is undefined.
   const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   });
 
   // Subscribe to prefers-reduced-motion changes (AC #3, NFR41)
   useEffect(() => {
+    if (typeof window.matchMedia !== "function") return;
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
     mediaQuery.addEventListener("change", handler);
@@ -180,7 +182,7 @@ export function FatigueChart({
 
   return (
     <div
-      role="region"
+      role="img"
       aria-label={`Gráfico de fadiga dos últimos 28 dias com 5 dimensões — ${playerName}`}
       className="w-full"
     >

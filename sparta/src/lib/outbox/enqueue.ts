@@ -26,8 +26,9 @@ export async function enqueueFatigueSubmit(
   payload: Omit<FatigueResponseInput, 'id' | 'submitted_via'>
 ): Promise<{ id: string; status: 'queued' }> {
   // Validar payload com Zod antes de adicionar ao banco
-  const { FatigueResponseSchema } = await import('@/lib/schemas/fatigue')
-  const validated = FatigueResponseSchema.omit({ id: true, submitted_via: true }).safeParse(payload)
+  // Use FatigueResponseBaseSchema for .omit() — ZodEffects (schemas with .refine()) don't support it
+  const { FatigueResponseBaseSchema, FatigueResponseSchema } = await import('@/lib/schemas/fatigue')
+  const validated = FatigueResponseBaseSchema.omit({ id: true, submitted_via: true }).safeParse(payload)
 
   if (!validated.success) {
     throw new Error(`Payload inválido: ${validated.error.message}`)
@@ -37,7 +38,7 @@ export async function enqueueFatigueSubmit(
   try {
     const payloadWithMeta = { ...payload, id, submitted_via: 'offline-drain' }
 
-    // Re-validar payload completo após adicionar metadados
+    // Re-validar payload completo (inclui refinamento sRPE/phase) após adicionar metadados
     const fullValidated = FatigueResponseSchema.safeParse(payloadWithMeta)
     if (!fullValidated.success) {
       throw new Error(`Payload com metadados inválido: ${fullValidated.error.message}`)

@@ -275,7 +275,7 @@ export function FatigueTable({
 
   return (
     <div
-      role="region"
+      role="img"
       aria-label={`Tabela de respostas de fadiga dos últimos 28 dias — ${playerName}`}
       className="rounded-lg border border-border bg-background"
     >

@@ -42,8 +42,8 @@ describe('useOutboxDrain hook (Story 4.4)', () => {
     // Enfileirar submissão
     await act(async () => {
       await enqueueFatigueSubmit({
-        player_id: 'player-1',
-        session_id: 'session-1',
+        player_id: 'a1000000-0000-4000-8000-000000000001',
+        session_id: 'b2000000-0000-4000-8000-000000000001',
         phase: 'pre',
         dim_energy: 3,
         dim_focus: 4,
@@ -79,8 +79,8 @@ describe('useOutboxDrain hook (Story 4.4)', () => {
     // Enfileirar submissão
     await act(async () => {
       await enqueueFatigueSubmit({
-        player_id: 'player-1',
-        session_id: 'session-1',
+        player_id: 'a1000000-0000-4000-8000-000000000001',
+        session_id: 'b2000000-0000-4000-8000-000000000001',
         phase: 'pre',
         dim_energy: 3,
         dim_focus: 4,

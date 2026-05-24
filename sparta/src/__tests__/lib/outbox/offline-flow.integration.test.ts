@@ -3,6 +3,14 @@ import { db } from '@/lib/outbox/db';
 import { enqueueFatigueSubmit } from '@/lib/outbox/enqueue';
 import { drainPendingMutations } from '@/lib/outbox/drain';
 
+// Fixed UUIDs for stable test data (enqueueFatigueSubmit validates with Zod uuid())
+const PLAYER_A  = 'a1000000-0000-4000-8000-000000000001';
+const PLAYER_B  = 'a1000000-0000-4000-8000-000000000002';
+const SESSION_A = 'b2000000-0000-4000-8000-000000000001';
+const SESSION_B = 'b2000000-0000-4000-8000-000000000002';
+const playerUuid  = (i: number) => `c3000000-0000-4000-8000-${String(i).padStart(12, '0')}`;
+const sessionUuid = (i: number) => `d4000000-0000-4000-8000-${String(i).padStart(12, '0')}`;
+
 /**
  * offline-flow.integration.test.ts — Testes de integração para offline submission flow (Story 4.4)
  *
@@ -22,8 +30,8 @@ describe('Offline Fatigue Submission Flow (Story 4.4)', () => {
 
   it('Task 7.1: enqueue offline submit — payload armazenado em Dexie com kind=fatigue.submit', async () => {
     const payload = {
-      player_id: 'player-123',
-      session_id: 'session-456',
+      player_id: PLAYER_A,
+      session_id: SESSION_A,
       phase: 'pre' as const,
       dim_energy: 3,
       dim_focus: 4,
@@ -54,8 +62,8 @@ describe('Offline Fatigue Submission Flow (Story 4.4)', () => {
     db.outbox.add = vi.fn().mockRejectedValueOnce(new Error('IndexedDB quota exceeded'));
 
     const payload = {
-      player_id: 'player-123',
-      session_id: 'session-456',
+      player_id: PLAYER_A,
+      session_id: SESSION_A,
       phase: 'pre' as const,
       dim_energy: 3,
       dim_focus: 4,
@@ -81,8 +89,8 @@ describe('Offline Fatigue Submission Flow (Story 4.4)', () => {
     const ids: string[] = [];
     for (let i = 0; i < 3; i++) {
       const { id } = await enqueueFatigueSubmit({
-        player_id: `player-${i}`,
-        session_id: 'session-456',
+        player_id: playerUuid(i),
+        session_id: SESSION_A,
         phase: 'pre' as const,
         dim_energy: 3,
         dim_focus: 4,
@@ -108,8 +116,8 @@ describe('Offline Fatigue Submission Flow (Story 4.4)', () => {
   it('Task 7.3: dedupe — UUIDs idênticos não criam rows duplicadas', async () => {
     // Enfileirar com payload
     const payload = {
-      player_id: 'player-123',
-      session_id: 'session-456',
+      player_id: PLAYER_A,
+      session_id: SESSION_A,
       phase: 'post' as const,
       dim_energy: 3,
       dim_focus: 4,
@@ -141,8 +149,8 @@ describe('Offline Fatigue Submission Flow (Story 4.4)', () => {
 
   it('Task 7.3: dedupe — drain marca como synced após sucesso', async () => {
     const { id } = await enqueueFatigueSubmit({
-      player_id: 'player-123',
-      session_id: 'session-456',
+      player_id: PLAYER_A,
+      session_id: SESSION_A,
       phase: 'pre' as const,
       dim_energy: 3,
       dim_focus: 4,
@@ -172,8 +180,8 @@ describe('Offline Fatigue Submission Flow (Story 4.4)', () => {
   it('Task 7.4: drainPendingMutations com filtro kind=fatigue.submit', async () => {
     // Enfileirar 2 fatigue.submit
     const { id: id1 } = await enqueueFatigueSubmit({
-      player_id: 'player-1',
-      session_id: 'session-456',
+      player_id: PLAYER_A,
+      session_id: SESSION_A,
       phase: 'pre' as const,
       dim_energy: 3,
       dim_focus: 4,
@@ -184,8 +192,8 @@ describe('Offline Fatigue Submission Flow (Story 4.4)', () => {
     });
 
     const { id: id2 } = await enqueueFatigueSubmit({
-      player_id: 'player-2',
-      session_id: 'session-789',
+      player_id: PLAYER_B,
+      session_id: SESSION_B,
       phase: 'post' as const,
       dim_energy: 4,
       dim_focus: 3,
@@ -213,8 +221,8 @@ describe('Offline Fatigue Submission Flow (Story 4.4)', () => {
   it('Task 7.5: pending count reflete fatigue.submit apenas', async () => {
     // Enfileirar 2 fatigue.submit
     await enqueueFatigueSubmit({
-      player_id: 'player-1',
-      session_id: 'session-456',
+      player_id: PLAYER_A,
+      session_id: SESSION_A,
       phase: 'pre' as const,
       dim_energy: 3,
       dim_focus: 4,
@@ -225,8 +233,8 @@ describe('Offline Fatigue Submission Flow (Story 4.4)', () => {
     });
 
     await enqueueFatigueSubmit({
-      player_id: 'player-2',
-      session_id: 'session-789',
+      player_id: PLAYER_B,
+      session_id: SESSION_B,
       phase: 'post' as const,
       dim_energy: 4,
       dim_focus: 3,
@@ -256,8 +264,8 @@ describe('Offline Fatigue Submission Flow (Story 4.4)', () => {
 
     for (let i = 0; i < 50; i++) {
       await enqueueFatigueSubmit({
-        player_id: `player-${i}`,
-        session_id: `session-${i}`,
+        player_id: playerUuid(i),
+        session_id: sessionUuid(i),
         phase: i % 2 === 0 ? 'pre' : 'post',
         dim_energy: (i % 5) + 1,
         dim_focus: (i % 5) + 1,

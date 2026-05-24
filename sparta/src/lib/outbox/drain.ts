@@ -63,14 +63,9 @@ export async function drainPendingMutations(kind?: string): Promise<DrainResult>
       }
 
       try {
-        // Validar payload com Zod antes de chamar handler
-        const fatigueSchema = await import('@/lib/schemas/fatigue').then(m => m.FatigueResponseSchema)
-        const validated = fatigueSchema.safeParse(mutation.payload)
-        if (!validated.success) {
-          throw new Error(`Invalid payload: ${validated.error.message}`)
-        }
-
-        await handler(validated.data)
+        // Each handler is responsible for validating its own payload.
+        // The drain function is generic — it must not perform kind-specific validation here.
+        await handler(mutation.payload)
         const updatePromise = db.outbox.update(mutation.id, { status: 'synced' })
           .then(() => { drained++ })
           .catch(err => {
