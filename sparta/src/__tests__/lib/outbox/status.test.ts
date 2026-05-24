@@ -55,12 +55,23 @@ describe('useOutboxStatus()', () => {
     await waitFor(() => expect(result.current.pendingCount).toBe(0))
   })
 
-  it('returns pendingCount matching pending entries', async () => {
-    await enqueueMutation('kind_a', {})
-    await enqueueMutation('kind_b', {})
+  it('returns pendingCount matching pending entries (fatigue.submit only)', async () => {
+    // useOutboxStatus now filters by kind='fatigue.submit' (Story 4.4)
+    await enqueueMutation('fatigue.submit', {})
+    await enqueueMutation('fatigue.submit', {})
+    // Add some other kind to verify it's not counted
+    await enqueueMutation('other.kind', {})
 
     const { result } = renderHook(() => useOutboxStatus())
     await waitFor(() => expect(result.current.pendingCount).toBe(2))
+  })
+
+  it('ignores non-fatigue.submit kinds in pendingCount', async () => {
+    await enqueueMutation('match.event', {})
+    await enqueueMutation('other.mutation', {})
+
+    const { result } = renderHook(() => useOutboxStatus())
+    await waitFor(() => expect(result.current.pendingCount).toBe(0))
   })
 
   it('unsubscribes without throwing on unmount', async () => {

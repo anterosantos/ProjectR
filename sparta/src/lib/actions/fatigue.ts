@@ -19,7 +19,14 @@ import {
  * - Upsert com client-generated UUIDv7 como chave de idempotência (NFR48, AR4)
  * - Submeter o mesmo id duas vezes é um no-op (ON CONFLICT (id) DO UPDATE)
  *
- * Usado em Story 4.2 (UI) e Story 4.4 (offline-drain).
+ * **Deduplicação por UUIDv7 (Story 4.4, AC #2):**
+ * - O `id` é um UUIDv7 gerado no cliente e é a chave primária
+ * - Chamadas repetidas com o mesmo UUID são idempotentes — o banco ignora segundas tentativas
+ * - Crítico para offline-drain: se uma submissão é feita offline e depois retentada no drain,
+ *   o servidor garante que existe apenas 1 row mesmo após múltiplas chamadas com o mesmo UUID
+ * - Exemplo: enfileirar offline com UUID abc123 → drain retenta → servidor de-duplica → 1 row
+ *
+ * Usado em Story 4.2 (UI online) e Story 4.4 (offline-drain).
  */
 export async function submitFatigueResponse(
   payload: FatigueResponseInput

@@ -20,6 +20,8 @@ import { z } from "zod";
 import { db } from "@/lib/outbox/db";
 import { newId } from "@/lib/uuid";
 import { submitFatigueResponse } from "@/lib/actions/fatigue";
+import { enqueueFatigueSubmit } from "@/lib/outbox/enqueue";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { CalmConfirmation } from "@/components/ui/calm-confirmation";
 import { FatigueSlider } from "@/components/ui/fatigue-slider";
 import { getFatigueCopy } from "@/lib/i18n/pt-PT/fatigue";
@@ -100,6 +102,7 @@ export function FatigueQuestionnaire({
   ageGroup = "senior",
 }: FatigueQuestionnaireProps) {
   const router = useRouter();
+  const { isOnline } = useOnlineStatus();
 
   // Copy adaptado ao grupo etário (Story 4.3)
   const copy = getFatigueCopy(ageGroup);
@@ -117,6 +120,7 @@ export function FatigueQuestionnaire({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
   // ─── Mount: restaurar draft ou gerar id novo ─────────────────────────────
@@ -188,31 +192,67 @@ export function FatigueQuestionnaire({
     setError(null);
 
     try {
-      const result = await submitFatigueResponse({
-        id: values.id,
-        player_id: playerId,
-        session_id: sessionId,
-        phase,
-        dim_energy: values.dim_energy as number,
-        dim_focus: values.dim_focus as number,
-        dim_sleep: values.dim_sleep as number,
-        dim_soreness: values.dim_soreness as number,
-        dim_mood: values.dim_mood as number,
-        srpe_value: phase === "post" ? (values.srpe_value ?? null) : null,
-        submitted_via: "online",
-      });
+      // Re-verificar isOnline (pode ter mudado entre clique e execução)
+      const currentOnline = typeof window !== 'undefined' ? window.navigator.onLine : true;
 
-      if (result.ok) {
+      if (!currentOnline) {
+        // Modo offline — enfileirar no outbox (Story 4.4)
+        await enqueueFatigueSubmit({
+          player_id: playerId,
+          session_id: sessionId,
+          phase,
+          dim_energy: values.dim_energy as number,
+          dim_focus: values.dim_focus as number,
+          dim_sleep: values.dim_sleep as number,
+          dim_soreness: values.dim_soreness as number,
+          dim_mood: values.dim_mood as number,
+          srpe_value: phase === "post" ? (values.srpe_value ?? null) : null,
+        });
+
+        // Limpar draft após enqueue bem-sucedido
         try {
           await db.cache.delete(draftKey);
         } catch (cacheErr) {
-          // Falha ao limpar draft é não-crítica — submissão já sucedeu
-          console.warn("[submit] Failed to clear draft:", cacheErr);
+          // Mostrar erro ao user em vez de log silencioso (evita resubmissão duplicada)
+          setError("Falha ao limpar draft. Por favor, recarregue a página.");
+          setIsSubmitting(false);
+          return;
         }
+
+        // Usar mensagem offline específica (AC #1, Story 4.4)
+        setConfirmationMessage("Em modo offline. Os teus dados estão seguros e vão ser enviados quando voltares a ter rede.");
         setShowConfirmation(true);
       } else {
-        setError(result.error.message ?? "Erro ao submeter questionário");
-        setIsSubmitting(false);
+        // Modo online — submeter directo ao servidor
+        const result = await submitFatigueResponse({
+          id: values.id,
+          player_id: playerId,
+          session_id: sessionId,
+          phase,
+          dim_energy: values.dim_energy as number,
+          dim_focus: values.dim_focus as number,
+          dim_sleep: values.dim_sleep as number,
+          dim_soreness: values.dim_soreness as number,
+          dim_mood: values.dim_mood as number,
+          srpe_value: phase === "post" ? (values.srpe_value ?? null) : null,
+          submitted_via: "online",
+        });
+
+        if (result.ok) {
+          try {
+            await db.cache.delete(draftKey);
+          } catch (cacheErr) {
+            // Mostrar erro ao user em vez de log silencioso
+            setError("Falha ao limpar draft. Por favor, recarregue a página.");
+            setIsSubmitting(false);
+            return;
+          }
+          // Usar mensagem do i18n para online submission
+          setShowConfirmation(true);
+        } else {
+          setError(result.error.message ?? "Erro ao submeter questionário");
+          setIsSubmitting(false);
+        }
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Erro ao submeter questionário";
@@ -289,10 +329,10 @@ export function FatigueQuestionnaire({
         {isSubmitting ? copy.submittingLabel : copy.submitLabel}
       </button>
 
-      {/* Confirmação (AC #4) — copy do i18n */}
+      {/* Confirmação (AC #4) — uso de confirmationMessage dinâmica para offline */}
       {showConfirmation && (
         <CalmConfirmation
-          message={copy.confirmationMessage}
+          message={confirmationMessage || copy.confirmationMessage}
           onDismiss={() => {
             void (async () => {
               try {

@@ -1,4 +1,5 @@
 import { BottomTabNav } from "@/components/patterns/BottomTabNav";
+import { OutboxDrainProvider } from "@/components/providers/outbox-drain-provider";
 import { createServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -17,9 +18,11 @@ export default async function PlayerLayout({
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <main id="main-content" className="flex-1 pb-[60px]">{children}</main>
-      <BottomTabNav role="player" />
-    </div>
+    <OutboxDrainProvider>
+      <div className="flex flex-col min-h-screen">
+        <main id="main-content" className="flex-1 pb-[60px]">{children}</main>
+        <BottomTabNav role="player" />
+      </div>
+    </OutboxDrainProvider>
   );
 }

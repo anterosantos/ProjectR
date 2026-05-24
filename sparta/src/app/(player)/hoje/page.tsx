@@ -1,10 +1,8 @@
 import { redirect } from "next/navigation";
-import { Calendar } from "lucide-react";
 import { createServerClient } from "@/lib/supabase/server";
 import { getSessionsForClub } from "@/lib/actions/sessions";
 import { StickyHeader } from "@/components/patterns/StickyHeader";
-import { EmptyState } from "@/components/ui/empty-state";
-import { SessionCard } from "@/components/ui/session-card";
+import { TodayPageContent } from "@/components/app/today-page-content";
 
 export const metadata = { title: "Hoje" };
 
@@ -40,23 +38,7 @@ export default async function HojePage() {
     <>
       <StickyHeader title="Hoje" />
       <main id="main-content">
-        <div className="px-4 py-6 sm:px-6 space-y-4">
-          {nextSession ? (
-            <>
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                Próxima sessão
-              </h2>
-              <SessionCard session={nextSession} userRole={profile.role} />
-            </>
-          ) : (
-            <EmptyState
-              icon={<Calendar className="h-8 w-8 text-muted-foreground" />}
-              title="Sem sessões nos próximos 7 dias"
-              description="Não há sessões agendadas para os próximos 7 dias."
-            />
-          )}
-          {/* TODO Epic 4: CTA questionário de fadiga */}
-        </div>
+        <TodayPageContent nextSession={nextSession} userRole={profile.role} />
       </main>
     </>
   );

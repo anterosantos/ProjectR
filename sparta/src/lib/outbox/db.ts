@@ -7,6 +7,7 @@ export interface PendingMutation {
   createdAt: string
   status: 'pending' | 'synced' | 'failed'
   retryCount: number
+  submitted_via?: 'online' | 'offline-drain'
 }
 
 export interface CacheEntry {
