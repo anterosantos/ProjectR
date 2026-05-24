@@ -32,6 +32,20 @@ const serwist = new Serwist({
 serwist.addEventListeners()
 
 // ---------------------------------------------------------------------------
+// Service Worker health check (ping/pong for notifications-settings.tsx)
+// ---------------------------------------------------------------------------
+
+/**
+ * Responde ao ping do health check com um pong via MessagePort.
+ * Usado para verificar se o SW está activo antes de criar subscrição.
+ */
+self.addEventListener('message', (event: ExtendableMessageEvent) => {
+  if (event.data?.type === 'ping' && event.ports[0]) {
+    event.ports[0].postMessage({ type: 'pong' })
+  }
+})
+
+// ---------------------------------------------------------------------------
 // Web Push: receber notificações (Story 4.7, AC — service worker)
 // ---------------------------------------------------------------------------
 
