@@ -93,6 +93,7 @@ export async function getPlayerFatigueData(
   const since = new Date(Date.now() - DURATION_DAYS * 24 * 60 * 60 * 1000);
 
   // Query via auditedRead() — auto-inserts audit_logs fire-and-forget (AC #2)
+  // actorId and clubId resolved here (outside after()) — cookies() not allowed inside after()
   let responses: FatigueResponse[] = [];
   try {
     responses = await auditedRead<FatigueResponse[]>(
@@ -100,6 +101,8 @@ export async function getPlayerFatigueData(
         action: "fatigue.staff_read",
         targetKind: "fatigue_responses",
         targetId: playerId,
+        actorId: user.id,
+        clubId: profile.club_id,
         payload: {
           duration_days: DURATION_DAYS,
           response_count: 0,

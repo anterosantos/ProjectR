@@ -284,4 +284,40 @@ describe('Offline Fatigue Submission Flow (Story 4.4)', () => {
     const count = await db.outbox.where('kind').equals('fatigue.submit').count();
     expect(count).toBe(50);
   });
+
+  // ─── Validation failure paths (coverage for enqueue.ts lines 34, 44) ─────────
+
+  it('enqueueFatigueSubmit: throws Payload inválido on invalid base schema (line 34)', async () => {
+    // phase must be 'pre' | 'post'; 'invalid' fails the base schema z.enum()
+    await expect(
+      enqueueFatigueSubmit({
+        player_id: PLAYER_A,
+        session_id: SESSION_A,
+        phase: 'invalid' as 'pre',
+        dim_energy: 3,
+        dim_focus: 3,
+        dim_sleep: 3,
+        dim_soreness: 3,
+        dim_mood: 3,
+        srpe_value: null,
+      })
+    ).rejects.toThrow('Payload inválido');
+  });
+
+  it('enqueueFatigueSubmit: throws when full schema refine fails — pre phase with srpe_value (line 44)', async () => {
+    // Base schema allows srpe_value on pre; full schema (.refine) does not
+    await expect(
+      enqueueFatigueSubmit({
+        player_id: PLAYER_A,
+        session_id: SESSION_A,
+        phase: 'pre',
+        dim_energy: 3,
+        dim_focus: 3,
+        dim_sleep: 3,
+        dim_soreness: 3,
+        dim_mood: 3,
+        srpe_value: 7,  // violates refine: srpe_value só é permitido na fase pós-sessão
+      })
+    ).rejects.toThrow('Falha ao guardar offline');
+  });
 });

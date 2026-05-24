@@ -95,6 +95,25 @@ describe('drainOutbox()', () => {
     await expect(drainOutbox()).resolves.toEqual({ synced: 0, failed: 0 })
   })
 
+  it('DB update failure after successful handler: logs error and counts as failed', async () => {
+    const handler = vi.fn().mockResolvedValue(undefined)
+    registerHandler('db_fail_after_success', handler)
+
+    await enqueueMutation('db_fail_after_success', { x: 1 })
+
+    // Make db.outbox.update reject once to exercise the .catch() error handler (lines 72-75)
+    vi.spyOn(db.outbox, 'update').mockRejectedValueOnce(new Error('IDB write error'))
+
+    const result = await drainOutbox()
+
+    vi.restoreAllMocks()
+
+    // Handler ran; DB update failure exercises the .catch() error callback
+    expect(handler).toHaveBeenCalled()
+    // 1 mutation processed in total (drainOutbox returns { synced, failed })
+    expect(result.synced + result.failed).toBe(1)
+  })
+
   it('concurrent drains: second drain skips if first is in progress', async () => {
     const handler = vi.fn().mockImplementation(
       () => new Promise((resolve) => setTimeout(resolve, 50))
