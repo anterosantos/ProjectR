@@ -9,6 +9,7 @@ import {
   FatigueResponseSchema,
   type FatigueResponseInput,
 } from "@/lib/schemas/fatigue";
+import { calculateSrpeLoad } from "@/lib/readiness/srpe";
 
 /**
  * submitFatigueResponse — Server Action idempotente para submissão de questionário de fadiga.
@@ -138,6 +139,86 @@ export async function submitFatigueResponse(
     session_id: validated.data.session_id,
     phase: validated.data.phase,
   });
+
+  // 3.3.10 — Upsert session_metrics (Story 5.1, FR33)
+  // Apenas para fase 'post' com srpe_value presente.
+  // Operação secundária: erros são logados mas NÃO propagados — fatigue_responses já gravada.
+  //
+  // Extrair srpeValue para const local para que o TypeScript consiga narrowar o tipo
+  // dentro da async closure (propriedades de objectos não são narrowadas em closures).
+  const srpeValue = validated.data.srpe_value;
+  if (validated.data.phase === "post" && srpeValue != null) {
+    const sessionId = validated.data.session_id;
+    const playerId = validated.data.player_id;
+    const clubId = player.club_id;
+
+    void (async () => {
+      try {
+        // Lookup duration_min da sessão (padrão maybeSingle — Story 4.8)
+        const { data: session, error: sessionError } = await serviceRole
+          .from("sessions")
+          .select("duration_min")
+          .eq("id", sessionId)
+          .maybeSingle();
+
+        if (sessionError || !session) {
+          logger.error("session_metrics.session_lookup_failed", {
+            player_id: playerId,
+            session_id: sessionId,
+            error: sessionError?.message ?? "session not found",
+          });
+          return;
+        }
+
+        // Calcular sRPE load via função pura (não inline)
+        const srpeLoad = calculateSrpeLoad(srpeValue, session.duration_min);
+
+        // Upsert idempotente: ON CONFLICT (session_id, player_id) DO UPDATE
+        const { error: smError } = await serviceRole
+          .from("session_metrics")
+          .upsert(
+            {
+              club_id: clubId,
+              session_id: sessionId,
+              player_id: playerId,
+              srpe_value: srpeValue,
+              duration_min: session.duration_min,
+              computed_at: new Date().toISOString(),
+            },
+            { onConflict: "session_id,player_id", ignoreDuplicates: false }
+          );
+
+        if (smError) {
+          logger.error("session_metrics.upsert_failed", {
+            player_id: playerId,
+            session_id: sessionId,
+            srpe_load: srpeLoad,
+            error: smError.message,
+          });
+        } else {
+          logger.info("session_metrics.upserted", {
+            player_id: playerId,
+            session_id: sessionId,
+            srpe_value: srpeValue,
+            duration_min: session.duration_min,
+            srpe_load: srpeLoad,
+          });
+        }
+      } catch (e) {
+        logger.error("session_metrics.upsert_failed", {
+          player_id: playerId,
+          session_id: sessionId,
+          error: e instanceof Error ? e.message : String(e),
+        });
+        // Silently fail — fatigue_response já foi gravada com sucesso
+      }
+    })();
+  } else if (validated.data.phase === "post" && srpeValue == null) {
+    logger.info("session_metrics.skipped_null_srpe", {
+      player_id: validated.data.player_id,
+      session_id: validated.data.session_id,
+    });
+  }
 
   // Fire-and-forget audit log para escrita de dados de saúde (Story 3.11 + Decision #2)
   // Não await — operação assíncrona em background; falha não bloqueia resposta

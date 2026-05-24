@@ -846,6 +846,61 @@ export type Database = {
           },
         ]
       }
+      session_metrics: {
+        Row: {
+          id: string
+          club_id: string
+          session_id: string
+          player_id: string
+          srpe_value: number
+          duration_min: number
+          srpe_load: number
+          computed_at: string
+        }
+        Insert: {
+          id?: string
+          club_id: string
+          session_id: string
+          player_id: string
+          srpe_value: number
+          duration_min: number
+          // srpe_load is GENERATED ALWAYS AS STORED — omit from Insert
+          computed_at?: string
+        }
+        Update: {
+          id?: string
+          club_id?: string
+          session_id?: string
+          player_id?: string
+          srpe_value?: number
+          duration_min?: number
+          // srpe_load is GENERATED ALWAYS AS STORED — omit from Update
+          computed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_metrics_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_metrics_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_metrics_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

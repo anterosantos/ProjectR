@@ -26,6 +26,12 @@
       "rules": {
         "custom/no-direct-health-data-read": "off"
       }
+    },
+    {
+      "files": ["supabase/functions/**/*.ts"],
+      "rules": {
+        "@typescript-eslint/ban-ts-comment": "off"
+      }
     }
   ]
 }

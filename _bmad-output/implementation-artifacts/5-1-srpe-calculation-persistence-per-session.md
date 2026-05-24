@@ -1,6 +1,6 @@
 # Story 5.1: sRPE Calculation & Persistence per Session
 
-**Status:** ready-for-dev
+**Status:** review
 
 **Story ID:** 5.1
 **Epic:** Epic 5 — Painel de Prontidão & Inteligência (defining experience do José)
@@ -115,40 +115,40 @@ So that ACWR (Story 5.2) has a stable, queryable load input and historical aggre
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Migração `000240_session_metrics.sql`** (AC: #1)
-  - [ ] Criar `sparta/supabase/migrations/000240_session_metrics.sql`
-  - [ ] Tabela: `id`, `club_id`, `session_id`, `player_id`, `srpe_value` (1–10), `duration_min` (15–240), `srpe_load` (GENERATED STORED), `computed_at`
-  - [ ] RLS: staff (coach/analyst, mesmo clube) SELECT; player sem acesso directo; service-role full access
-  - [ ] Unique constraint: `(session_id, player_id)`
-  - [ ] Índices: `idx_session_metrics_player_computed` em `(player_id, computed_at DESC)`, `idx_session_metrics_club` em `(club_id)`
-  - [ ] GRANT `SELECT, INSERT, UPDATE` TO `authenticated` (service-role bypassa RLS)
-  - [ ] Comentários RGPD: tabela contém dados de esforço percebido (saúde, Art. 9)
+- [x] **Task 1: Migração `000240_session_metrics.sql`** (AC: #1)
+  - [x] Criar `sparta/supabase/migrations/000240_session_metrics.sql`
+  - [x] Tabela: `id`, `club_id`, `session_id`, `player_id`, `srpe_value` (1–10), `duration_min` (15–240), `srpe_load` (GENERATED STORED), `computed_at`
+  - [x] RLS: staff (coach/analyst, mesmo clube) SELECT; player sem acesso directo; service-role full access
+  - [x] Unique constraint: `(session_id, player_id)`
+  - [x] Índices: `idx_session_metrics_player_computed` em `(player_id, computed_at DESC)`, `idx_session_metrics_club` em `(club_id)`
+  - [x] GRANT `SELECT, INSERT, UPDATE` TO `authenticated` (service-role bypassa RLS)
+  - [x] Comentários RGPD: tabela contém dados de esforço percebido (saúde, Art. 9)
 
-- [ ] **Task 2: Funções utilitárias `lib/readiness/srpe.ts`** (AC: #4)
-  - [ ] Criar `sparta/src/lib/readiness/srpe.ts`
-  - [ ] Exportar `calculateSrpeLoad(srpeValue, durationMin): number`
-  - [ ] Exportar `isSrpeInputValid(srpeValue, durationMin): boolean`
-  - [ ] Sem dependências externas — funções puras
+- [x] **Task 2: Funções utilitárias `lib/readiness/srpe.ts`** (AC: #4)
+  - [x] Criar `sparta/src/lib/readiness/srpe.ts`
+  - [x] Exportar `calculateSrpeLoad(srpeValue, durationMin): number`
+  - [x] Exportar `isSrpeInputValid(srpeValue, durationMin): boolean`
+  - [x] Sem dependências externas — funções puras
 
-- [ ] **Task 3: Estender `submitFatigueResponse()` com upsert `session_metrics`** (AC: #2, #3)
-  - [ ] Editar `sparta/src/lib/actions/fatigue.ts`
-  - [ ] Após upsert bem-sucedido de `fatigue_responses`, verificar se `phase === 'post'` e `validated.data.srpe_value != null`
-  - [ ] Se sim: buscar `session.duration_min` via service-role (`sessions` table, by `session_id`)
-  - [ ] Upsert em `session_metrics` via service-role com `ON CONFLICT (session_id, player_id) DO UPDATE ...`
-  - [ ] Se `srpe_value` for null: skip completamente (nenhum upsert)
-  - [ ] Erros no upsert de `session_metrics` são logados mas NÃO propagados — `fatigue_responses` já foi gravada com sucesso
-  - [ ] Log estruturado: `session_metrics.upserted` ou `session_metrics.skipped_null_srpe` ou `session_metrics.upsert_failed`
-  - [ ] Usar `calculateSrpeLoad()` de `lib/readiness/srpe.ts` (não inline)
+- [x] **Task 3: Estender `submitFatigueResponse()` com upsert `session_metrics`** (AC: #2, #3)
+  - [x] Editar `sparta/src/lib/actions/fatigue.ts`
+  - [x] Após upsert bem-sucedido de `fatigue_responses`, verificar se `phase === 'post'` e `validated.data.srpe_value != null`
+  - [x] Se sim: buscar `session.duration_min` via service-role (`sessions` table, by `session_id`)
+  - [x] Upsert em `session_metrics` via service-role com `ON CONFLICT (session_id, player_id) DO UPDATE ...`
+  - [x] Se `srpe_value` for null: skip completamente (nenhum upsert)
+  - [x] Erros no upsert de `session_metrics` são logados mas NÃO propagados — `fatigue_responses` já foi gravada com sucesso
+  - [x] Log estruturado: `session_metrics.upserted` ou `session_metrics.skipped_null_srpe` ou `session_metrics.upsert_failed`
+  - [x] Usar `calculateSrpeLoad()` de `lib/readiness/srpe.ts` (não inline)
 
-- [ ] **Task 4: Actualizar tipos Supabase** (AC: #1)
-  - [ ] Adicionar tipo `SessionMetrics` em `sparta/src/types/supabase.ts`
-  - [ ] Incluir campo `srpe_load` como `number` (generated column)
-  - [ ] Ou regenerar tipos via `supabase gen types typescript --local` e garantir que `session_metrics` aparece
+- [x] **Task 4: Actualizar tipos Supabase** (AC: #1)
+  - [x] Adicionar tipo `SessionMetrics` em `sparta/src/lib/supabase/database.types.ts`
+  - [x] Incluir campo `srpe_load` como `number` (generated column — omitido em Insert/Update)
+  - [x] Relações com `clubs`, `sessions`, `players`
 
-- [ ] **Task 5: Testes** (AC: #5)
-  - [ ] Criar `sparta/src/lib/readiness/__tests__/srpe.test.ts` — testes unitários para funções puras
-  - [ ] Criar `sparta/src/lib/actions/__tests__/fatigue-srpe.test.ts` — testes de integração com mocks do service-role
-  - [ ] Cobrir: cálculo, upsert idempotente, caso null, lookup de duration_min, falha não-bloqueante
+- [x] **Task 5: Testes** (AC: #5)
+  - [x] Criar `sparta/src/lib/readiness/__tests__/srpe.test.ts` — testes unitários para funções puras
+  - [x] Criar `sparta/src/lib/actions/__tests__/fatigue-srpe.test.ts` — testes de integração com mocks do service-role
+  - [x] Cobrir: cálculo, upsert idempotente, caso null, lookup de duration_min, falha não-bloqueante
 
 ---
 
@@ -338,6 +338,26 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
+- Fix TS2345/TS2322: `validated.data.srpe_value` não narrowado dentro de closures async — solução: extrair para `const srpeValue` local antes do `if` + `void (async () => {})()`.
+
 ### Completion Notes List
 
+- **Task 1 ✅** — Migração `000240_session_metrics.sql` criada com tabela `session_metrics` (id, club_id, session_id, player_id, srpe_value, duration_min, srpe_load GENERATED STORED, computed_at), RLS staff-only SELECT, unique constraint (session_id, player_id), índices de performance, GRANTs e comentários RGPD Art. 9.
+- **Task 2 ✅** — `src/lib/readiness/srpe.ts` criado com `calculateSrpeLoad(srpeValue, durationMin): number` e `isSrpeInputValid(srpeValue, durationMin): boolean`. Funções puras sem dependências externas. Constantes `SRPE_VALUE_MIN/MAX` e `DURATION_MIN_MIN/MAX` exportadas.
+- **Task 3 ✅** — `submitFatigueResponse()` em `fatigue.ts` extendido com upsert fire-and-forget de `session_metrics` pós-fatigue. Usa `maybeSingle()` para lookup da sessão (padrão Story 4.8), `calculateSrpeLoad()` da lib, ON CONFLICT idempotente, logs estruturados `session_metrics.upserted / skipped_null_srpe / upsert_failed / session_lookup_failed`. Erros não-bloqueantes.
+- **Task 4 ✅** — `database.types.ts` actualizado com tabela `session_metrics` (Row/Insert/Update — srpe_load omitido em Insert/Update pois é GENERATED STORED) + Relationships para clubs, sessions, players.
+- **Task 5 ✅** — 48 testes novos: 30 unit tests em `srpe.test.ts` (calculateSrpeLoad + isSrpeInputValid, boundaries, tipos inválidos, NaN, floats) + 18 integration tests em `fatigue-srpe.test.ts` (AC#2: upsert correcto, campos, ON CONFLICT, idempotência, logs; AC#3: null skip, fase pre; erros não-bloqueantes; srpe_load calculado). Todos passam ✅.
+- **Testes completos:** 74/74 testes dos ficheiros da story + 1282/1285 testes globais (3 falhas pré-existentes não relacionadas). Typecheck ✅. Build ✅.
+
 ### File List
+
+- `sparta/supabase/migrations/000240_session_metrics.sql` — CRIADO
+- `sparta/src/lib/readiness/srpe.ts` — CRIADO
+- `sparta/src/lib/readiness/__tests__/srpe.test.ts` — CRIADO
+- `sparta/src/lib/actions/__tests__/fatigue-srpe.test.ts` — CRIADO
+- `sparta/src/lib/actions/fatigue.ts` — MODIFICADO (import calculateSrpeLoad, upsert session_metrics fire-and-forget)
+- `sparta/src/lib/supabase/database.types.ts` — MODIFICADO (tabela session_metrics adicionada)
+
+### Change Log
+
+- 2026-05-24: Story 5.1 implementada — migração 000240_session_metrics, srpe.ts (calculateSrpeLoad + isSrpeInputValid), fatigue.ts extendido com upsert fire-and-forget de session_metrics, database.types.ts actualizado, 48 novos testes; 74/74 ✅; typecheck ✅; build ✅; AC #1-#5 verificados.

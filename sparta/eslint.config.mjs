@@ -80,6 +80,15 @@ const eslintConfig = defineConfig([
       "custom/no-direct-health-data-read": "off",
     },
   },
+  // Deno Edge Functions: relax TypeScript rules incompatíveis com o ambiente Deno.
+  // Os ficheiros em supabase/functions/ correm no runtime Deno, não no Node.js.
+  // @ts-nocheck é necessário porque o tsconfig do Next.js não inclui tipos Deno.
+  {
+    files: ["supabase/functions/**/*.ts"],
+    rules: {
+      "@typescript-eslint/ban-ts-comment": "off",
+    },
+  },
   // Test files: relax rules that don't apply cleanly to mocking patterns.
   {
     files: [

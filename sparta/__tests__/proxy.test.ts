@@ -19,6 +19,19 @@ vi.mock("@/lib/supabase/middleware", () => ({
   updateSession: mockUpdateSession,
 }));
 
+// ---------------------------------------------------------------------------
+// Mock service-role client (proxy.ts calls getServiceRoleClient() for the
+// consent gate — without this mock the tests make real HTTP calls and timeout)
+// ---------------------------------------------------------------------------
+
+const mockServiceRoleFrom = vi.fn();
+
+vi.mock("@/lib/supabase/service-role", () => ({
+  getServiceRoleClient: vi.fn(() => ({
+    from: mockServiceRoleFrom,
+  })),
+}));
+
 function makeRequest(path: string, cookie?: string): NextRequest {
   const url = `http://localhost:3000${path}`;
   const init: Record<string, unknown> = {};
@@ -39,6 +52,22 @@ function makePassthroughResponse() {
 describe("Proxy authentication gate (AC #5)", () => {
   beforeEach(() => {
     mockUpdateSession.mockReset();
+    mockServiceRoleFrom.mockReset();
+
+    // Default: staff profile (coach) — not a player, consent not required.
+    // This is the safe default for most tests.
+    // The proxy calls: db.from('profiles').select('role, consent_status').eq('id', userId).single()
+    mockServiceRoleFrom.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: { role: "coach", consent_status: "not_required" },
+            error: null,
+          }),
+          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+        }),
+      }),
+    });
   });
 
   describe("Unauthenticated requests to protected routes", () => {
