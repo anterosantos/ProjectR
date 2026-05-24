@@ -23,11 +23,19 @@ export const FatigueResponseBaseSchema = z.object({
 /**
  * Full validated schema — includes the sRPE/phase cross-field refinement.
  * Use for final validation before insert/submit.
+ *
+ * Refine (Story 5.1):
+ * - PRE phase: srpe_value MUST be null (not provided)
+ * - POST phase: srpe_value MUST be a number (1–10), not null
  */
 export const FatigueResponseSchema = FatigueResponseBaseSchema.refine(
-  (d) => (d.phase === "pre" ? d.srpe_value == null : true),
+  (d) => {
+    if (d.phase === "pre") return d.srpe_value == null;
+    if (d.phase === "post") return d.srpe_value != null;
+    return true;
+  },
   {
-    message: "srpe_value só é permitido na fase pós-sessão",
+    message: "post phase requer srpe_value (1–10); pre phase não permite",
     path: ["srpe_value"],
   }
 );

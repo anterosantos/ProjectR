@@ -9,7 +9,7 @@ import {
   FatigueResponseSchema,
   type FatigueResponseInput,
 } from "@/lib/schemas/fatigue";
-import { calculateSrpeLoad } from "@/lib/readiness/srpe";
+import { calculateSrpeLoad, isSrpeInputValid } from "@/lib/readiness/srpe";
 
 /**
  * submitFatigueResponse — Server Action idempotente para submissão de questionário de fadiga.
@@ -141,7 +141,7 @@ export async function submitFatigueResponse(
   });
 
   // 3.3.10 — Upsert session_metrics (Story 5.1, FR33)
-  // Apenas para fase 'post' com srpe_value presente.
+  // Apenas para fase 'post' (Zod schema agora forbids post sem srpe_value).
   // Operação secundária: erros são logados mas NÃO propagados — fatigue_responses já gravada.
   //
   // Extrair srpeValue para const local para que o TypeScript consiga narrowar o tipo
@@ -154,18 +154,51 @@ export async function submitFatigueResponse(
 
     void (async () => {
       try {
-        // Lookup duration_min da sessão (padrão maybeSingle — Story 4.8)
-        const { data: session, error: sessionError } = await serviceRole
-          .from("sessions")
-          .select("duration_min")
-          .eq("id", sessionId)
-          .maybeSingle();
+        // PATCH 2: Separate try-catch para session lookup (exceções aqui não conflam com upsert)
+        let session: { duration_min?: number | null } | null;
+        try {
+          const { data, error: sessionError } = await serviceRole
+            .from("sessions")
+            .select("duration_min")
+            .eq("id", sessionId)
+            .maybeSingle();
 
-        if (sessionError || !session) {
+          if (sessionError) {
+            logger.error("session_metrics.session_lookup_failed", {
+              player_id: playerId,
+              session_id: sessionId,
+              error: sessionError.message,
+            });
+            return;
+          }
+          session = data;
+        } catch (e) {
           logger.error("session_metrics.session_lookup_failed", {
             player_id: playerId,
             session_id: sessionId,
-            error: sessionError?.message ?? "session not found",
+            error: e instanceof Error ? e.message : String(e),
+          });
+          return;
+        }
+
+        // PATCH 4: Type narrowing — explicit null/undefined check para duration_min
+        if (!session || session.duration_min == null) {
+          logger.error("session_metrics.invalid_duration", {
+            player_id: playerId,
+            session_id: sessionId,
+            error: "session.duration_min is null or undefined",
+          });
+          return;
+        }
+
+        // PATCH 3, PATCH 7: Validação pré-flight usando isSrpeInputValid
+        if (!isSrpeInputValid(srpeValue, session.duration_min)) {
+          logger.error("session_metrics.invalid_inputs", {
+            player_id: playerId,
+            session_id: sessionId,
+            srpe_value: srpeValue,
+            duration_min: session.duration_min,
+            error: "inputs fail validation (srpe 1–10, duration 15–240)",
           });
           return;
         }
@@ -173,6 +206,7 @@ export async function submitFatigueResponse(
         // Calcular sRPE load via função pura (não inline)
         const srpeLoad = calculateSrpeLoad(srpeValue, session.duration_min);
 
+        // PATCH 5: onConflict syntax — manter formato para compatibilidade com Supabase
         // Upsert idempotente: ON CONFLICT (session_id, player_id) DO UPDATE
         const { error: smError } = await serviceRole
           .from("session_metrics")
@@ -188,11 +222,11 @@ export async function submitFatigueResponse(
             { onConflict: "session_id,player_id", ignoreDuplicates: false }
           );
 
+        // PATCH 6: Distinct logging codes para sucesso vs falha
         if (smError) {
           logger.error("session_metrics.upsert_failed", {
             player_id: playerId,
             session_id: sessionId,
-            srpe_load: srpeLoad,
             error: smError.message,
           });
         } else {
@@ -205,6 +239,7 @@ export async function submitFatigueResponse(
           });
         }
       } catch (e) {
+        // PATCH 2: Generic catch distingue entre diferentes falhas
         logger.error("session_metrics.upsert_failed", {
           player_id: playerId,
           session_id: sessionId,
@@ -213,11 +248,6 @@ export async function submitFatigueResponse(
         // Silently fail — fatigue_response já foi gravada com sucesso
       }
     })();
-  } else if (validated.data.phase === "post" && srpeValue == null) {
-    logger.info("session_metrics.skipped_null_srpe", {
-      player_id: validated.data.player_id,
-      session_id: validated.data.session_id,
-    });
   }
 
   // Fire-and-forget audit log para escrita de dados de saúde (Story 3.11 + Decision #2)

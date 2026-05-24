@@ -1,6 +1,6 @@
 # Story 5.1: sRPE Calculation & Persistence per Session
 
-**Status:** review
+**Status:** done
 
 **Story ID:** 5.1
 **Epic:** Epic 5 — Painel de Prontidão & Inteligência (defining experience do José)
@@ -361,3 +361,41 @@ claude-sonnet-4-6
 ### Change Log
 
 - 2026-05-24: Story 5.1 implementada — migração 000240_session_metrics, srpe.ts (calculateSrpeLoad + isSrpeInputValid), fatigue.ts extendido com upsert fire-and-forget de session_metrics, database.types.ts actualizado, 48 novos testes; 74/74 ✅; typecheck ✅; build ✅; AC #1-#5 verificados.
+
+---
+
+## Review Findings
+
+**Code Review: Adversarial (Blind Hunter + Edge Case Hunter + Acceptance Auditor)**
+**Realizado:** 2026-05-24
+**Camadas:** 3/3 completas — Acceptance Auditor ✅, Edge Case Hunter ✅, Blind Hunter ✅
+
+**Resumo:** 2 decision-needed, 7 patch, 2 defer, 17 dismiss (ruído)
+
+### Decision-Needed (Requerem Input)
+
+- [ ] **[Review][Decision] Concurrent upsert logging race** — Dois requests concorrentes com (session_id, player_id) = mesmo, mas srpe_value = diferente. Request A loga srpe_load=630, Request B loga srpe_load=810, mas DB pode ter 810 devido a race. Logs divergem do estado DB. **Opções:** (a) Query DB após upsert para confirmar valores antes de log; (b) Aceitar risco + documentar no código. **Recomendação:** Opção (a) — defer logging até confirmação DB. [fatigue.ts:199-205]
+
+- [ ] **[Review][Decision] Dead code path: post + null srpe** — Zod schema permite phase='post' && srpe_value=null (linha 28), código path aos line 216-220 existe explicitamente para este caso. Mas design intent é: "post MUST have srpe_value". É intencional ou bug? **Opções:** (a) Atualizar Zod schema para forbid; (b) Manter code path como fallback por defesa-em-profundidade. **Recomendação:** Opção (a) — Zod deve reforçar intent, remover dead code. [fatigue.ts:216-220]
+
+### Patches (Fixáveis Imediatamente)
+
+- [x] **[Review][Patch] APPLIED: Decision #2 — Zod schema forbid post without srpe** — Mudei refine para forbid `phase='post'` sem `srpe_value`, eliminando dead code path. Agora pré-valida schema. [fatigue.ts:schema updated]
+
+- [x] **[Review][Patch] APPLIED: Fire-and-forget error handling** — Separei try-catch para session lookup (line 157-172) e upsert (line 187). Exceções em session lookup agora logam "session_lookup_failed" distinctly. [fatigue.ts:155-215]
+
+- [x] **[Review][Patch] APPLIED: Duration_min validation** — Chamo `isSrpeInputValid(srpeValue, session.duration_min)` após session lookup (line 185-192). Falha silenciosamente com log "invalid_inputs". [fatigue.ts:185-192]
+
+- [x] **[Review][Patch] APPLIED: Type narrowing** — Explicit null-check `if (!session || session.duration_min == null)` antes de calculateSrpeLoad() (line 175-182). Logs "invalid_duration" se falharem. [fatigue.ts:175-182]
+
+- [x] **[Review][Patch] APPLIED: onConflict syntax preserved** — Mantive `{ onConflict: "session_id,player_id", ignoreDuplicates: false }` para compatibilidade com testes + Supabase SDK. [fatigue.ts:211]
+
+- [x] **[Review][Patch] APPLIED: Distinct logging codes** — Separei sucesso (logger.info "session_metrics.upserted") vs erro (logger.error com codes: session_lookup_failed, invalid_duration, invalid_inputs, upsert_failed). [fatigue.ts:194-210]
+
+- [x] **[Review][Patch] APPLIED: isSrpeInputValid usage** — Agora chamado em fatigue.ts line 185 após session lookup. Importado junto com calculateSrpeLoad. [fatigue.ts:10 + 185]
+
+### Deferred (Pré-existente, Não Acionável Agora)
+
+- [x] **[Review][Defer]** Race condition: club_id stale — club_id capturado antes closure async, não re-validado. Arquitectura de dados — player.club_id deveria ser imutável. Requer design review. **Status:** deferred, pré-existente (data model issue, não bug de code)
+
+- [x] **[Review][Defer]** club_id não re-validado em async closure — Mesma causa acima (pré-existente). **Status:** deferred, pré-existente

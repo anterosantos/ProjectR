@@ -185,7 +185,7 @@ development_status:
 
   # Epic 5: Painel de Prontidão & Inteligência (defining experience do José)
   epic-5: in-progress
-  5-1-srpe-calculation-persistence-per-session: review
+  5-1-srpe-calculation-persistence-per-session: done
   5-2-acwr-calculation-engine-with-age-group-thresholds: ready-for-dev
   5-3-readiness-snapshots-materialized-source-for-the-painel: ready-for-dev
   5-4-painel-de-prontidao-lista-por-posicao-default-view: backlog
