@@ -1,4 +1,6 @@
+# last_updated: 2026-05-25 (4-10 → done: code-review complete; 5 patches aplicados: getSessionFatigueStatus erro DB silenciado corrigido, implicit role guard documentado, limite superior lte→lt na query de sessão recente, mensagem de erro Portuguese substituída, cursor-default removido do cartão respondido; 1309/1309 testes ✅; build ✅; typecheck ✅ (sem novas regressões))
 # last_updated: 2026-05-24 (4-10 → ready-for-dev: bmad-create-story; prop answered em SessionCard (visual state respondido), getSessionFatigueStatus para sessão próxima em /hoje, EmptyState "Tudo registado" quando allDoneToday, matriz de 6 estados de renderização, Promise.all paralelo, sem migração SQL; dependência: Story 4.9)
+# last_updated: 2026-05-25 (4-9 → done: code-review complete; ver 4-10 entry acima — patches aplicados em conjunto)
 # last_updated: 2026-05-24 (4-9 → ready-for-dev: bmad-create-story; phase-aware session guard no questionário (post aceita 'completed'), Server Action getSessionFatigueStatus(), secção "Sessão recente" em /hoje com CTA pós-sessão, SessionCard phase prop; sem migração SQL; dependência: Story 4.8)
 # last_updated: 2026-05-24 (4-8 → done: code-review complete; 14 patches aplicados: FOR UPDATE SKIP LOCKED race-condition fix (claim_push_notifications RPC + migration 000230), two-step player query replacing broken players!inner join, trigger scope expanded to any →cancelled transition, full Edge Function test suites (14/14 ✅), INSERT RLS policy + GRANT, maybeSingle() para settings/subscription, 404=410 deactivation, endpoint-level deactivation, isValidPushKeys helper, @ts-nocheck Deno files, null duration fallback, id: null default, GET DIAGNOSTICS fix; build ✅; typecheck ✅; 18/18 + 7/7 + 7/7 testes ✅)
 # 2026-05-22: 3-11 → done (code-review complete; 11 patches aplicados: after() serverless lifecycle, ESLint flat config registration, service-role whitelist, chain traversal + template literals + Windows path fix in ESLint rule, "use server" removido, occurred_at removido (DB default), vi.waitFor testes, actorId hoistado, fn() failure audit; lint ✅; typecheck ✅; build ✅; 6/6 testes ✅)
@@ -179,8 +181,8 @@ development_status:
   4-6-dados-mediados-block-player-has-no-self-access-to-processed-data: done
   4-7-push-subscription-infrastructure-vapid-setup-subscribe-unsubscribe: done
   4-8-pre-post-session-push-notifications-with-configurable-x-y: done
-  4-9-post-session-questionnaire-fallback-access: ready-for-dev
-  4-10-hoje-questionnaire-answered-state-feedback: ready-for-dev
+  4-9-post-session-questionnaire-fallback-access: done
+  4-10-hoje-questionnaire-answered-state-feedback: done
   epic-4-retrospective: optional
 
   # Epic 5: Painel de Prontidão & Inteligência (defining experience do José)

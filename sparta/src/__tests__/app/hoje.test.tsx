@@ -36,6 +36,12 @@ vi.mock("@/lib/actions/sessions", () => ({
   getSessionsForClub: vi.fn(),
 }));
 
+vi.mock("@/lib/actions/fatigue", () => ({
+  getSessionFatigueStatus: vi
+    .fn()
+    .mockResolvedValue({ ok: true, data: { pre: false, post: false } }),
+}));
+
 import { createServerClient } from "@/lib/supabase/server";
 import { getSessionsForClub } from "@/lib/actions/sessions";
 import HojePage from "@/app/(player)/hoje/page";

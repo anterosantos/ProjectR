@@ -74,7 +74,7 @@ export default async function QuestionarioPage({
   const ageGroup: "senior" | "u14" =
     player.age_group === "u14" || player.age_group === "u15" ? "u14" : "senior";
 
-  // Verificar sessão: existe, pertence ao clube, status='scheduled' (AC #1)
+  // Verificar sessão: existe, pertence ao clube, status phase-aware (AC #1 — Story 4.9)
   const sessionResult = await getSessionById(sessionId);
   if (!sessionResult.ok) {
     const errMsg = `getSessionById failed: ${sessionResult.error?.message || JSON.stringify(sessionResult.error)}`;
@@ -91,8 +91,23 @@ export default async function QuestionarioPage({
       </>
     );
   }
-  if (sessionResult.data.status !== "scheduled") {
-    const errMsg = `session status is '${sessionResult.data.status}', expected 'scheduled'`;
+
+  // Phase-aware status guard (Story 4.9, AC #1):
+  // - post phase: aceita 'scheduled' e 'completed'
+  // - pre phase: aceita apenas 'scheduled' (unchanged)
+  const isValidStatus =
+    phase === "post"
+      ? sessionResult.data.status === "scheduled" ||
+        sessionResult.data.status === "completed"
+      : sessionResult.data.status === "scheduled";
+
+  if (!isValidStatus) {
+    const errMsg =
+      sessionResult.data.status === "cancelled"
+        ? "Sessão cancelada — não é possível responder ao questionário"
+        : phase === "pre"
+          ? "Sessão já concluída — o questionário pré-sessão só pode ser preenchido antes da sessão"
+          : "Sessão inválida — não é possível responder ao questionário";
     console.error("[questionario] ERROR:", errMsg);
     // Renderizar página de erro em vez de redirecionar
     return (

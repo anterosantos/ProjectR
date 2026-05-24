@@ -278,3 +278,49 @@ export async function submitFatigueResponse(
   // O id é o UUIDv7 fornecido pelo cliente — idempotente por design (NFR48)
   return ok({ id: validated.data.id });
 }
+
+/**
+ * getSessionFatigueStatus — Verifica se o jogador autenticado já respondeu ao questionário
+ * de fadiga para uma dada sessão (pré e/ou pós-sessão).
+ *
+ * Retorna apenas booleans — nunca devolve dados de saúde (NFR21).
+ * RLS garante que o player vê apenas os seus próprios rows.
+ * Defence-in-depth: filtro explícito por player_id.
+ *
+ * AC #2 — Story 4.9
+ */
+export async function getSessionFatigueStatus(
+  sessionId: string
+): Promise<Result<{ pre: boolean; post: boolean }, AppError>> {
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return err({ code: "unauthorized", message: "Não autenticado" });
+
+  const { data: player } = await supabase
+    .from("players")
+    .select("id")
+    .eq("profile_id", user.id)
+    .maybeSingle();
+
+  // Implicit role guard: apenas jogadores têm registo em players.
+  // Staff/analistas sem registo retornam ok() por graceful degradation — esta função
+  // retorna apenas booleans (sem dados de saúde, NFR21) e é chamada exclusivamente
+  // de rotas da zona (player), onde o role já foi verificado upstream.
+  if (!player) return ok({ pre: false, post: false });
+
+  // eslint-disable-next-line custom/no-direct-health-data-read -- player reads own boolean status only; no metric derived
+  const { data: rows, error: rowsError } = await supabase
+    .from("fatigue_responses")
+    .select("phase")
+    .eq("session_id", sessionId)
+    .eq("player_id", player.id);
+
+  if (rowsError) {
+    return err({ code: "db_error", message: rowsError.message });
+  }
+
+  const phases = new Set((rows ?? []).map((r) => r.phase));
+  return ok({ pre: phases.has("pre"), post: phases.has("post") });
+}

@@ -2,6 +2,13 @@
 
 Items deferred from code reviews — pre-existing issues, out-of-scope work, or items blocked by future stories.
 
+## Deferred from: code review of 4-9-post-session-questionnaire-fallback-access + 4-10-hoje-questionnaire-answered-state-feedback (2026-05-24)
+
+- **D1: Padrão de renderização de erros em debug-style no questionário** [`sparta/src/app/(player)/questionario/[sessionId]/[phase]/page.tsx`]: Todos os erros da página do questionário usam `<p className="text-red-600 font-mono text-sm">` — padrão de debug exposto a utilizadores finais. Pre-existente da Story 4.2; resolver quando os componentes de erro forem padronizados.
+- **D2: Dois `Promise.all` sequenciais em `/hoje` — fatigue status não corre em paralelo com session queries** [`sparta/src/app/(player)/hoje/page.tsx`]: Constrangimento arquitectural — os IDs das sessões só são conhecidos após o primeiro `await`. Optimizar se o TTFB se tornar perceptível.
+- **D3: Edge case "post respondido, pre não respondido, sem próxima sessão" mostra empty state "Sem sessões"** [`sparta/src/app/(player)/hoje/page.tsx`]: Jogador que respondeu ao pós-sessão sem ter respondido ao pré, sem sessão futura, vê empty state genérico em vez de estado significativo. Caso fora do âmbito das Stories 4.9 e 4.10.
+- **D4: Lookup redundante de player em `getSessionFatigueStatus` quando chamada duas vezes em paralelo** [`sparta/src/lib/actions/fatigue.ts`]: 4 round-trips de DB para dados de autenticação idênticos. Optimizar com cache de sessão ou injeção de player_id quando a camada de acções for centralizada.
+
 ## Deferred from: code review of 4-8-pre-post-session-push-notifications-with-configurable-x-y (2026-05-24)
 
 - **W1: N+1 queries em `schedule-session-pushes`** [`supabase/functions/schedule-session-pushes/index.ts`]: Uma query por sessão para `notification_settings` e outra para `push_subscriptions`. Impacto apenas com muitas sessões simultâneas. Otimizar via batch queries quando o volume justificar.

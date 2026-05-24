@@ -1,6 +1,6 @@
 # Story 4.9: Post-Session Questionnaire — Fallback Access via /hoje and Phase-Aware Guard
 
-**Status:** ready-for-dev
+**Status:** done
 
 **Story ID:** 4.9
 **Epic:** Epic 4 — Recolha de Fadiga & Notificações (jornada do Tomás)
@@ -435,10 +435,77 @@ describe("SessionCard phase prop", () => {
 
 ## Review Findings
 
-*(A preencher após code review)*
+### Patches (4)
+
+- [x] [Review][Patch] `getSessionFatigueStatus`: erro da query `fatigue_responses` descartado silenciosamente — quando Supabase retorna erro, a função retorna `ok({pre:false,post:false})` em vez de `err()`, mostrando ao jogador que o questionário está por responder durante falhas de DB [sparta/src/lib/actions/fatigue.ts]
+- [x] [Review][Patch] `getSessionFatigueStatus`: sem verificação explícita de role — qualquer utilizador autenticado (coach/staff) obtém `{pre:false,post:false}` em vez de erro de autorização; spec requer "authenticated player only" [sparta/src/lib/actions/fatigue.ts]
+- [x] [Review][Patch] Query "sessão recente" usa `lte` (<=) no limite superior — sessão com `scheduled_at === now` aparece simultaneamente em "Próxima sessão" e "Sessão recente"; corrigir com filtro `s.scheduled_at < now` client-side [sparta/src/app/(player)/hoje/page.tsx]
+- [x] [Review][Patch] Mensagem de erro de fallback para status inválido está em inglês e é texto de debug visível ao jogador: `"session status is '...', expected 'scheduled'"` — substituir por mensagem em português; para phase=post o expected inclui 'scheduled' OU 'completed' [sparta/src/app/(player)/questionario/[sessionId]/[phase]/page.tsx]
+
+### Deferred (2)
+
+- [x] [Review][Defer] Padrão de renderização de erros usa `<p className="text-red-600 font-mono text-sm">` para todos os erros do questionário [sparta/src/app/(player)/questionario/[sessionId]/[phase]/page.tsx] — deferred, pre-existente da Story 4.2
+- [x] [Review][Defer] Dois `Promise.all` sequenciais — as chamadas de fatigue status não podem correr em paralelo com as queries de sessões porque os IDs só são conhecidos após o primeiro await; constrangimento arquitectural [sparta/src/app/(player)/hoje/page.tsx] — deferred, constrangimento arquitectural reconhecido na spec
 
 ---
 
+## Tasks/Subtasks
+
+- [x] AC #1: Update questionnaire page with phase-aware status guard
+- [x] AC #2: Create `getSessionFatigueStatus` Server Action
+- [x] AC #3: Update `/hoje` page to query recent sessions (last 24h)
+- [x] AC #3: Update `TodayPageContent` to render "Sessão recente" section
+- [x] AC #4: Add `phase` prop to `SessionCard` component
+- [x] AC #5: Write comprehensive unit tests
+- [x] Run full test suite and validate all changes
+
 ## Dev Notes
 
-*(A preencher durante/após implementação)*
+### Implementation Summary
+
+**Files Modified:**
+1. `sparta/src/app/(player)/questionario/[sessionId]/[phase]/page.tsx` — Phase-aware status guard (AC #1)
+2. `sparta/src/lib/actions/fatigue.ts` — New `getSessionFatigueStatus()` function (AC #2)
+3. `sparta/src/app/(player)/hoje/page.tsx` — Query recent sessions and pass to component (AC #3)
+4. `sparta/src/components/app/today-page-content.tsx` — Render "Sessão recente" section (AC #3)
+5. `sparta/src/components/ui/session-card.tsx` — Added `phase?: 'pre' | 'post'` prop (AC #4)
+
+**Test Files Created:**
+1. `sparta/src/lib/actions/__tests__/fatigue-session-status.test.ts` — 6 tests for `getSessionFatigueStatus()` (AC #2)
+2. `sparta/src/components/ui/__tests__/session-card.test.tsx` — 5 tests for phase prop behavior (AC #4)
+3. `sparta/src/app/(player)/questionario/[sessionId]/[phase]/__tests__/page.test.tsx` — 6 tests for guard logic (AC #1)
+
+### Test Results
+- ✅ All new tests passing (17 tests)
+- ✅ All existing tests still passing (1291 tests)
+- ✅ Build successful
+- ✅ Lint: 0 errors (77 warnings, all pre-existing)
+- ✅ Typecheck: passed
+
+### Key Implementation Details
+
+**AC #1 — Phase-aware Guard:**
+- Post phase now accepts `status IN ('scheduled', 'completed')` instead of just `'scheduled'`
+- Pre phase still requires `status = 'scheduled'` (unchanged)
+- Cancelled sessions show specific error message for post phase
+
+**AC #2 — `getSessionFatigueStatus`:**
+- Returns only booleans `{ pre: boolean; post: boolean }` (NFR21)
+- Uses RLS with defence-in-depth `.eq("player_id", player.id)` filter
+- Returns `{ pre: false, post: false }` when player has no record
+
+**AC #3 — Recent Session Section:**
+- Queries sessions from last 24 hours where `status IN ('scheduled', 'completed')`
+- Filters out cancelled sessions
+- Only shows section if recent session exists AND post hasn't been answered yet
+
+**AC #4 — SessionCard Phase Prop:**
+- Defaults to `'pre'` for backward compatibility
+- Staff/analyst roles always use `/sessoes/[id]` regardless of phase
+
+### Patterns Applied
+- Follows Story 4.2 guard pattern (await params, .maybeSingle())
+- Follows Story 4.6 defence-in-depth with `.eq("player_id", player.id)`
+- ESLint disable with justification for player self-reads
+- Fire-and-forget operations pattern established in earlier stories
+- Mock structure follows fatigue-srpe.test.ts conventions

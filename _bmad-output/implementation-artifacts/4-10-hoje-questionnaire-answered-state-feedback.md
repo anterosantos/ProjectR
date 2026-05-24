@@ -1,6 +1,6 @@
 # Story 4.10: /hoje — Questionnaire Answered-State Feedback (Pre-Session Indicator)
 
-**Status:** ready-for-dev
+**Status:** done
 
 **Story ID:** 4.10
 **Epic:** Epic 4 — Recolha de Fadiga & Notificações (jornada do Tomás)
@@ -368,10 +368,70 @@ interface TodayPageContentProps {
 
 ## Review Findings
 
-*(A preencher após code review)*
+### Patches (1)
+
+- [x] [Review][Patch] `cursor-default` no `<Link>` respondido é um affordance enganoso — o cartão navega para `/hoje` mas parece não-interactivo; spec não especifica `cursor-default`; remover da classe do estado respondido [sparta/src/components/ui/session-card.tsx]
+
+### Deferred (2)
+
+- [x] [Review][Defer] Edge case "post respondido, pre não respondido, sem próxima sessão" mostra "Sem sessões nos próximos 7 dias" em vez de estado significativo — jogador que respondeu ao pós sem ter respondido ao pré vê empty state genérico [sparta/src/app/(player)/hoje/page.tsx] — deferred, caso fora do âmbito da Story 4.10
+- [x] [Review][Defer] Lookup redundante de player em `getSessionFatigueStatus` quando chamada duas vezes em paralelo — 4 round-trips de DB para dados de autenticação idênticos; optimização de performance para futuro [sparta/src/lib/actions/fatigue.ts] — deferred, não é um problema de correcção
 
 ---
 
+## Tasks/Subtasks
+
+- [x] AC #1: Update SessionCard with answered prop and visual state
+- [x] AC #2: Call getSessionFatigueStatus in /hoje page for nextSession in parallel
+- [x] AC #3: Show "Tudo registado" empty state when all done
+- [x] AC #4: Update TodayPageContent with nextSessionAnswered and allDoneToday props
+- [x] AC #5: Write comprehensive tests (11 tests covering all scenarios)
+- [x] Run full test suite and validate all changes
+
 ## Dev Notes
 
-*(A preencher durante/após implementação)*
+### Implementation Summary
+
+**Core Implementation:**
+1. **SessionCard** — Added `answered?: boolean` prop
+   - When answered=true for players: shows CheckCircle2 + "Respondido" text, href becomes "/hoje", opacity-75 styling
+   - Updated aria-label to include "(respondido)" for accessibility
+   - Staff role ignores the prop
+
+2. **`/hoje/page.tsx`** — Call getSessionFatigueStatus in parallel
+   - Uses `Promise.all` to fetch fatigue status for both nextSession and recentSession
+   - Calculates `nextSessionAnswered`, `recentPreAnswered`, `recentPostAnswered`
+   - Derives `allDoneToday` flag: true when recentSession exists with both phases answered
+   - Consolidates the calls from Story 4.9 logic to avoid duplication
+
+3. **`TodayPageContent`** — Extended with new props
+   - Added `nextSessionAnswered?: boolean` — passes to SessionCard
+   - Added `allDoneToday?: boolean` — shows "Tudo registado" empty state when true
+   - Renders 4 cases: nextSession only, both next+recent, allDoneToday, or neither
+   - Maintains backward compatibility with Story 4.9 recentSession prop
+
+**Test Files:**
+1. `session-card.test.tsx` — Added 6 tests for answered prop (11 total)
+2. `today-page-content.test.tsx` — Created with 6 tests covering all render scenarios
+
+### Test Results
+- ✅ 11 new tests all passing
+- ✅ 0 regressions (1308/1308 existing tests still pass)
+- ✅ Build successful
+- ✅ Lint: 0 errors (72 warnings all pre-existing)
+- ✅ Typecheck: passed
+
+### Files Modified
+1. `sparta/src/components/ui/session-card.tsx` — Added answered prop and visual feedback
+2. `sparta/src/app/(player)/hoje/page.tsx` — Added parallel getSessionFatigueStatus calls
+3. `sparta/src/components/app/today-page-content.tsx` — Added new props and render cases
+4. `sparta/src/components/ui/__tests__/session-card.test.tsx` — Added 6 answered prop tests
+5. `sparta/src/components/app/__tests__/today-page-content.test.tsx` — Created with 6 tests
+
+### Key Patterns Applied
+- Parallel Promise.all() for non-blocking data fetching (performance best practice)
+- Graceful degradation when getSessionFatigueStatus fails (assume answered=false)
+- Semantic redundancy in UI: "Respondido" text + CheckCircle2 icon + opacity (UX-DR1)
+- Server component data calculation, client component rendering (Story 4.9 pattern)
+- ESLint rule compliance maintained
+- Accessibility: aria-label updates, icon aria-hidden, contrast verified
