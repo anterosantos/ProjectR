@@ -16,10 +16,23 @@ const ROLE_DEFAULT_ROUTES: Record<string, string> = {
 };
 
 const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
-  player: ["/hoje", "/historico", "/configuracoes", "/aguardar-consentimento"],
+  player: ["/hoje", "/historico", "/configuracoes", "/aguardar-consentimento", "/questionario"],
   coach: ["/prontidao", "/calendario", "/plantel", "/configuracoes"],
   analyst: ["/sessoes", "/plantel", "/tendencias", "/configuracoes"],
 };
+
+/**
+ * Staff-only routes that MUST return 404 (not redirect) when accessed by players.
+ * Returning 404 (not 403) avoids hinting resource existence (FR26, OWASP).
+ * These routes are protected at middleware level as defence-in-depth;
+ * Server Actions also enforce role checks individually.
+ */
+const STAFF_ONLY_ROUTES_404 = [
+  "/prontidao",
+  "/tendencias",
+  "/relatorios",
+  "/plantel",
+] as const;
 
 export async function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
@@ -89,6 +102,24 @@ export async function proxy(request: NextRequest) {
         }
         return response;
       }
+    }
+  }
+
+  // Dados Mediados Block (Story 4.6, FR26, AC #1):
+  // Players must NEVER reach staff-only data routes.
+  // Return 404 (not 403 or redirect) to avoid hinting resource existence.
+  // This check runs BEFORE the general ROLE_ALLOWED_ROUTES check so players
+  // never get a "you were redirected from X" breadcrumb.
+  // Guard: block any authenticated user whose role is NOT explicitly staff (coach/analyst).
+  // Using `!== "coach" && !== "analyst"` (not `=== "player"`) catches players,
+  // unknown roles, and any future non-staff role without needing to enumerate them.
+  // Users with no JWT claim (`userRole` undefined) fall through to page-level auth — intentional.
+  if (userRole && userRole !== "coach" && userRole !== "analyst") {
+    const isStaffOnlyRoute = STAFF_ONLY_ROUTES_404.some(
+      (route) => pathname === route || pathname.startsWith(route + "/")
+    );
+    if (isStaffOnlyRoute) {
+      return new NextResponse(null, { status: 404 });
     }
   }
 

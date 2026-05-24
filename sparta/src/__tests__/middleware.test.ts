@@ -166,7 +166,7 @@ describe("Middleware: Authentication and Route Access", () => {
       expect(response?.status).not.toBe(307);
     });
 
-    it("should redirect to default role route if accessing unauthorized route", async () => {
+    it("should return 404 (not redirect) when player accesses staff-only /prontidao (AC #1 — dados mediados)", async () => {
       mockGetServiceRoleClient.mockReturnValue(makeServiceRoleMock("granted", "player"));
       mockUpdateSession.mockResolvedValue({
         user: { id: "user-123", email: "player@test.test" },
@@ -174,14 +174,127 @@ describe("Middleware: Authentication and Route Access", () => {
         response: NextResponse.next(),
       });
 
-      // Player trying to access coach route
+      // Player trying to access staff-only route → 404 (not redirect), avoids resource enumeration
       const request = new NextRequest(
         new URL("http://localhost:3000/prontidao")
       );
       const response = await proxy(request);
 
-      expect(response?.status).toBe(307);
-      expect(response?.headers.get("location")).toContain("/hoje");
+      expect(response?.status).toBe(404);
+      // Must NOT redirect (no location header leaking the default route)
+      expect(response?.headers.get("location")).toBeNull();
+    });
+
+    it("player accessing /questionario/[sessionId]/phase should be allowed (AC #5 — backward compat)", async () => {
+      mockGetServiceRoleClient.mockReturnValue(makeServiceRoleMock("granted", "player"));
+      mockUpdateSession.mockResolvedValue({
+        user: { id: "user-123", email: "player@test.test" },
+        claims: { user_role: "player" },
+        response: NextResponse.next(),
+      });
+
+      const request = new NextRequest(
+        new URL("http://localhost:3000/questionario/session-abc/pre")
+      );
+      const response = await proxy(request);
+
+      expect(response?.status).not.toBe(307);
+      expect(response?.status).not.toBe(404);
+    });
+  });
+
+  describe("Dados Mediados Block — Staff-Only Routes Return 404 for Players (Story 4.6, AC #1)", () => {
+    const staffOnlyRoutes = [
+      "/prontidao",
+      "/tendencias",
+      "/relatorios",
+      "/plantel",
+      "/plantel/player-uuid-123",
+      "/plantel/player-uuid-123/fadiga",
+      "/relatorios/report-id-456",
+    ];
+
+    for (const route of staffOnlyRoutes) {
+      it(`player accessing ${route} gets 404 (not redirect)`, async () => {
+        mockGetServiceRoleClient.mockReturnValue(makeServiceRoleMock("granted", "player"));
+        mockUpdateSession.mockResolvedValue({
+          user: { id: "user-123", email: "player@test.test" },
+          claims: { user_role: "player" },
+          response: NextResponse.next(),
+        });
+
+        const request = new NextRequest(new URL(`http://localhost:3000${route}`));
+        const response = await proxy(request);
+
+        expect(response?.status).toBe(404);
+        expect(response?.headers.get("location")).toBeNull();
+      });
+    }
+
+    it("coach can access /plantel normally (staff route not blocked for coach)", async () => {
+      mockGetServiceRoleClient.mockReturnValue(makeServiceRoleMock("not_required", "coach"));
+      mockUpdateSession.mockResolvedValue({
+        user: { id: "coach-123", email: "coach@test.test" },
+        claims: { user_role: "coach" },
+        response: NextResponse.next(),
+      });
+
+      const request = new NextRequest(new URL("http://localhost:3000/plantel"));
+      const response = await proxy(request);
+
+      expect(response?.status).not.toBe(404);
+      expect(response?.status).not.toBe(307);
+    });
+
+    it("analyst can access /tendencias normally (staff route not blocked for analyst)", async () => {
+      mockGetServiceRoleClient.mockReturnValue(makeServiceRoleMock("not_required", "analyst"));
+      mockUpdateSession.mockResolvedValue({
+        user: { id: "analyst-123", email: "analyst@test.test" },
+        claims: { user_role: "analyst" },
+        response: NextResponse.next(),
+      });
+
+      const request = new NextRequest(new URL("http://localhost:3000/tendencias"));
+      const response = await proxy(request);
+
+      expect(response?.status).not.toBe(404);
+      expect(response?.status).not.toBe(307);
+    });
+
+    it("coach can access /plantel/id/fadiga (staff fatigue view not blocked for coach)", async () => {
+      mockGetServiceRoleClient.mockReturnValue(makeServiceRoleMock("not_required", "coach"));
+      mockUpdateSession.mockResolvedValue({
+        user: { id: "coach-123", email: "coach@test.test" },
+        claims: { user_role: "coach" },
+        response: NextResponse.next(),
+      });
+
+      const request = new NextRequest(
+        new URL("http://localhost:3000/plantel/player-uuid/fadiga")
+      );
+      const response = await proxy(request);
+
+      expect(response?.status).not.toBe(404);
+    });
+
+    it("player without JWT claims (no user_role) does NOT get 404 from dados-mediados block (falls through to RLS)", async () => {
+      // When user_role is absent in JWT, the dados-mediados check doesn't fire because
+      // the guard is `userRole && userRole !== "coach" && userRole !== "analyst"`.
+      // The leading `userRole &&` short-circuits to false when the claim is missing,
+      // so users with no JWT claim fall through to page-level auth (intentional design).
+      mockGetServiceRoleClient.mockReturnValue(makeServiceRoleMock("granted", "player"));
+      mockUpdateSession.mockResolvedValue({
+        user: { id: "user-123", email: "player@test.test" },
+        claims: {}, // No user_role claim
+        response: NextResponse.next(),
+      });
+
+      const request = new NextRequest(new URL("http://localhost:3000/prontidao"));
+      const response = await proxy(request);
+
+      // Without JWT claim, the middleware falls through (no 404 from dados-mediados block)
+      // but page-level auth will enforce access control
+      expect(response?.status).not.toBe(404);
     });
   });
 

@@ -2,6 +2,14 @@
 
 Items deferred from code reviews — pre-existing issues, out-of-scope work, or items blocked by future stories.
 
+## Deferred from: code review of 4-6-dados-mediados-block-player-has-no-self-access-to-processed-data (2026-05-24)
+
+- **W1: `requireStaffRole()` retorna mesmo código "unauthorized" para erros de DB e negação de acesso** [`sparta/src/lib/actions/readiness.ts:~28`]: Erros de infra transitórios silenciosamente negam acesso a staff legítimo sem propagação de erro retriable. Melhorar quando a camada de error handling for alinhada.
+- **W2: `requireStaffRole()` usa cliente anon em vez de service role para query de profiles** [`sparta/src/lib/actions/readiness.ts:~40`]: Pattern padrão em Server Actions; risco só materializa com sessões expiradas, capturadas upstream pelo middleware. Rever quando a camada Supabase for centralizada.
+- **W3: `formatSubmittedAt` engole excepções silenciosamente sem logging** [`sparta/src/app/(player)/historico/page.tsx:~22`]: Falhas de parsing de data são silenciosas em produção. Adicionar `console.error` quando logging estruturado estiver disponível no componente layer.
+- **W4: `assertNoMetricLeakage` pode ter falsos positivos em valores que contenham substrings de keys proibidas** [`sparta/src/__tests__/dados-mediados-block.test.ts:~86`]: Substring matching no JSON serializado completo pode disparar em valores de string. Risco muito baixo em prática; melhorar para key-path matching quando a test infra o suportar.
+- **W5: `/relatorios` ausente de `ROLE_ALLOWED_ROUTES` para roles de staff** [`sparta/src/proxy.ts:~18`]: Funcionalidade /relatorios planeada para Epic 7 (Growth); staff recebe redirect para default route em vez de 404. Adicionar a ROLE_ALLOWED_ROUTES quando a feature for implementada.
+
 ## Deferred from: code review of 3-12-subject-visibility-who-accessed-my-health-data (2026-05-23)
 
 - **W-1: Cache `tokenValidationCache` serve tokens revogados durante 5 min** [`sparta/src/lib/actions/data-rights.ts`]: Comportamento herdado de Story 3.10; sem mecanismo de invalidação; tokens revogados podem continuar a aceder ao audit log do menor durante até 5 minutos. Mitigar com Redis/Supabase KV quando o volume justificar.

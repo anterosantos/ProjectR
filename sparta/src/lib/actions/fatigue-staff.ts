@@ -115,8 +115,8 @@ export async function getPlayerFatigueData(
         // 2. Caller is coach/analyst of profile.club_id (role check above)
         // 3. Player belongs to profile.club_id (player lookup above)
         // Explicit club_id + player_id filters maintain data isolation.
-        // eslint-disable-next-line custom/no-direct-health-data-read -- query is legitimately wrapped in auditedRead()
         const serviceRole = getServiceRoleClient();
+        // eslint-disable-next-line custom/no-direct-health-data-read -- query is legitimately wrapped in auditedRead()
         const { data, error } = await serviceRole
           .from("fatigue_responses")
           .select(

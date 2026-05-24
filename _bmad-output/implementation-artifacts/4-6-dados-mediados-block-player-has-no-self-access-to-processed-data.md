@@ -1,6 +1,6 @@
 # Story 4.6: "Dados Mediados" Block — Player Has No Self-Access to Processed Data
 
-**Status:** ready-for-dev
+**Status:** done
 
 **Story ID:** 4.6  
 **Epic:** Epic 4 — Recolha de Fadiga & Notificações (jornada do Tomás)  
@@ -499,11 +499,119 @@ npm run test --run
 
 ---
 
+## Tasks/Subtasks
+
+- [x] **Task 1 — Middleware: bloqueio 404 para rotas staff-only** (AC #1, AC #6)
+  - [x] 1.1 Adicionar `STAFF_ONLY_ROUTES_404` (prontidao, tendencias, relatorios, plantel) ao proxy.ts
+  - [x] 1.2 Para role=player acedendo a rota staff-only, devolver `NextResponse` com status 404
+  - [x] 1.3 Adicionar `/questionario` a `ROLE_ALLOWED_ROUTES.player` (fix bug latente — AC #5)
+  - [x] 1.4 Atualizar testes existentes em middleware.test.ts para refletir novo comportamento (404 em vez de 307)
+  - [x] 1.5 Adicionar novos testes: player → 404, coach → acesso normal, player → /questionario OK
+
+- [x] **Task 2 — Server Action Authorization** (AC #2)
+  - [x] 2.1 Criar `src/lib/actions/readiness.ts` com `getPlayerReadinessSnapshot` com role check
+  - [x] 2.2 Player recebe `{ error: "Não autorizado" }` sem revelar existência de dados
+  - [x] 2.3 Staff (coach/analyst) consegue chamar a ação normalmente
+  - [x] 2.4 Escrever testes unitários para o Server Action (player rejeitado, staff aceite)
+
+- [x] **Task 3 — Player /historico: respostas raw com copy mediado** (AC #3)
+  - [x] 3.1 Implementar `src/app/(player)/historico/page.tsx` com query `fatigue_responses` para o player atual
+  - [x] 3.2 Mostrar apenas campos raw: data, fase, dim_energy/focus/sleep/soreness/mood (1-5), srpe_value se pós-sessão
+  - [x] 3.3 Adicionar copy "As tuas respostas. O treinador é quem interpreta como conjunto." (UX-DR38)
+  - [x] 3.4 Garantir zero métricas derivadas (sem ACWR, sem readiness state, sem tendências)
+  - [x] 3.5 Acessibilidade: tabela com role="table", headers scope="col", zero vitest-axe violations
+  - [x] 3.6 Escrever testes: render correto, copy presente, sem metric leakage no payload
+
+- [x] **Task 4 — Testes de integração e backward compat** (AC #4, AC #5, AC #6)
+  - [x] 4.1 Criar `src/__tests__/dados-mediados-block.test.ts` com suite completa
+  - [x] 4.2 Testes: middleware bloqueia /prontidao, /plantel, /plantel/id/fadiga com 404 para player
+  - [x] 4.3 Testes: Server Action rejeita player, aceita coach
+  - [x] 4.4 Testes: /historico não contém campos forbidden (acwr, readiness, recovery, srpe_load)
+  - [x] 4.5 Testes: /hoje, /questionario, /configuracoes continuam acessíveis para player (AC #5)
+  - [x] 4.6 Testes: edge case 404 sem 500 (UUID inválido, sem PII no erro)
+
+### Review Findings
+
+- [x] [Review][Decision] 404 response body: null vs `{ error: 'Not found' }` — **DECISÃO: manter null body** (mais seguro, sem surface OWASP de API revelada; teste valida body vazio; desvio da spec é intencional) [`proxy.ts:~113`]
+- [x] [Review][Patch] Dados-mediados check usa `=== "player"` em vez de `!== "coach" && !== "analyst"` — utilizadores sem JWT claims ou com roles desconhecidos contornam o bloco 404 [`proxy.ts:~113`] ✅ APLICADO: `userRole && userRole !== "coach" && userRole !== "analyst"`
+- [x] [Review][Patch] Query `fatigue_responses` sem filtro `player_id` a nível de aplicação — correctness delegada exclusivamente ao RLS; sem defence-in-depth para dados de saúde [`historico/page.tsx:~83`] ✅ APLICADO: `.eq("player_id", player.id)` + guard se player é null
+- [x] [Review][Patch] Headers da tabela dinâmicos (`copy.dimensions`) mas células hardcoded (5 `<td>` fixos) — mismatch se `copy.dimensions` tiver ≠5 dimensões num futuro age group [`historico/page.tsx:~119`] ✅ APLICADO: células agora mapeadas via `copy.dimensions.map(dim => row[dim.key])`
+- [x] [Review][Patch] `phaseLabel()` retorna valor raw da DB como fallback — expõe enum interno ao player [`historico/page.tsx:~37`] ✅ APLICADO: fallback alterado para `"—"`
+- [x] [Review][Patch] Return type union `| null` nunca retornado por `getPlayerReadinessSnapshot` nem `getPlayerAcwrTrend` — tipo enganador [`readiness.ts:~66,~88`] ✅ APLICADO: `| null` removido dos return types
+- [x] [Review][Defer] `requireStaffRole()` retorna mesmo código "unauthorized" para erros de DB e negação de acesso — erros de infra não distinguíveis de negações intencionais [`readiness.ts:~28`] — deferred, pre-existing
+- [x] [Review][Defer] `requireStaffRole()` usa cliente anon em vez de service role para query de profiles — pattern padrão em Server Actions; risco só materializa com sessões expiradas capturadas upstream [`readiness.ts:~40`] — deferred, pre-existing
+- [x] [Review][Defer] `formatSubmittedAt` engole excepções silenciosamente sem logging [`historico/page.tsx:~22`] — deferred, pre-existing pattern
+- [x] [Review][Defer] `assertNoMetricLeakage` pode ter falsos positivos em valores que contenham substrings de keys proibidas [`dados-mediados-block.test.ts:~86`] — deferred, acceptable for CI
+- [x] [Review][Defer] `/relatorios` ausente de `ROLE_ALLOWED_ROUTES` para roles de staff — funcionalidade futura (Epic 7); staff recebe redirect para default route [`proxy.ts:~18`] — deferred, pre-existing
+
+---
+
+## Dev Agent Record
+
+### Implementation Plan
+
+**Abordagem:** Implementar em 4 fases sequenciais seguindo o ciclo red-green-refactor.
+
+1. Fase 1: Atualizar `proxy.ts` para devolver 404 (não 307) para rotas staff-only quando acedidas por players. Também corrigir bug latente: adicionar `/questionario` às rotas permitidas de player.
+
+2. Fase 2: Criar `src/lib/actions/readiness.ts` como placeholder com padrão de autorização para quando as `readiness_snapshots` (Epic 5) forem implementadas. Server Action retorna "Não autorizado" para players.
+
+3. Fase 3: Implementar `/historico` page com query real de `fatigue_responses`. Mostrar apenas raw values, adicionar copy mediado "As tuas respostas...".
+
+4. Fase 4: Suite de testes completa cobrindo todos os ACs incluindo backward compatibility e payload schema validation para garantir zero metric leakage.
+
+### Debug Log
+
+- **Fix 1:** `eslint-disable-next-line` em `fatigue-staff.ts` apontava para linha errada após refactoring do commit `ac100cd`. Movido para a linha correta imediatamente antes de `.from("fatigue_responses")`.
+- **Fix 2:** Mock `?? default` em testes de Server Action/historico não distinguia `null` de `undefined`. Corrigido para `!== undefined ? valor : default`.
+- **Fix 3:** Teste `dataSufficient` esperava casing incorreto (`datasufficient` vs `dataSufficient`). Corrigido para preservar casing original de `FORBIDDEN_KEYS`.
+- **Fix 4:** Testes de historico page para redirect usam try/catch — `redirect()` mockado não lança exceção mas a execução continua.
+
+### Completion Notes
+
+**Implementado em 2026-05-24 por claude-sonnet-4-6.**
+
+**Ficheiros criados:**
+- `sparta/src/lib/actions/readiness.ts` — Server Actions `getPlayerReadinessSnapshot` + `getPlayerAcwrTrend` com role guard; players recebem "Não autorizado" genérico; stub para Epic 5
+- `sparta/src/__tests__/lib/actions/readiness.test.ts` — 14 testes unitários (player rejeitado, coach/analyst aceite, unauthenticated, missing club_id, empty playerId, error message integrity)
+- `sparta/src/__tests__/dados-mediados-block.test.ts` — 27 testes de integração (AC #4: payload schema validation com `assertNoMetricLeakage`; AC #5: backward compat /hoje, /historico, /questionario, /configuracoes; AC #6: 404 graceful sem 500, sem PII leakage)
+- `sparta/src/__tests__/app/historico/page.test.tsx` — 14 testes do componente (redirect unauthenticated/staff, copy mediado, empty state, raw values, sRPE, no derived metrics, table ARIA, axe-core scan)
+
+**Ficheiros modificados:**
+- `sparta/src/proxy.ts` — `STAFF_ONLY_ROUTES_404` + bloco dados mediados (404 para players em rotas staff); `/questionario` adicionado a `ROLE_ALLOWED_ROUTES.player`
+- `sparta/src/app/(player)/historico/page.tsx` — implementação completa (era placeholder); query `fatigue_responses` via RLS, tabela acessível, copy mediado UX-DR38
+- `sparta/src/__tests__/middleware.test.ts` — teste de redirect 307→404 para dados mediados; novos testes AC #1 (7 rotas staff-only + staff não bloqueado + player sem JWT claims)
+- `sparta/src/lib/actions/fatigue-staff.ts` — fixado `eslint-disable-next-line` para linha correcta (bug pré-existente do commit ac100cd)
+
+---
+
+## File List
+
+**Criados:**
+- `sparta/src/lib/actions/readiness.ts`
+- `sparta/src/__tests__/lib/actions/readiness.test.ts`
+- `sparta/src/__tests__/dados-mediados-block.test.ts`
+- `sparta/src/__tests__/app/historico/page.test.tsx`
+
+**Modificados:**
+- `sparta/src/proxy.ts`
+- `sparta/src/app/(player)/historico/page.tsx`
+- `sparta/src/__tests__/middleware.test.ts`
+- `sparta/src/lib/actions/fatigue-staff.ts` (fix eslint-disable-next-line)
+
+---
+
+## Change Log
+
+- **2026-05-24:** Implementação completa da Story 4.6 por dev-story. Middleware bloqueia /prontidao, /tendencias, /relatorios, /plantel com 404 para players. Server Actions readiness.ts com authorization gate. /historico implementado com raw answers + copy mediado. 77/77 testes ✅; lint 0 erros; typecheck sem regressões. AC #1–#6 verificados.
+
+---
+
 ## Status Log
 
 **2026-05-24:** Story file created via bmad-create-story. Comprehensive context gathered from epics, architecture, and previous stories. Ready for dev implementation.
 
-**Next:** Run `/bmad-dev-story` to begin implementation.
+**2026-05-24:** dev-story iniciada. Status atualizado para in-progress.
 
 ---
 
