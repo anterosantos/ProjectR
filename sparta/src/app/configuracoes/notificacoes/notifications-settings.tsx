@@ -89,12 +89,14 @@ async function checkServiceWorkerHealth(timeout = 2000): Promise<boolean> {
     const registration = await navigator.serviceWorker?.ready
     if (!registration?.active) return false
 
+    const sw = registration.active
+
     // Enviar ping ao SW e aguardar resposta
     const response = await Promise.race([
       new Promise<boolean>((resolve) => {
         const channel = new MessageChannel()
         channel.port1.onmessage = () => resolve(true)
-        registration.active.postMessage({ type: 'ping' }, [channel.port2])
+        sw.postMessage({ type: 'ping' }, [channel.port2])
       }),
       new Promise<boolean>((resolve) => setTimeout(() => resolve(false), timeout)),
     ])
