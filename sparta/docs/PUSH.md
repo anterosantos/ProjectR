@@ -58,11 +58,12 @@ supabase secrets set VAPID_PRIVATE_KEY=<chave privada>
 
 ## Arquivo `.env.example`
 
-O `.env.example` já documenta:
+O `.env.example` documenta apenas a chave pública:
 ```bash
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=your-vapid-public-key
-VAPID_PRIVATE_KEY=your-vapid-private-key
 ```
+
+> ⚠️ `VAPID_PRIVATE_KEY` **nunca** vai em `.env.example` — é secrets-only, stored apenas em Supabase Edge Function secrets (produção) ou `.env.local` (desenvolvimento local apenas).
 
 ---
 

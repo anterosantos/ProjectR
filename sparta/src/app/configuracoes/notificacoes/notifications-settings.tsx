@@ -80,6 +80,31 @@ function formatActiveSince(iso: string): string {
   })
 }
 
+/**
+ * Health check do Service Worker via simple ping.
+ * Garante que o SW está vivo antes de criar subscrição.
+ */
+async function checkServiceWorkerHealth(timeout = 2000): Promise<boolean> {
+  try {
+    const registration = await navigator.serviceWorker?.ready
+    if (!registration?.active) return false
+
+    // Enviar ping ao SW e aguardar resposta
+    const response = await Promise.race([
+      new Promise<boolean>((resolve) => {
+        const channel = new MessageChannel()
+        channel.port1.onmessage = () => resolve(true)
+        registration.active.postMessage({ type: 'ping' }, [channel.port2])
+      }),
+      new Promise<boolean>((resolve) => setTimeout(() => resolve(false), timeout)),
+    ])
+
+    return response
+  } catch {
+    return false
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Dialog de confirmação de desactivação
 // ---------------------------------------------------------------------------
@@ -195,6 +220,13 @@ export function NotificationsSettings() {
         return
       }
 
+      // Health check do Service Worker antes de subscribe
+      const swHealthy = await checkServiceWorkerHealth()
+      if (!swHealthy) {
+        setError('Service Worker indisponível. Recarrega a página.')
+        return
+      }
+
       // Criar subscrição no browser
       const registration = await navigator.serviceWorker?.ready
       if (!registration) {
@@ -207,12 +239,21 @@ export function NotificationsSettings() {
         applicationServerKey: base64UrlToUint8Array(vapidPublicKey),
       })
 
+      // Validar que as chaves criptográficas foram geradas (podem ser null em browsers antigos)
+      const p256dh = subscription.getKey('p256dh')
+      const auth = subscription.getKey('auth')
+      if (!p256dh || !auth) {
+        setError('Browser não suporta Web Push completamente. Tenta com Chrome/Firefox/Edge.')
+        await subscription.unsubscribe()
+        return
+      }
+
       // Enviar ao servidor
       const result = await subscribeToNotifications({
         endpoint: subscription.endpoint,
         keys: {
-          p256dh: arrayBufferToBase64Url(subscription.getKey('p256dh')),
-          auth: arrayBufferToBase64Url(subscription.getKey('auth')),
+          p256dh: arrayBufferToBase64Url(p256dh),
+          auth: arrayBufferToBase64Url(auth),
         },
       })
 

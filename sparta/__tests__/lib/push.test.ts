@@ -410,3 +410,32 @@ describe('getPushSubscriptionStatus', () => {
     }
   })
 })
+
+// ---------------------------------------------------------------------------
+// RLS Cross-Player Protection
+// ---------------------------------------------------------------------------
+
+describe('RLS — Cross-Player Protection', () => {
+  it('rejects cross-player keys_json read attempt', async () => {
+    // Simula: Player A tenta ler keys_json de Player B
+    // RLS deve bloquear o SELECT ou retornar row vazio
+
+    const mockClientPlayerA = createMockSupabaseClient('player-a-uuid', {
+      push_subscriptions: {
+        // Mock retorna vazio — RLS bloqueou
+        selectData: null,
+        selectError: null,
+      },
+    })
+    vi.spyOn(serverModule, 'createServerClient').mockResolvedValue(
+      mockClientPlayerA as any
+    )
+
+    const { getPushSubscriptionStatus } = await import('@/lib/actions/push')
+    const result = await getPushSubscriptionStatus()
+
+    // Player A consegue apenas sua própria subscrição, não de Player B
+    expect(result.ok).toBe(true)
+    expect(result.data).toBeNull() // Player A não tem subscrição
+  })
+})

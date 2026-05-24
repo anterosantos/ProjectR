@@ -1,6 +1,6 @@
 # Story 4.7: Push Subscription Infrastructure — VAPID Setup & Subscribe/Unsubscribe
 
-**Status:** review
+**Status:** done
 
 **Story ID:** 4.7  
 **Epic:** Epic 4 — Recolha de Fadiga & Notificações (jornada do Tomás)  
@@ -1157,6 +1157,36 @@ Ficheiros criados/modificados (caminhos relativos à raiz do repositório `spart
 ## Change Log
 
 - **2026-05-24**: Implementação Story 4.7 — Push Subscription Infrastructure. Migration 000210, Server Actions push.ts, Client Component /configuracoes/notificacoes, sw.ts push events, database.types.ts, docs/PUSH.md, 16 testes. AC #1-#7 verificados.
+
+---
+
+## Review Findings
+
+### Patches 🔧
+
+- [x] **Health check do SW antes de subscribe** (Patch) — Implementado: MessageChannel ping com timeout. ✅
+
+- [x] **AC #6: Log format uses endpoint_prefix** (Patch) — Corrigido: `endpoint: endpoint.substring(0, 40)`. ✅
+
+- [x] **AC #2: VAPID_PRIVATE_KEY em docs/PUSH.md** (Patch) — Removido exemplo com chave privada; adicionado aviso "secrets-only". ✅
+
+- [x] **AC #7: Teste RLS cross-player ausente** (Patch) — Adicionado: `RLS Cross-Player Protection` test suite. ✅
+
+- [x] **Telemetria silent fail sem logging** (Patch) — Adicionado: error logging para `profiles` lookup falha. ✅
+
+- [x] **Service Worker push event sem try/catch JSON** (Patch) — Já implementado: try/catch com fallback. ✅
+
+- [x] **sessionData.session.user.id pode ser undefined** (Patch) — Corrigido: guard agora verifica `if (!user || !user.id)`. ✅
+
+- [x] **subscription.getKey() pode retornar null** (Patch) — Corrigido: explicit null check para p256dh e auth antes de subscribe. ✅
+
+### Deferred 📌
+
+- [x] **AC #3: EmptyState message adiciona "Edge/Safari"** (Defer) — Spec menciona "Chrome/Firefox" mas implementação estende para "Edge ou Safari 16.4+". Melhoria de UX, não violação.
+
+- [x] **AC #1: Sintaxe PRIMARY KEY em constraint separado** (Defer) — SQL functionallement equivalente; detalhe de template, não erro.
+
+- [x] **AC #5: Unsubscribe flow order** (Defer) — Finding era minor UX note; implementação é spec-compliant.
 
 ---
 

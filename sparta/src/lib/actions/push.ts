@@ -63,7 +63,7 @@ export async function subscribeToNotifications(
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) {
+  if (!user || !user.id) {
     return err({ code: 'unauthorized', message: 'Não autenticado' })
   }
 
@@ -178,7 +178,11 @@ export async function unsubscribeFromNotifications(): Promise<
     .select('club_id')
     .eq('id', profile_id)
     .single()
-    .then(({ data: profile }) => {
+    .then(({ data: profile, error: profileErr }) => {
+      if (profileErr) {
+        console.error('[push] telemetry: profile lookup falhou', { error: profileErr.message, profile_id })
+        return
+      }
       if (profile?.club_id) {
         supabase
           .from('telemetry_events')
@@ -239,11 +243,11 @@ export async function deactivateExpiredSubscription(
     return err({ code: 'internal', message: error.message })
   }
 
-  // Log estruturado para audit (sem PII no endpoint, audit via profile_id)
+  // Log estruturado para audit (endpoint com primeiros 40 chars para rastreabilidade)
   console.log(
     JSON.stringify({
       event: 'push_subscription_expired',
-      endpoint_prefix: endpoint.substring(0, 60),
+      endpoint: endpoint.substring(0, 40),
       profile_id: existing?.profile_id ?? 'unknown',
     })
   )
