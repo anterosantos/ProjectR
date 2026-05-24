@@ -85,7 +85,7 @@ export async function drainPendingMutations(kind?: string): Promise<DrainResult>
         console.error(`[outbox] handler error for kind=${mutation.kind}, id=${mutation.id}:`, err)
 
         // Usar .code property se disponível (estruturado), senão usar mensagem como fallback
-        const errorCode = err instanceof Error && 'code' in err ? (err as any).code : undefined
+        const errorCode = err instanceof Error && 'code' in err ? (err as Error & { code: unknown }).code : undefined
         const isValidationError = errorCode === 'VALIDATION_ERROR' ||
                                   errorCode === 'FORBIDDEN' ||
                                   errorCode === 'NOT_FOUND' ||

@@ -13,14 +13,13 @@ export interface OnlineStatusResult {
  * Listeners 'online' e 'offline' atualizam estado dinâmico em tempo real.
  */
 export function useOnlineStatus(): OnlineStatusResult {
-  const [isOnline, setIsOnline] = useState<boolean>(true);
+  // Lazy initializer reads navigator.onLine once at mount — avoids synchronous setState in effect body
+  const [isOnline, setIsOnline] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    return window.navigator.onLine;
+  });
 
   useEffect(() => {
-    // Inicializar com estado actual
-    if (typeof window !== 'undefined') {
-      setIsOnline(window.navigator.onLine);
-    }
-
     // Event listeners para mudanças dinâmicas
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);

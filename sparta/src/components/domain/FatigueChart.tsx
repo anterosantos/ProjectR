@@ -107,12 +107,15 @@ export function FatigueChart({
   activeDimensions,
   activePhase,
 }: FatigueChartProps) {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  // Lazy initializer reads matchMedia once at mount — avoids synchronous setState in effect body
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  });
 
-  // Check for prefers-reduced-motion (AC #3, NFR41)
+  // Subscribe to prefers-reduced-motion changes (AC #3, NFR41)
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mediaQuery.matches);
     const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
     mediaQuery.addEventListener("change", handler);
     return () => mediaQuery.removeEventListener("change", handler);
