@@ -1,6 +1,7 @@
 "use server";
 
 import { createServerClient } from "@/lib/supabase/server";
+import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { auditedRead } from "@/lib/data/audited";
 import { ok, err } from "@/lib/types";
 import type { Result, AppError } from "@/lib/types";
@@ -109,8 +110,14 @@ export async function getPlayerFatigueData(
         },
       },
       async () => {
+        // Service role bypasses RLS — application-level security already enforced:
+        // 1. Caller authenticated (getUser above)
+        // 2. Caller is coach/analyst of profile.club_id (role check above)
+        // 3. Player belongs to profile.club_id (player lookup above)
+        // Explicit club_id + player_id filters maintain data isolation.
         // eslint-disable-next-line custom/no-direct-health-data-read -- query is legitimately wrapped in auditedRead()
-        const { data, error } = await supabase
+        const serviceRole = getServiceRoleClient();
+        const { data, error } = await serviceRole
           .from("fatigue_responses")
           .select(
             "id, player_id, session_id, phase, dim_energy, dim_focus, dim_sleep, dim_soreness, dim_mood, srpe_value, submitted_at, submitted_via"
@@ -133,7 +140,8 @@ export async function getPlayerFatigueData(
   let sessionsMap: Record<string, SessionInfo> = {};
 
   if (sessionIds.length > 0) {
-    const { data: sessions } = await supabase
+    const serviceRoleForSessions = getServiceRoleClient();
+    const { data: sessions } = await serviceRoleForSessions
       .from("sessions")
       .select("id, type, scheduled_at")
       .in("id", sessionIds);
