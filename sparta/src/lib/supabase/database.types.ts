@@ -702,6 +702,102 @@ export type Database = {
           },
         ]
       }
+      notification_settings: {
+        Row: {
+          id: string
+          club_id: string
+          pre_minutes: number
+          post_minutes: number
+          is_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          club_id: string
+          pre_minutes?: number
+          post_minutes?: number
+          is_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          club_id?: string
+          pre_minutes?: number
+          post_minutes?: number
+          is_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_settings_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: true
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_log: {
+        Row: {
+          id: string
+          club_id: string
+          profile_id: string
+          session_id: string
+          kind: string
+          scheduled_for: string
+          status: string
+          sent_at: string | null
+          error_message: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          club_id: string
+          profile_id: string
+          session_id: string
+          kind: string
+          scheduled_for: string
+          status?: string
+          sent_at?: string | null
+          error_message?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          club_id?: string
+          profile_id?: string
+          session_id?: string
+          kind?: string
+          scheduled_for?: string
+          status?: string
+          sent_at?: string | null
+          error_message?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_log_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_log_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_log_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_subscriptions: {
         Row: {
           id: string

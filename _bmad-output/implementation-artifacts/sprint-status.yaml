@@ -175,7 +175,7 @@ development_status:
   4-5-staff-read-individual-responses-4-week-trends: done
   4-6-dados-mediados-block-player-has-no-self-access-to-processed-data: done
   4-7-push-subscription-infrastructure-vapid-setup-subscribe-unsubscribe: done
-  4-8-pre-post-session-push-notifications-with-configurable-x-y: ready-for-dev
+  4-8-pre-post-session-push-notifications-with-configurable-x-y: review
   epic-4-retrospective: optional
 
   # Epic 5: Painel de Prontidão & Inteligência (defining experience do José)
