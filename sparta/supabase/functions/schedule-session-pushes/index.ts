@@ -1,3 +1,4 @@
+// @ts-nocheck — Deno Edge Function: Deno global não existe no tsconfig do Next.js
 import { createClient } from "@supabase/supabase-js";
 
 const handler = async (req: Request): Promise<Response> => {
@@ -48,136 +49,172 @@ const handler = async (req: Request): Promise<Response> => {
     let totalSkipped = 0;
 
     // Process each session
-    if (sessions && sessions.length > 0) {
-      for (const session of sessions) {
-        // Fetch notification settings for this club
-        const { data: settings, error: settingsError } = await supabase
-          .from("notification_settings")
-          .select("pre_minutes, post_minutes, is_enabled")
-          .eq("club_id", session.club_id)
-          .single();
+    for (const session of sessions ?? []) {
+      // P4 fix: validar scheduled_at antes de usar em cálculos de data
+      if (!session.scheduled_at || isNaN(Date.parse(session.scheduled_at))) {
+        console.warn(`[schedule-session-pushes] session ${session.id} has invalid scheduled_at — skipping`);
+        totalSkipped++;
+        continue;
+      }
 
-        if (settingsError && settingsError.code !== "PGRST116") {
-          console.warn(
-            `[schedule-session-pushes] settings fetch failed for club ${session.club_id}:`,
-            settingsError
-          );
-          continue;
-        }
+      // Fetch notification settings for this club
+      const { data: settings, error: settingsError } = await supabase
+        .from("notification_settings")
+        .select("pre_minutes, post_minutes, is_enabled")
+        .eq("club_id", session.club_id)
+        .maybeSingle();
 
-        // Default settings if not found
-        const preMinutes = settings?.pre_minutes ?? 30;
-        const postMinutes = settings?.post_minutes ?? 30;
-        const isEnabled = settings?.is_enabled ?? true;
+      if (settingsError) {
+        console.warn(
+          `[schedule-session-pushes] settings fetch failed for club ${session.club_id}:`,
+          settingsError
+        );
+        continue;
+      }
 
-        if (!isEnabled) {
-          console.log(`[schedule-session-pushes] notifications disabled for club ${session.club_id}`);
-          continue;
-        }
+      // Default settings if not found
+      const preMinutes = settings?.pre_minutes ?? 30;
+      const postMinutes = settings?.post_minutes ?? 30;
+      const isEnabled = settings?.is_enabled ?? true;
 
-        // Query all active, non-restricted players with active subscriptions in this club
-        const { data: subscriptions, error: subsError } = await supabase
-          .from("push_subscriptions")
-          .select(
-            `
-            id,
-            profile_id,
-            is_active,
-            profiles!inner(
-              id,
-              club_id
-            ),
-            players!inner(
-              id,
-              club_id,
-              processing_restricted
-            )
-          `
-          )
-          .eq("is_active", true)
-          .eq("club_id", session.club_id)
-          .eq("players.processing_restricted", false);
+      if (!isEnabled) {
+        console.log(`[schedule-session-pushes] notifications disabled for club ${session.club_id}`);
+        continue;
+      }
 
-        if (subsError) {
-          console.warn(
-            `[schedule-session-pushes] subscriptions fetch failed for session ${session.id}:`,
-            subsError
-          );
-          continue;
-        }
+      // D2 fix: push_subscriptions não tem FK direto para players.
+      // Estratégia: (1) obter profile_ids de jogadores não restritos do clube,
+      //             (2) filtrar push_subscriptions por esses profile_ids.
+      // Isto é mais robusto e correto do que a join players!inner que assumia uma FK inexistente.
 
+      // Step 1: Get profile_ids of active, non-restricted players in this club
+      const { data: eligiblePlayers, error: playersError } = await supabase
+        .from("players")
+        .select("profile_id")
+        .eq("club_id", session.club_id)
+        .eq("processing_restricted", false)
+        .eq("is_archived", false)
+        .not("profile_id", "is", null);
+
+      if (playersError) {
+        console.warn(
+          `[schedule-session-pushes] players query failed for club ${session.club_id}:`,
+          playersError
+        );
+        continue;
+      }
+
+      const eligibleProfileIds = (eligiblePlayers ?? [])
+        .map((p) => p.profile_id)
+        .filter((id): id is string => id !== null && id !== undefined);
+
+      if (eligibleProfileIds.length === 0) {
         console.log(
-          `[schedule-session-pushes] session ${session.id}: found ${subscriptions?.length ?? 0} active subscriptions`
+          `[schedule-session-pushes] no eligible players for club ${session.club_id}`
         );
+        continue;
+      }
 
-        // Prepare notification_log rows
-        const notificationRows: Array<{
-          club_id: string;
-          profile_id: string;
-          session_id: string;
-          kind: string;
-          scheduled_for: string;
-          status: string;
-        }> = [];
+      // Step 2: Get active push subscriptions for eligible profiles
+      const { data: subscriptions, error: subsError } = await supabase
+        .from("push_subscriptions")
+        .select("id, profile_id")
+        .eq("is_active", true)
+        .eq("club_id", session.club_id)
+        .in("profile_id", eligibleProfileIds);
 
-        const sessionTime = new Date(session.scheduled_at);
-        const preTime = new Date(sessionTime.getTime() - preMinutes * 60 * 1000);
-        const sessionEndTime = new Date(
-          sessionTime.getTime() + (session.duration_min ?? 90) * 60 * 1000
+      if (subsError) {
+        console.warn(
+          `[schedule-session-pushes] subscriptions fetch failed for session ${session.id}:`,
+          subsError
         );
-        const postTime = new Date(sessionEndTime.getTime() + postMinutes * 60 * 1000);
+        continue;
+      }
 
-        // Skip if times are in the past
-        const skipPre = preTime <= now;
-        const skipPost = postTime <= now;
+      console.log(
+        `[schedule-session-pushes] session ${session.id}: found ${subscriptions?.length ?? 0} active subscriptions`
+      );
 
-        for (const sub of subscriptions ?? []) {
-          if (!skipPre) {
-            notificationRows.push({
-              club_id: session.club_id,
-              profile_id: sub.profile_id,
-              session_id: session.id,
-              kind: "fatigue_pre",
-              scheduled_for: preTime.toISOString(),
-              status: "scheduled",
-            });
-          }
+      if (!subscriptions || subscriptions.length === 0) {
+        continue;
+      }
 
-          if (!skipPost) {
-            notificationRows.push({
-              club_id: session.club_id,
-              profile_id: sub.profile_id,
-              session_id: session.id,
-              kind: "fatigue_post",
-              scheduled_for: postTime.toISOString(),
-              status: "scheduled",
-            });
-          }
+      // Compute pre/post notification times
+      const sessionTime = new Date(session.scheduled_at);
+      const preTime = new Date(sessionTime.getTime() - preMinutes * 60 * 1000);
+
+      // P4 fix: duration_min pode ser null — usar fallback 90 min
+      const durationMin = session.duration_min ?? 90;
+      const sessionEndTime = new Date(sessionTime.getTime() + durationMin * 60 * 1000);
+      const postTime = new Date(sessionEndTime.getTime() + postMinutes * 60 * 1000);
+
+      // Skip if times are in the past (independent per kind)
+      const skipPre = preTime <= now;
+      const skipPost = postTime <= now;
+
+      if (skipPre && skipPost) {
+        console.log(
+          `[schedule-session-pushes] session ${session.id}: both pre and post times are in the past — skipping`
+        );
+        totalSkipped += subscriptions.length * 2;
+        continue;
+      }
+
+      // Prepare notification_log rows
+      const notificationRows: Array<{
+        club_id: string;
+        profile_id: string;
+        session_id: string;
+        kind: string;
+        scheduled_for: string;
+        status: string;
+      }> = [];
+
+      for (const sub of subscriptions) {
+        if (!skipPre) {
+          notificationRows.push({
+            club_id: session.club_id,
+            profile_id: sub.profile_id,
+            session_id: session.id,
+            kind: "fatigue_pre",
+            scheduled_for: preTime.toISOString(),
+            status: "scheduled",
+          });
+        } else {
+          totalSkipped++;
         }
 
-        // Bulk upsert with idempotency (ON CONFLICT DO NOTHING)
-        if (notificationRows.length > 0) {
-          const { error: upsertError } = await supabase
-            .from("notification_log")
-            .upsert(notificationRows, { onConflict: "profile_id,session_id,kind" });
-
-          if (upsertError) {
-            console.warn(
-              `[schedule-session-pushes] upsert failed for session ${session.id}:`,
-              upsertError
-            );
-            totalSkipped += notificationRows.length;
-          } else {
-            totalEnqueued += notificationRows.length;
-            console.log(
-              `[schedule-session-pushes] session ${session.id}: enqueued ${notificationRows.length} notifications`
-            );
-          }
+        if (!skipPost) {
+          notificationRows.push({
+            club_id: session.club_id,
+            profile_id: sub.profile_id,
+            session_id: session.id,
+            kind: "fatigue_post",
+            scheduled_for: postTime.toISOString(),
+            status: "scheduled",
+          });
         } else {
-          console.log(
-            `[schedule-session-pushes] session ${session.id}: no subscriptions or times in past`
+          totalSkipped++;
+        }
+      }
+
+      // Bulk upsert with idempotency (ON CONFLICT DO NOTHING)
+      if (notificationRows.length > 0) {
+        const { error: upsertError } = await supabase
+          .from("notification_log")
+          .upsert(notificationRows, { onConflict: "profile_id,session_id,kind", ignoreDuplicates: true });
+
+        if (upsertError) {
+          console.warn(
+            `[schedule-session-pushes] upsert failed for session ${session.id}:`,
+            upsertError
           );
-          totalSkipped += (subscriptions?.length ?? 0) * 2;
+          totalSkipped += notificationRows.length;
+        } else {
+          totalEnqueued += notificationRows.length;
+          console.log(
+            `[schedule-session-pushes] session ${session.id}: enqueued ${notificationRows.length} notifications`
+          );
         }
       }
     }

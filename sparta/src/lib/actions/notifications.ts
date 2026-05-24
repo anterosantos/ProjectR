@@ -11,7 +11,7 @@ import { z } from 'zod'
 // ---------------------------------------------------------------------------
 
 export interface NotificationSettings {
-  id: string
+  id: string | null // null quando ainda não existe row na DB (defaults)
   club_id: string
   pre_minutes: number
   post_minutes: number
@@ -93,7 +93,7 @@ export async function getNotificationSettings(): Promise<
   }
 
   const defaults: NotificationSettings = {
-    id: '',
+    id: null, // ainda não persistido — será criado no primeiro updateNotificationSettings
     club_id: profile.club_id,
     pre_minutes: 30,
     post_minutes: 30,

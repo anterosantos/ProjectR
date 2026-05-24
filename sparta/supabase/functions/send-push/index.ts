@@ -1,5 +1,43 @@
+// @ts-nocheck — Deno Edge Function: Deno global não existe no tsconfig do Next.js
 import { createClient } from "@supabase/supabase-js";
 import webpush from "web-push";
+
+// ---------------------------------------------------------------------------
+// Type helpers
+// ---------------------------------------------------------------------------
+
+interface PushKeys {
+  p256dh: string;
+  auth: string;
+}
+
+function isValidPushKeys(keys: unknown): keys is PushKeys {
+  if (!keys || typeof keys !== "object") return false;
+  const k = keys as Record<string, unknown>;
+  return typeof k["p256dh"] === "string" && typeof k["auth"] === "string" &&
+    k["p256dh"].length > 0 && k["auth"].length > 0;
+}
+
+// ---------------------------------------------------------------------------
+// HTTP status extraction from web-push errors
+// ---------------------------------------------------------------------------
+
+function extractHttpStatus(err: unknown): number {
+  if (!err || typeof err !== "object") return 0;
+  // web-push sets statusCode on the error object
+  const e = err as Record<string, unknown>;
+  if (typeof e["statusCode"] === "number") return e["statusCode"];
+  // Fallback: parse from message (e.g. "Received unexpected response code 410")
+  if (typeof e["message"] === "string") {
+    const match = (e["message"] as string).match(/\b(4\d{2}|5\d{2})\b/);
+    if (match?.[1] !== undefined) return parseInt(match[1], 10);
+  }
+  return 0;
+}
+
+// ---------------------------------------------------------------------------
+// Handler
+// ---------------------------------------------------------------------------
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method !== "POST") {
@@ -32,148 +70,167 @@ const handler = async (req: Request): Promise<Response> => {
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
   try {
-    const now = new Date();
+    // D1 fix: limpar rows 'processing' bloqueadas há > 10 min antes de começar
+    const { data: staleCount } = await supabase.rpc(
+      "reset_stale_processing_notifications",
+      { stale_minutes: 10 }
+    );
+    if (staleCount && staleCount > 0) {
+      console.warn(`[send-push] reset ${staleCount} stale 'processing' rows to 'failed'`);
+    }
 
-    // Query up to 50 scheduled notifications ready to send
-    const { data: notifications, error: queryError } = await supabase
-      .from("notification_log")
-      .select("*")
-      .eq("status", "scheduled")
-      .lte("scheduled_for", now.toISOString())
-      .order("scheduled_for", { ascending: true })
-      .limit(50);
+    // D1 fix: usar claim_push_notifications RPC com FOR UPDATE SKIP LOCKED
+    // para prevenir duplo envio em execuções sobrepostas do cron de 5 min.
+    const { data: notifications, error: queryError } = await supabase.rpc(
+      "claim_push_notifications",
+      { batch_size: 50 }
+    );
 
     if (queryError) {
-      console.error("[send-push] query failed:", queryError);
+      console.error("[send-push] claim_push_notifications failed:", queryError);
       return new Response(
-        JSON.stringify({ error: "Failed to query notifications", details: queryError }),
+        JSON.stringify({ error: "Failed to claim notifications", details: queryError }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    console.log("[send-push] processing notifications:", notifications?.length ?? 0);
+    console.log("[send-push] claimed notifications for processing:", notifications?.length ?? 0);
 
     let sent = 0;
     let failed = 0;
     let skipped = 0;
 
     for (const notif of notifications ?? []) {
-      try {
-        // Fetch active push subscription for this profile
-        const { data: subscription, error: subError } = await supabase
-          .from("push_subscriptions")
-          .select("id, endpoint, keys_json, is_active")
-          .eq("profile_id", notif.profile_id)
-          .eq("is_active", true)
-          .single();
+      // P2 fix: usar maybeSingle() — .single() lançaria erro se perfil tiver
+      // múltiplas subscrições ativas; agora retorna null em caso de múltiplos rows.
+      const { data: subscription, error: subError } = await supabase
+        .from("push_subscriptions")
+        .select("id, endpoint, keys_json, is_active")
+        .eq("profile_id", notif.profile_id)
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-        if (subError || !subscription?.is_active) {
-          // No active subscription, mark as skipped
-          const { error: updateError } = await supabase
-            .from("notification_log")
-            .update({ status: "skipped" })
-            .eq("id", notif.id);
+      if (subError || !subscription) {
+        // Sem subscrição ativa → marcar como skipped
+        const { error: updateError } = await supabase
+          .from("notification_log")
+          .update({ status: "skipped" })
+          .eq("id", notif.id);
 
-          if (updateError) {
-            console.warn(`[send-push] failed to mark as skipped (${notif.id}):`, updateError);
-          }
-          skipped++;
-          continue;
+        if (updateError) {
+          console.warn(`[send-push] failed to mark as skipped (${notif.id}):`, updateError);
         }
+        skipped++;
+        continue;
+      }
 
-        // Build notification payload (opaque — no health data)
-        const bodyText =
-          notif.kind === "fatigue_pre"
-            ? "Sessão daqui a pouco — abre o app"
-            : "Sessão concluída — responde ao questionário";
+      // P7 fix: validar shape de keys_json antes de passar ao webpush
+      // keys_json tem tipo estruturado em DB mas pode chegar como string serializada
+      const rawKeys = typeof subscription.keys_json === "string"
+        ? (() => { try { return JSON.parse(subscription.keys_json); } catch { return null; } })()
+        : subscription.keys_json;
 
-        const payload = {
-          title: "SPARTA",
-          body: bodyText,
-          tag: "fatigue-notification",
-          data: {
-            deepLink: `/questionario/${notif.session_id}/${notif.kind === "fatigue_pre" ? "pre" : "post"}`,
-          },
-        };
+      if (!isValidPushKeys(rawKeys)) {
+        console.warn(`[send-push] invalid keys_json for subscription ${subscription.id} — deactivating`);
+        await supabase
+          .from("push_subscriptions")
+          .update({ is_active: false })
+          .eq("endpoint", subscription.endpoint);
+        await supabase
+          .from("notification_log")
+          .update({ status: "failed", error_message: "Invalid push keys" })
+          .eq("id", notif.id);
+        failed++;
+        continue;
+      }
 
+      // Build notification payload (opaque — no health data per NFR21 / GDPR Art. 9)
+      const bodyText =
+        notif.kind === "fatigue_pre"
+          ? "Sessão daqui a pouco — abre o app"
+          : "Sessão concluída — responde ao questionário";
+
+      const payload = {
+        title: "SPARTA",
+        body: bodyText,
+        tag: "fatigue-notification",
+        data: {
+          deepLink: `/questionario/${notif.session_id}/${notif.kind === "fatigue_pre" ? "pre" : "post"}`,
+        },
+      };
+
+      try {
         // Send push notification
-        try {
-          await webpush.sendNotification(
-            {
-              endpoint: subscription.endpoint,
-              keys: subscription.keys_json,
-            },
-            JSON.stringify(payload)
-          );
+        await webpush.sendNotification(
+          {
+            endpoint: subscription.endpoint,
+            keys: rawKeys,
+          },
+          JSON.stringify(payload)
+        );
 
-          // Success: update status and sent_at
+        // Success: update status and sent_at
+        const { error: updateError } = await supabase
+          .from("notification_log")
+          .update({
+            status: "sent",
+            sent_at: new Date().toISOString(),
+          })
+          .eq("id", notif.id);
+
+        if (updateError) {
+          console.warn(`[send-push] failed to update status to sent (${notif.id}):`, updateError);
+          failed++;
+        } else {
+          sent++;
+          console.log(`[send-push] sent notification ${notif.id}`);
+        }
+      } catch (pushError: unknown) {
+        // P5 fix: extrair statusCode de forma estruturada (web-push expõe statusCode)
+        // P5 fix: tratar 404 igual a 410 — endpoint permanentemente desaparecido
+        const statusCode = extractHttpStatus(pushError);
+
+        if (statusCode === 410 || statusCode === 404) {
+          // P6 fix: desativar por endpoint (não por ID) — cobre todos os rows com o mesmo endpoint
+          const { error: deactivateError } = await supabase
+            .from("push_subscriptions")
+            .update({ is_active: false })
+            .eq("endpoint", subscription.endpoint);
+
+          if (deactivateError) {
+            console.warn(`[send-push] failed to deactivate subscription by endpoint:`, deactivateError);
+          }
+
           const { error: updateError } = await supabase
             .from("notification_log")
             .update({
-              status: "sent",
-              sent_at: now.toISOString(),
+              status: "failed",
+              error_message: `${statusCode} Gone`,
             })
             .eq("id", notif.id);
 
           if (updateError) {
-            console.warn(`[send-push] failed to update status (${notif.id}):`, updateError);
-            failed++;
-          } else {
-            sent++;
-            console.log(`[send-push] sent notification ${notif.id}`);
+            console.warn(`[send-push] failed to update status for ${statusCode} (${notif.id}):`, updateError);
           }
-        } catch (pushError: unknown) {
-          // Handle push service errors
-          const statusCode =
-            pushError instanceof Error && pushError.message.includes("410")
-              ? 410
-              : pushError instanceof Error && pushError.message.includes("404")
-                ? 404
-                : 0;
+          console.log(`[send-push] subscription ${statusCode} — deactivated endpoint: ${subscription.endpoint}`);
+        } else {
+          // Transient error: mark as failed but don't deactivate
+          const errorMsg = pushError instanceof Error ? pushError.message : "Unknown error";
+          const { error: updateError } = await supabase
+            .from("notification_log")
+            .update({
+              status: "failed",
+              error_message: errorMsg.substring(0, 255),
+            })
+            .eq("id", notif.id);
 
-          if (statusCode === 410) {
-            // 410 Gone: subscription expired, deactivate it
-            const { error: deactivateError } = await supabase
-              .from("push_subscriptions")
-              .update({ is_active: false })
-              .eq("id", subscription.id);
-
-            if (deactivateError) {
-              console.warn(`[send-push] failed to deactivate subscription:`, deactivateError);
-            }
-
-            const { error: updateError } = await supabase
-              .from("notification_log")
-              .update({
-                status: "failed",
-                error_message: "410 Gone",
-              })
-              .eq("id", notif.id);
-
-            if (updateError) {
-              console.warn(`[send-push] failed to update status for 410:`, updateError);
-            }
-            console.log(`[send-push] subscription 410 Gone, deactivated: ${subscription.id}`);
-          } else {
-            // Transient error: mark as failed but don't deactivate
-            const errorMsg = pushError instanceof Error ? pushError.message : "Unknown error";
-            const { error: updateError } = await supabase
-              .from("notification_log")
-              .update({
-                status: "failed",
-                error_message: errorMsg.substring(0, 255),
-              })
-              .eq("id", notif.id);
-
-            if (updateError) {
-              console.warn(`[send-push] failed to update status for error:`, updateError);
-            }
-            console.warn(`[send-push] push error for ${notif.id}:`, errorMsg);
+          if (updateError) {
+            console.warn(`[send-push] failed to update status for transient error (${notif.id}):`, updateError);
           }
-          failed++;
+          console.warn(`[send-push] push error for ${notif.id} (status ${statusCode}):`, errorMsg);
         }
-      } catch (loopError: unknown) {
-        console.error(`[send-push] unexpected error processing notification:`, loopError);
         failed++;
       }
     }
@@ -193,6 +250,9 @@ const handler = async (req: Request): Promise<Response> => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
+    // P3 fix: o catch externo não pode atualizar notification_log (não sabemos qual notif falhou).
+    // O claim_push_notifications já transitou as rows para 'processing';
+    // o reset_stale_processing_notifications do próximo run irá repô-las a 'failed' após 10 min.
     console.error("[send-push] unexpected error:", error);
     return new Response(
       JSON.stringify({ error: "Internal server error", details: String(error) }),

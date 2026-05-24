@@ -27,9 +27,8 @@ CREATE TABLE notification_settings (
 -- Índices de performance
 -- =============================================================================
 
--- Lookup rápido por club_id (muito frequente em schedule-session-pushes Edge Function)
-CREATE INDEX idx_notification_settings_club_id
-  ON notification_settings(club_id);
+-- NOTA: club_id UNIQUE já cria um índice implícito único em (club_id).
+-- Não é necessário índice adicional — seria redundante e custoso em writes.
 
 -- =============================================================================
 -- Comentários de documentação
@@ -81,11 +80,21 @@ CREATE POLICY "notification_settings_staff_update" ON notification_settings
     AND (SELECT role FROM profiles WHERE id = auth.uid() LIMIT 1) IN ('coach', 'analyst')
   );
 
+-- Staff (coach/analyst) pode criar a linha inicial de definições para o seu clube.
+-- Necessário para o upsert em updateNotificationSettings quando não existe row prévia.
+CREATE POLICY "notification_settings_staff_insert" ON notification_settings
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    club_id = (SELECT club_id FROM profiles WHERE id = auth.uid() LIMIT 1)
+    AND (SELECT role FROM profiles WHERE id = auth.uid() LIMIT 1) IN ('coach', 'analyst')
+  );
+
 -- =============================================================================
 -- GRANTS
 -- =============================================================================
 
-GRANT SELECT, UPDATE ON notification_settings TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON notification_settings TO authenticated;
 
 -- Service role (Edge Functions) precisa de INSERT para upserts via migration init
 GRANT SELECT, INSERT, UPDATE ON notification_settings TO service_role;

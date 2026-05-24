@@ -2,6 +2,13 @@
 
 Items deferred from code reviews — pre-existing issues, out-of-scope work, or items blocked by future stories.
 
+## Deferred from: code review of 4-8-pre-post-session-push-notifications-with-configurable-x-y (2026-05-24)
+
+- **W1: N+1 queries em `schedule-session-pushes`** [`supabase/functions/schedule-session-pushes/index.ts`]: Uma query por sessão para `notification_settings` e outra para `push_subscriptions`. Impacto apenas com muitas sessões simultâneas. Otimizar via batch queries quando o volume justificar.
+- **W2: Middleware-level blocking em `/configuracoes/notificacoes-clube`** [`src/app/(staff)/configuracoes/notificacoes-clube/page.tsx`]: AC#5 especifica bloqueio via middleware; implementação usa page-level redirect. Funciona para segurança mas middleware seria mais performante (evita render). Alinhar quando o middleware for revisto.
+- **W3: PGRST116 semântica ambígua entre versões PostgREST** [`supabase/functions/schedule-session-pushes/index.ts:60`]: O código assume PGRST116 = "no rows" mas em algumas versões significa "multiple rows". Verificar versão PostgREST em uso no projecto.
+- **W4: Aviso de alterações não guardadas ao navegar com form dirty** [`src/app/(staff)/configuracoes/notificacoes-clube/notification-settings-form.tsx`]: Sem `beforeunload` ou `router.events` guard; alterações perdidas silenciosamente. Padrão não implementado noutras páginas — resolver quando UX de formulários for padronizada.
+
 ## Deferred from: code review of 4-6-dados-mediados-block-player-has-no-self-access-to-processed-data (2026-05-24)
 
 - **W1: `requireStaffRole()` retorna mesmo código "unauthorized" para erros de DB e negação de acesso** [`sparta/src/lib/actions/readiness.ts:~28`]: Erros de infra transitórios silenciosamente negam acesso a staff legítimo sem propagação de erro retriable. Melhorar quando a camada de error handling for alinhada.

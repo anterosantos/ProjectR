@@ -1,3 +1,4 @@
+# last_updated: 2026-05-24 (4-8 → done: code-review complete; 14 patches aplicados: FOR UPDATE SKIP LOCKED race-condition fix (claim_push_notifications RPC + migration 000230), two-step player query replacing broken players!inner join, trigger scope expanded to any →cancelled transition, full Edge Function test suites (14/14 ✅), INSERT RLS policy + GRANT, maybeSingle() para settings/subscription, 404=410 deactivation, endpoint-level deactivation, isValidPushKeys helper, @ts-nocheck Deno files, null duration fallback, id: null default, GET DIAGNOSTICS fix; build ✅; typecheck ✅; 18/18 + 7/7 + 7/7 testes ✅)
 # 2026-05-22: 3-11 → done (code-review complete; 11 patches aplicados: after() serverless lifecycle, ESLint flat config registration, service-role whitelist, chain traversal + template literals + Windows path fix in ESLint rule, "use server" removido, occurred_at removido (DB default), vi.waitFor testes, actorId hoistado, fn() failure audit; lint ✅; typecheck ✅; build ✅; 6/6 testes ✅)
 # generated: 2026-05-08
 # 2026-05-22: 3-11 → review (dev-story complete; auditedRead() wrapper with fire-and-forget audit logging, ESLint rule no-direct-health-data-read, 6/6 unit tests ✅, integration test structure ready; src/lib/data/audited.ts + .test.ts + .integration.test.ts, eslint-rules/no-direct-health-data-read.js, docs/GDPR/audit-logging.md, .eslintrc.json updated; lint ✅; typecheck ✅; build ✅)
@@ -175,7 +176,7 @@ development_status:
   4-5-staff-read-individual-responses-4-week-trends: done
   4-6-dados-mediados-block-player-has-no-self-access-to-processed-data: done
   4-7-push-subscription-infrastructure-vapid-setup-subscribe-unsubscribe: done
-  4-8-pre-post-session-push-notifications-with-configurable-x-y: review
+  4-8-pre-post-session-push-notifications-with-configurable-x-y: done
   epic-4-retrospective: optional
 
   # Epic 5: Painel de Prontidão & Inteligência (defining experience do José)

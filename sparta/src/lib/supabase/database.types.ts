@@ -867,6 +867,14 @@ export type Database = {
         Args: { p_player_id: string }
         Returns: boolean
       }
+      claim_push_notifications: {
+        Args: { batch_size?: number }
+        Returns: Array<Database['public']['Tables']['notification_log']['Row']>
+      }
+      reset_stale_processing_notifications: {
+        Args: { stale_minutes?: number }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never

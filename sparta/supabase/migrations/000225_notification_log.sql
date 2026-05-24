@@ -98,17 +98,23 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  v_cancelled_count int;
 BEGIN
-  IF NEW.status = 'cancelled' AND OLD.status = 'scheduled' THEN
+  -- D3 fix: cancelar notificações em QUALQUER transição para 'cancelled',
+  -- não apenas de 'scheduled'. Cobre: scheduled→cancelled E completed→cancelled.
+  IF NEW.status = 'cancelled' AND OLD.status <> 'cancelled' THEN
     UPDATE public.notification_log
     SET status = 'cancelled'
     WHERE session_id = NEW.id
       AND status = 'scheduled';
 
-    -- Log estruturado (opcional, para auditoria)
-    RAISE NOTICE '[fn_cancel_notifications_on_session_cancel] session_id=%, cancelled % notifications',
-      NEW.id,
-      (SELECT COUNT(*) FROM public.notification_log WHERE session_id = NEW.id AND status = 'cancelled');
+    -- P8 fix: usar GET DIAGNOSTICS para contar apenas as linhas recém-canceladas,
+    -- em vez de COUNT(*) que incluiria histórico anterior.
+    GET DIAGNOSTICS v_cancelled_count = ROW_COUNT;
+
+    RAISE NOTICE '[fn_cancel_notifications_on_session_cancel] session_id=%, cancelled % notifications (transition: % → %)',
+      NEW.id, v_cancelled_count, OLD.status, NEW.status;
   END IF;
 
   RETURN NEW;

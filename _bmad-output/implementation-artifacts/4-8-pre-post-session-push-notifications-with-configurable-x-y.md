@@ -1,6 +1,6 @@
 # Story 4.8: Pre/Post Session Push Notifications with Configurable X/Y
 
-**Status:** review
+**Status:** done
 
 **Story ID:** 4.8  
 **Epic:** Epic 4 — Recolha de Fadiga & Notificações (jornada do Tomás)  
@@ -680,6 +680,34 @@ Claude Haiku 4.5
 **2026-05-24 (completion):** Story implementada com sucesso — todas as 7 tasks completas, build ✅, tests 18/18 ✅, tipos DB atualizados. Migrações: 000220 (notification_settings RLS), 000225 (notification_log + trigger + pg_cron jobs). Server Actions: getNotificationSettings (defaults fallback), updateNotificationSettings (staff-only, upsert). UI Staff: /configuracoes/notificacoes-clube (Server page + react-hook-form Client). Edge Functions: schedule-session-pushes (24h window, bulk idempotent upsert), send-push (queue processor 5-min, web-push, 410 deactivation). AC #1-#7 verificadas. Pronto para code-review.
 
 **2026-05-24:** Story criada via bmad-create-story. Análise completa: epics (AC fonte), architecture (Edge Function patterns, notification flow, pg_cron), Story 4.7 (pré-requisito: push_subscriptions + deactivateExpiredSubscription), Story 3.4 (pg_cron + pg_net pattern exato em 000172), fatigue.ts + sessions.ts (Server Action patterns), send-parental-consent (Deno Edge Function pattern), AGENTS.md (noUncheckedIndexedAccess, path aliases, React 19). Ready for dev.
+
+---
+
+## Review Findings
+
+### Decision-Needed
+- [x] [Review][Decision] **D1 — Race condition em `send-push`: duplo envio por execuções sobrepostas** — Duas invocações sobrepostas do cron de 5min lêem o mesmo LIMIT 50 sem `FOR UPDATE SKIP LOCKED`. Resultado: notificação enviada duas vezes. Fix canónico requer mudança SQL. Risco real mas baixa probabilidade com pg_cron normal. Opções: (a) Aceitar risco e deferir; (b) Implementar `FOR UPDATE SKIP LOCKED` via RPC.
+- [x] [Review][Decision] **D2 — `players!inner` + `.eq("players.processing_restricted", false)`: filtro PostgREST realmente filtra linhas?** — Se PostgREST não aplicar o filtro de relação à linha (só à coluna), jogadores com `processing_restricted = true` recebem notificações — violação GDPR Art. 9 — CRÍTICO se não funcionar. `schedule-session-pushes/index.ts:99`
+- [x] [Review][Decision] **D3 — Trigger cancela apenas `scheduled → cancelled`; ignora `completed → cancelled`** — `IF NEW.status = 'cancelled' AND OLD.status = 'scheduled'` — se sessão passar por outro estado antes de ser cancelada, notificações não são canceladas. Intencional? `000225_notification_log.sql:102`
+- [x] [Review][Decision] **D4 — AC #7 incompleto: testes Edge Functions ausentes** — Spec exige testes para: pre/post times corretos, processing_restricted skip, idempotência, payload opaco, 410 deactivation, cancellation trigger. Nenhum está implementado — só Server Actions testadas. Adicionar agora ou deferir?
+
+### Patches
+- [x] [Review][Patch] **P1 (CRÍTICO) — INSERT RLS policy ausente em `notification_settings`** — Novos clubes não conseguem criar definições; upsert falha silenciosamente quando não existe row. Adicionar `CREATE POLICY "notification_settings_staff_insert" FOR INSERT TO authenticated WITH CHECK (...)` e `GRANT INSERT ON notification_settings TO authenticated`. [`000220_notification_settings.sql`]
+- [x] [Review][Patch] **P2 (ALTO) — `.single()` em `push_subscriptions` explode com múltiplas subscrições ativas** — Usar `.maybeSingle()` e tratar `null`; adicionar `.limit(1)` ou constraint `UNIQUE(profile_id)` WHERE `is_active = true`. [`send-push/index.ts:68`]
+- [x] [Review][Patch] **P3 (ALTO) — `loopError` catch não atualiza `notification_log` — row fica `scheduled` para sempre** — Adicionar `UPDATE notification_log SET status='failed', error_message='Unexpected error' WHERE id=notif.id` no catch externo. [`send-push/index.ts:175`]
+- [x] [Review][Patch] **P4 (MÉDIO) — `duration_min` nullable produz `NaN` no cálculo de `postTime`** — `session.duration_min ?? 90` já existe mas verificar se tipo aceita `null`; adicionar guard: `if (!session.scheduled_at || isNaN(Date.parse(session.scheduled_at))) continue`. [`schedule-session-pushes/index.ts:128`]
+- [x] [Review][Patch] **P5 (MÉDIO) — HTTP 404 não desativa subscrição; deteção de status por substring é frágil** — Tratar 404 igual a 410 (endpoint permanentemente desaparecido); usar parsing estruturado do erro web-push em vez de `message.includes("410")`. [`send-push/index.ts:127-133`]
+- [x] [Review][Patch] **P6 (MÉDIO) — Desativação usa `.eq("id", subscription.id)` em vez de `.eq("endpoint", ...)` ** — Se mesmo endpoint registado em múltiplos rows, apenas um é desativado. Deactivate by `endpoint`. [`send-push/index.ts:139`]
+- [x] [Review][Patch] **P7 (MÉDIO) — `keys_json` não validado antes de passar ao `webpush`** — Se `keys_json` for string JSON ou campos `p256dh`/`auth` ausentes, webpush lança erro cripto; row fica `scheduled` para sempre. Validar shape antes de enviar. [`send-push/index.ts:101-107`]
+- [x] [Review][Patch] **P8 (BAIXO) — `RAISE NOTICE` conta histórico total de cancelled, não apenas os recém-cancelados** — Usar `GET DIAGNOSTICS v_count = ROW_COUNT` após o UPDATE. [`000225_notification_log.sql:110`]
+- [x] [Review][Patch] **P9 (BAIXO) — Índice redundante em `notification_settings.club_id`** — `UNIQUE` já cria índice implícito; `CREATE INDEX idx_notification_settings_club_id` é desnecessário. Remover. [`000220_notification_settings.sql:31`]
+- [x] [Review][Patch] **P10 (BAIXO) — Default `NotificationSettings` usa `id: ''`** — String vazia é inválida como UUID; usar `null` ou `undefined` para sinalizar "sem row persistida". [`notifications.ts:96`]
+
+### Deferred
+- [x] [Review][Defer] **W1 — N+1 queries em `schedule-session-pushes`** [`schedule-session-pushes/index.ts`] — deferred, pre-existing — Otimização para sprint futuro; impacto só com muitas sessões simultâneas.
+- [x] [Review][Defer] **W2 — Middleware-level blocking em `/configuracoes/notificacoes-clube`** [`page.tsx`] — deferred, pre-existing — Page-level redirect funciona para segurança; middleware seria mais performante mas não é requisito imediato.
+- [x] [Review][Defer] **W3 — PGRST116 semântica ambígua entre versões PostgREST** [`schedule-session-pushes/index.ts:60`] — deferred, pre-existing — Verificar versão PostgREST em uso; não bloqueante.
+- [x] [Review][Defer] **W4 — Sem aviso de alterações não guardadas ao navegar (form dirty)** [`notification-settings-form.tsx`] — deferred, pre-existing — Padrão não implementado noutras páginas do projeto.
 
 ---
 
