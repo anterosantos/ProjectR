@@ -120,6 +120,16 @@ export async function getPlayerFatigueData(
           .gte("submitted_at", since.toISOString())
           .order("submitted_at", { ascending: false });
 
+        console.error(JSON.stringify({
+          level: "debug",
+          context: "getPlayerFatigueData",
+          playerId,
+          club_id: profile.club_id,
+          since: since.toISOString(),
+          rowCount: data?.length ?? 0,
+          error: error?.message ?? null,
+        }));
+
         if (error) throw error;
         return (data ?? []) as FatigueResponse[];
       }
