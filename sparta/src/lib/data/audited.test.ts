@@ -1,60 +1,35 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { auditedRead } from "./audited";
-import * as authModule from "@/lib/supabase/server";
 import * as serviceRoleModule from "@/lib/supabase/service-role";
 
 // Mock console methods
 const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-// Helper to create mock clients
+// Helper to create mock service role client
 function createMockClients(
-  insertError: { message: string } | null = null,
-  profileError: { message: string } | null = null,
-  profileData: { club_id: string } | null = { club_id: "test-club-id" }
+  insertError: { message: string } | null = null
 ) {
   const mockInsert = vi.fn().mockResolvedValue({
     data: null,
     error: insertError,
   });
-  const mockSelectSingle = vi
-    .fn()
-    .mockResolvedValue({ data: profileData, error: profileError });
-  const mockEq = vi.fn().mockReturnValue({ single: mockSelectSingle });
-  const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
   const mockFrom = vi.fn((table: string) => {
     if (table === "audit_logs") {
       return { insert: mockInsert };
-    }
-    if (table === "profiles") {
-      return { select: mockSelect };
     }
     return {};
   });
 
   return {
     mockInsert,
-    mockSelectSingle,
-    mockEq,
-    mockSelect,
     mockFrom,
     serviceRoleClient: { from: mockFrom },
-    serverClient: {
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "test-user-id" } },
-          error: null,
-        }),
-      },
-      from: mockFrom,
-    },
   };
 }
 
 describe("auditedRead()", () => {
   beforeEach(() => {
     consoleErrorSpy.mockClear();
-    consoleWarnSpy.mockClear();
   });
 
   describe("AC #1: Correct audit log insertion", () => {
@@ -65,10 +40,6 @@ describe("auditedRead()", () => {
         mocks.serviceRoleClient as any
       );
 
-      vi.spyOn(authModule, "createServerClient").mockResolvedValue(
-        mocks.serverClient as any
-      );
-
       const testData = { id: "123", value: 42 };
       const result = await auditedRead(
         {
@@ -76,6 +47,8 @@ describe("auditedRead()", () => {
           targetId: "player-uuid",
           action: "viewed_fatigue_response",
           payload: { session_id: "session-uuid" },
+          actorId: "test-user-id",
+          clubId: "test-club-id",
         },
         async () => testData
       );
@@ -107,10 +80,6 @@ describe("auditedRead()", () => {
         mocks.serviceRoleClient as any
       );
 
-      vi.spyOn(authModule, "createServerClient").mockResolvedValue(
-        mocks.serverClient as any
-      );
-
       const testData = { id: "456", value: 99 };
 
       const result = await auditedRead(
@@ -118,6 +87,8 @@ describe("auditedRead()", () => {
           targetKind: "match_event",
           targetId: "event-uuid",
           action: "read_match_events",
+          actorId: "test-user-id",
+          clubId: "test-club-id",
         },
         async () => testData
       );
@@ -133,15 +104,13 @@ describe("auditedRead()", () => {
         mocks.serviceRoleClient as any
       );
 
-      vi.spyOn(authModule, "createServerClient").mockResolvedValue(
-        mocks.serverClient as any
-      );
-
       await auditedRead(
         {
           targetKind: "fatigue_response",
           targetId: "player-uuid",
           action: "viewed_fatigue_response",
+          actorId: "test-user-id",
+          clubId: "test-club-id",
         },
         async () => ({ data: "test" })
       );
@@ -158,51 +127,47 @@ describe("auditedRead()", () => {
           message: "audit_log insert failed",
           action: "viewed_fatigue_response",
           target_kind: "fatigue_response",
-          context: "auditedRead wrapper",
+          context: "auditedRead scheduleAudit",
         });
       }
     });
   });
 
-  describe("AC #3: No logging when auth.uid() is null", () => {
-    it("3.5.1-3.5.4: skips audit and returns result when no authenticated user", async () => {
-      const mockServiceRoleClient = { from: vi.fn() };
+  describe("AC #3: fn() throws — audit still fires, error re-thrown", () => {
+    it("3.5.1-3.5.4: schedules audit even when fn() throws, then re-throws the error", async () => {
+      const mocks = createMockClients();
+
       vi.spyOn(serviceRoleModule, "getServiceRoleClient").mockReturnValue(
-        mockServiceRoleClient as any
+        mocks.serviceRoleClient as any
       );
 
-      vi.spyOn(authModule, "createServerClient").mockResolvedValue({
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: null },
-            error: null,
-          }),
-        },
-      } as any);
+      const boom = new Error("fn failed");
 
-      const testData = { id: "789", value: 77 };
-      const result = await auditedRead(
-        {
-          targetKind: "readiness_snapshot",
-          targetId: "snapshot-uuid",
-          action: "read_readiness",
-        },
-        async () => testData
-      );
+      await expect(
+        auditedRead(
+          {
+            targetKind: "readiness_snapshot",
+            targetId: "snapshot-uuid",
+            action: "read_readiness",
+            actorId: "test-user-id",
+            clubId: "test-club-id",
+          },
+          async () => {
+            throw boom;
+          }
+        )
+      ).rejects.toThrow("fn failed");
 
-      // Poll until fire-and-forget audit check completes
+      // Audit was still scheduled even on failure
       await vi.waitFor(() => {
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
-          expect.stringContaining("No authenticated user - audit log skipped")
+        expect(mocks.mockInsert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            actor_id: "test-user-id",
+            club_id: "test-club-id",
+            action: "read_readiness",
+          })
         );
       });
-
-      // Result still returned
-      expect(result).toEqual(testData);
-
-      // audit_logs.insert() should NOT have been called
-      expect(mockServiceRoleClient.from).not.toHaveBeenCalled();
-
     });
   });
 
@@ -214,16 +179,14 @@ describe("auditedRead()", () => {
         mocks.serviceRoleClient as any
       );
 
-      vi.spyOn(authModule, "createServerClient").mockResolvedValue(
-        mocks.serverClient as any
-      );
-
       const results = await Promise.all([
         auditedRead(
           {
             targetKind: "fatigue_response",
             targetId: "player-1",
             action: "read_fatigue_1",
+            actorId: "test-user-id",
+            clubId: "test-club-id",
           },
           async () => ({ data: 1 })
         ),
@@ -232,6 +195,8 @@ describe("auditedRead()", () => {
             targetKind: "fatigue_response",
             targetId: "player-2",
             action: "read_fatigue_2",
+            actorId: "test-user-id",
+            clubId: "test-club-id",
           },
           async () => ({ data: 2 })
         ),
@@ -240,6 +205,8 @@ describe("auditedRead()", () => {
             targetKind: "fatigue_response",
             targetId: "player-3",
             action: "read_fatigue_3",
+            actorId: "test-user-id",
+            clubId: "test-club-id",
           },
           async () => ({ data: 3 })
         ),
@@ -261,10 +228,6 @@ describe("auditedRead()", () => {
         mocks.serviceRoleClient as any
       );
 
-      vi.spyOn(authModule, "createServerClient").mockResolvedValue(
-        mocks.serverClient as any
-      );
-
       const complexPayload = {
         session_id: "session-uuid",
         level: "info",
@@ -278,6 +241,8 @@ describe("auditedRead()", () => {
           targetId: "metric-uuid",
           action: "read_metrics",
           payload: complexPayload,
+          actorId: "test-user-id",
+          clubId: "test-club-id",
         },
         async () => ({ data: "test" })
       );
