@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { format, differenceInYears, addDays, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
-import { ChevronLeft, Pencil, CircleDashed } from "lucide-react";
+import { ChevronLeft, Pencil, CircleDashed, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CalmConfirmation } from "@/components/ui/calm-confirmation";
 import { SemaforoBadge } from "@/components/ui/semaforo-badge";
@@ -69,8 +69,25 @@ export default async function PlayerDetailPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ created?: string; updated?: string; reativado?: string; invited?: string; resent?: string }>;
 }) {
-  const { id } = await params;
-  const { created, updated, reativado, invited, resent } = await searchParams;
+  let id: string;
+  let created: string | undefined;
+  let updated: string | undefined;
+  let reativado: string | undefined;
+  let invited: string | undefined;
+  let resent: string | undefined;
+
+  try {
+    const resolvedParams = await params;
+    const resolvedSearchParams = await searchParams;
+    id = resolvedParams.id;
+    created = resolvedSearchParams.created;
+    updated = resolvedSearchParams.updated;
+    reativado = resolvedSearchParams.reativado;
+    invited = resolvedSearchParams.invited;
+    resent = resolvedSearchParams.resent;
+  } catch {
+    notFound();
+  }
 
   const result = await getPlayer(id);
   if (!result.ok) notFound();
@@ -229,6 +246,24 @@ export default async function PlayerDetailPage({
             <AddMetricSheet playerId={player.id} />
           </div>
           <PlayerMetricsChart metrics={metrics} />
+        </section>
+
+        {/* Fadiga — link para página detalhada */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold">Fadiga</h2>
+            <Button asChild variant="ghost" size="sm" title={`Ver fadiga de ${player.full_name}`}>
+              <Link href={`/plantel/${player.id}/fadiga`}>
+                <Activity className="h-4 w-4 mr-1" aria-hidden="true" />
+                Ver histórico
+              </Link>
+            </Button>
+          </div>
+          <div className="rounded-lg border border-border px-4 py-3">
+            <p className="text-sm text-muted-foreground">
+              Consulta o gráfico e tabela de fadiga dos últimos 28 dias.
+            </p>
+          </div>
         </section>
 
         {/* Consentimento parental */}
