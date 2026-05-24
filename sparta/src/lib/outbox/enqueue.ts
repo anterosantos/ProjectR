@@ -26,13 +26,8 @@ export async function enqueueFatigueSubmit(
   payload: Omit<FatigueResponseInput, 'id' | 'submitted_via'>
 ): Promise<{ id: string; status: 'queued' }> {
   // Validar payload com Zod antes de adicionar ao banco
-  const { FatigueResponseInputSchema } = await import('@/lib/schemas/fatigue')
-  const validated = FatigueResponseInputSchema.pick({
-    player_id: true,
-    session_id: true,
-    phase: true,
-    dimensions: true,
-  }).safeParse(payload)
+  const { FatigueResponseSchema } = await import('@/lib/schemas/fatigue')
+  const validated = FatigueResponseSchema.omit({ id: true, submitted_via: true }).safeParse(payload)
 
   if (!validated.success) {
     throw new Error(`Payload inválido: ${validated.error.message}`)
@@ -43,7 +38,7 @@ export async function enqueueFatigueSubmit(
     const payloadWithMeta = { ...payload, id, submitted_via: 'offline-drain' }
 
     // Re-validar payload completo após adicionar metadados
-    const fullValidated = FatigueResponseInputSchema.safeParse(payloadWithMeta)
+    const fullValidated = FatigueResponseSchema.safeParse(payloadWithMeta)
     if (!fullValidated.success) {
       throw new Error(`Payload com metadados inválido: ${fullValidated.error.message}`)
     }

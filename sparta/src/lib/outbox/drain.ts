@@ -29,7 +29,7 @@ export async function drainPendingMutations(kind?: string): Promise<DrainResult>
   }
 
   draining = true
-  const updatePromises: Promise<void>[] = []
+  const updatePromises: Promise<unknown>[] = []
 
   try {
     let query = db.outbox.where('status').equals('pending')
@@ -64,7 +64,7 @@ export async function drainPendingMutations(kind?: string): Promise<DrainResult>
 
       try {
         // Validar payload com Zod antes de chamar handler
-        const fatigueSchema = await import('@/lib/schemas/fatigue').then(m => m.FatigueResponseInputSchema)
+        const fatigueSchema = await import('@/lib/schemas/fatigue').then(m => m.FatigueResponseSchema)
         const validated = fatigueSchema.safeParse(mutation.payload)
         if (!validated.success) {
           throw new Error(`Invalid payload: ${validated.error.message}`)

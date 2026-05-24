@@ -79,16 +79,10 @@ export function FatigueTabs({
 
   // Apply date filter to responses (timezone-aware)
   const dateFilteredResponses = responses.filter((r) => {
-    if (filters.dateFrom) {
-      // Normalize to UTC for comparison
-      const submittedDate = new Date(r.submitted_at).toISOString().split("T")[0];
-      if (submittedDate < filters.dateFrom) return false;
-    }
-    if (filters.dateTo) {
-      // Include the full day of dateTo
-      const submittedDate = new Date(r.submitted_at).toISOString().split("T")[0];
-      if (submittedDate > filters.dateTo) return false;
-    }
+    // noUncheckedIndexedAccess: split()[0] may be undefined — fallback to ""
+    const submittedDate = new Date(r.submitted_at).toISOString().split("T")[0] ?? "";
+    if (filters.dateFrom && submittedDate < filters.dateFrom) return false;
+    if (filters.dateTo && submittedDate > filters.dateTo) return false;
     return true;
   });
 
