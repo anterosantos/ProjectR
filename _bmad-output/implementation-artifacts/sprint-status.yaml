@@ -174,7 +174,7 @@ development_status:
   4-4-offline-submission-pendentes-badge-force-sync: done
   4-5-staff-read-individual-responses-4-week-trends: done
   4-6-dados-mediados-block-player-has-no-self-access-to-processed-data: done
-  4-7-push-subscription-infrastructure-vapid-setup-subscribe-unsubscribe: review
+  4-7-push-subscription-infrastructure-vapid-setup-subscribe-unsubscribe: done
   4-8-pre-post-session-push-notifications-with-configurable-x-y: ready-for-dev
   epic-4-retrospective: optional
 
