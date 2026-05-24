@@ -702,6 +702,54 @@ export type Database = {
           },
         ]
       }
+      push_subscriptions: {
+        Row: {
+          id: string
+          club_id: string
+          profile_id: string
+          endpoint: string
+          keys_json: { p256dh: string; auth: string }
+          created_at: string
+          last_used_at: string | null
+          is_active: boolean
+        }
+        Insert: {
+          id?: string
+          club_id: string
+          profile_id: string
+          endpoint: string
+          keys_json: { p256dh: string; auth: string }
+          created_at?: string
+          last_used_at?: string | null
+          is_active?: boolean
+        }
+        Update: {
+          id?: string
+          club_id?: string
+          profile_id?: string
+          endpoint?: string
+          keys_json?: { p256dh: string; auth: string }
+          created_at?: string
+          last_used_at?: string | null
+          is_active?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_subscriptions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
