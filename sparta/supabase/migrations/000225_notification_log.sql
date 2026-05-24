@@ -207,7 +207,7 @@ BEGIN
   PERFORM cron.schedule(
     'schedule_session_pushes_hourly',
     '0 * * * *',
-    $$SELECT public.schedule_session_pushes_job()$$
+    'SELECT public.schedule_session_pushes_job()'
   );
   RAISE NOTICE 'Job schedule_session_pushes_hourly scheduled: 0 * * * * (every hour at :00)';
 EXCEPTION WHEN unique_violation THEN
@@ -267,7 +267,7 @@ BEGIN
   PERFORM cron.schedule(
     'send_push_every_5_minutes',
     '*/5 * * * *',
-    $$SELECT public.send_push_job()$$
+    'SELECT public.send_push_job()'
   );
   RAISE NOTICE 'Job send_push_every_5_minutes scheduled: */5 * * * * (every 5 minutes)';
 EXCEPTION WHEN unique_violation THEN
