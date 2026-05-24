@@ -112,21 +112,21 @@ describe("FatigueResponseSchema — validação Zod", () => {
     expect(result.success).toBe(true);
   });
 
-  it("aceita fase post sem srpe_value (srpe opcional)", () => {
+  it("rejeita fase post sem srpe_value (srpe obrigatório pós-sessão, Story 5-1)", () => {
     const result = FatigueResponseSchema.safeParse({
       ...validBase,
       phase: "post",
     });
-    expect(result.success).toBe(true);
+    expect(result.success).toBe(false);
   });
 
-  it("aceita fase post com srpe_value=null", () => {
+  it("rejeita fase post com srpe_value=null (srpe obrigatório pós-sessão, Story 5-1)", () => {
     const result = FatigueResponseSchema.safeParse({
       ...validBase,
       phase: "post",
       srpe_value: null,
     });
-    expect(result.success).toBe(true);
+    expect(result.success).toBe(false);
   });
 
   it("rejeita srpe_value não-null em fase pre (refinement)", () => {

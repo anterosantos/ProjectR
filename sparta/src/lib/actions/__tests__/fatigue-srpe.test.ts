@@ -301,9 +301,9 @@ describe("submitFatigueResponse — session_metrics upsert (Story 5.1)", () => {
     });
   });
 
-  // AC #3 — srpe_value null → sem upsert em session_metrics
-  describe("AC #3: srpe_value null → nenhum upsert em session_metrics", () => {
-    it("não faz upsert em session_metrics quando srpe_value é null", async () => {
+  // AC #3 — srpe_value null → Zod rejeita (Story 5-1: srpe_value obrigatório para fase post)
+  describe("AC #3: srpe_value null → validação Zod falha (Story 5-1)", () => {
+    it("retorna validation error quando srpe_value é null (fase post)", async () => {
       vi.mocked(createServerClient).mockResolvedValue(
         buildMockServerClient() as never
       );
@@ -313,13 +313,17 @@ describe("submitFatigueResponse — session_metrics upsert (Story 5.1)", () => {
       const result = await submitFatigueResponse(POST_PAYLOAD_NULL_SRPE);
       await flushAsync();
 
-      expect(result.ok).toBe(true);
+      // Story 5-1: srpe_value é obrigatório para fase post — Zod rejeita antes de chegar à BD
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error.code).toBe("validation");
+      }
       // Não deve chamar sessões nem session_metrics
       expect(srMock.from).not.toHaveBeenCalledWith("sessions");
       expect(srMock.mockSessionMetricsUpsert).not.toHaveBeenCalled();
     });
 
-    it("loga session_metrics.skipped_null_srpe quando srpe_value é null", async () => {
+    it("não chama session_metrics quando srpe_value é null (Zod rejeita cedo)", async () => {
       vi.mocked(createServerClient).mockResolvedValue(
         buildMockServerClient() as never
       );
@@ -329,13 +333,8 @@ describe("submitFatigueResponse — session_metrics upsert (Story 5.1)", () => {
       await submitFatigueResponse(POST_PAYLOAD_NULL_SRPE);
       await flushAsync();
 
-      expect(vi.mocked(logger.info)).toHaveBeenCalledWith(
-        "session_metrics.skipped_null_srpe",
-        expect.objectContaining({
-          player_id: PLAYER_UUID,
-          session_id: SESSION_UUID,
-        })
-      );
+      // Story 5-1: Zod rejeita antes de qualquer chamada à BD — nenhum log de session_metrics
+      expect(srMock.mockSessionMetricsUpsert).not.toHaveBeenCalled();
     });
 
     it("não toca em session_metrics para fase pre (sem srpe_value)", async () => {
@@ -415,7 +414,7 @@ describe("submitFatigueResponse — session_metrics upsert (Story 5.1)", () => {
       expect(srMock.mockSessionMetricsUpsert).not.toHaveBeenCalled();
     });
 
-    it("loga session_metrics.session_lookup_failed quando sessão não existe", async () => {
+    it("loga session_metrics.invalid_duration quando sessão não existe (Story 5-1 patch 4)", async () => {
       vi.mocked(createServerClient).mockResolvedValue(
         buildMockServerClient() as never
       );
@@ -427,8 +426,10 @@ describe("submitFatigueResponse — session_metrics upsert (Story 5.1)", () => {
       await submitFatigueResponse(POST_PAYLOAD_WITH_SRPE);
       await flushAsync();
 
+      // Story 5-1 patch 4: null session → invalid_duration (não session_lookup_failed)
+      // session_lookup_failed apenas ocorre quando sessionError está presente (erro de DB)
       expect(vi.mocked(logger.error)).toHaveBeenCalledWith(
-        "session_metrics.session_lookup_failed",
+        "session_metrics.invalid_duration",
         expect.objectContaining({
           player_id: PLAYER_UUID,
           session_id: SESSION_UUID,
