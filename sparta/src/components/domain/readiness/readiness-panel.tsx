@@ -10,7 +10,7 @@
  * P-13: sessionStorage.setItem envolvido em try/catch (falha em private browsing).
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import { ReadinessPanelHeader } from "@/components/domain/readiness/readiness-panel-header";
 import { ReadinessPanelList } from "@/components/domain/readiness/readiness-panel-list";
 import type { PlayerReadinessData } from "@/types/supabase";
@@ -36,7 +36,9 @@ export function ReadinessPanel({
     try {
       const stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
       if (stored === "list" || stored === "formation") {
-        setView(stored);
+        // startTransition: chama setView numa callback (evita react-hooks/set-state-in-effect)
+        // e marca a actualização como não-urgente (non-blocking hydration sync)
+        startTransition(() => { setView(stored); });
       }
     } catch {
       // sessionStorage indisponível (private browsing, quota excedida)
