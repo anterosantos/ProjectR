@@ -15,6 +15,10 @@ vi.mock("@/lib/supabase/server", () => ({
   createServerClient: vi.fn(),
 }));
 
+vi.mock("@/lib/data/audited", () => ({
+  auditedRead: vi.fn((opts, fn) => fn()),
+}));
+
 import { createServerClient } from "@/lib/supabase/server";
 import { getPlayerReadinessSnapshot, getPlayerAcwrTrend } from "@/lib/actions/readiness";
 
@@ -44,11 +48,21 @@ function buildMockClient(opts: {
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue(
         opts.profileError
           ? { data: null, error: { message: "Not found" } }
           : {
               data: { role, club_id: clubId },
+              error: null,
+            }
+      ),
+      maybeSingle: vi.fn().mockResolvedValue(
+        opts.profileError
+          ? { data: null, error: { message: "Not found" } }
+          : {
+              data: null, // Return null for readiness_snapshots query (no data until Story 5.3)
               error: null,
             }
       ),

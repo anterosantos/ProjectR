@@ -417,6 +417,73 @@ export type Database = {
           },
         ]
       }
+      readiness_snapshots: {
+        Row: {
+          player_id: string
+          session_id: string
+          club_id: string
+          state: 'ready' | 'caution' | 'alert' | 'neutral'
+          acwr: number | null
+          acwr_band_lo: number | null
+          acwr_band_hi: number | null
+          recent_fatigue_avg: number | null
+          attendance_rate: number | null
+          data_sufficient: boolean
+          derived_age_group: string | null
+          computed_at: string
+        }
+        Insert: {
+          player_id: string
+          session_id: string
+          club_id: string
+          state?: 'ready' | 'caution' | 'alert' | 'neutral'
+          acwr?: number | null
+          acwr_band_lo?: number | null
+          acwr_band_hi?: number | null
+          recent_fatigue_avg?: number | null
+          attendance_rate?: number | null
+          data_sufficient?: boolean
+          derived_age_group?: string | null
+          computed_at?: string
+        }
+        Update: {
+          player_id?: string
+          session_id?: string
+          club_id?: string
+          state?: 'ready' | 'caution' | 'alert' | 'neutral'
+          acwr?: number | null
+          acwr_band_lo?: number | null
+          acwr_band_hi?: number | null
+          recent_fatigue_avg?: number | null
+          attendance_rate?: number | null
+          data_sufficient?: boolean
+          derived_age_group?: string | null
+          computed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "readiness_snapshots_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "readiness_snapshots_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "readiness_snapshots_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       seasons: {
         Row: {
           id: string

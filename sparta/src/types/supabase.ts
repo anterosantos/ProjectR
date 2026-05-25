@@ -10,3 +10,31 @@ export type {
   Enums,
   CompositeTypes,
 } from "@/lib/supabase/database.types";
+
+// Custom types not generated from schema
+export interface ReadinessSnapshot {
+  player_id: string;
+  session_id: string;
+  club_id: string;
+  state: 'ready' | 'caution' | 'alert' | 'neutral';
+  acwr: number | null;
+  acwr_band_lo: number | null;
+  acwr_band_hi: number | null;
+  recent_fatigue_avg: number | null;
+  attendance_rate: number | null;
+  data_sufficient: boolean;
+  derived_age_group: string | null;
+  computed_at: string;
+  version?: number; // Optional until schema is refreshed
+}
+
+/**
+ * ReadinessSnapshot enriched with player metadata for the Painel de Prontidão (Story 5.4).
+ * Fetched server-side via getReadinessPanelData() and passed as props to client components.
+ */
+export interface PlayerReadinessData extends ReadinessSnapshot {
+  playerName: string;
+  jerseyNum: number;
+  /** Primary position string from positions table (e.g. 'GR', 'DEF', 'MED', 'AVA') */
+  primaryPosition: string | null;
+}

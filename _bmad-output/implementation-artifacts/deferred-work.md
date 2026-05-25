@@ -2,6 +2,20 @@
 
 Items deferred from code reviews — pre-existing issues, out-of-scope work, or items blocked by future stories.
 
+## Deferred from: code review of 5-4-painel-de-prontidao-lista-por-posicao-default-view (2026-05-25)
+
+- **D-1: Calls DB em série N×2 em `refreshSnapshotForSession`** [`sparta/src/lib/readiness/snapshot.ts:144`]: Loop sequencial sobre todos os jogadores do clube — 2N round-trips de DB (computeAcwr + fatigue_responses por jogador). Operação background fire-and-forget; não bloqueia render da página. Otimizar com `Promise.all` batching quando Story 5.7 (realtime) for implementada.
+- **D-2: `requireStaffRole()` chamado duas vezes por render — 7 round-trips de DB** [`sparta/src/lib/actions/readiness.ts`]: `getUpcomingSession` e `getReadinessPanelData` fazem auth+profile lookup independentes. Concern arquitectural sistémico; otimizar com `cache()` do Next.js quando a camada de actions for centralizada.
+- **D-3: `computeRecentFatigueAvg` descarta toda a resposta com uma dimensão inválida** [`sparta/src/lib/readiness/snapshot.ts:53`]: Comportamento conservador (descartar dado parcialmente corrompido) mas pode mascarar fadiga se várias respostas tiverem dados parcialmente inválidos. Rever com contexto desportivo.
+- **D-4: Desvio de relógio (`asOf`) para squads grandes no loop de players** [`sparta/src/lib/readiness/snapshot.ts:141`]: `asOf` calculado uma vez antes do loop; late players têm janela de 7 dias ligeiramente diferente. Segundos de desvio aceitáveis para squad típico.
+- **D-5: `acwr numeric(4,2)` overflow para ACWR ≥ 100** [`supabase/migrations/000250_readiness_snapshots.sql:17`]: ACWR ≥ 100 é fisicamente irrealista (carga crónica próxima de zero). Concern da Story 5.2 se `computeAcwr` devolver tal valor; snapshot silenciosamente perdido.
+- **D-6: Jogador arquivado após snapshot → linha "Jogador/0" fantasma no painel** [`sparta/src/lib/actions/readiness.ts:377`]: Jogador arquivado entre snapshot e render aparece como nome "Jogador" e camisola 0. Janela de race muito pequena; próximo refresh elimina.
+- **D-7: PostgrestError em logs pode conter nomes de tabelas/colunas/constraints** [`sparta/src/lib/readiness/snapshot.ts`]: Informação de schema interna visível nos logs de aplicação. Padrão sistémico em todo o projecto; resolver quando log sanitization for standardizada.
+- **D-8: Formatação de data do servidor ignora timezone do utilizador** [`sparta/src/app/(staff)/prontidao/page.tsx:52`]: `new Date(scheduledAt).toLocaleDateString("pt-PT", ...)` usa timezone do servidor. Necessita estratégia de timezone global.
+- **D-9: TanStack Query (staleTime: 30s) não implementado** [`sparta/src/components/domain/readiness/readiness-panel-list.tsx:59`]: AC #6 especifica caching com staleTime:30s durante janela 4h pré-sessão. `sessionId` está reservado com `_` para uso futuro. Explicitamente deferido para Story 5.7 (realtime updates).
+- **D-10: `getPlayerAcwrTrend` stub sem marcação "não implementado"** [`sparta/src/lib/actions/readiness.ts:139`]: Retorna `{ trend: null }` sem distinguir "sem dados" de "stub não implementado". Pre-existente da Story 4.6; atualizar quando Story 5.5 implementar drill-down.
+- **D-11: TOCTOU em `refreshUpcomingReadiness` — verificação de clube e refresh separados** [`sparta/src/lib/actions/readiness.ts:194`]: Sessão verificada no scope outer mas `refreshSnapshotForSession` re-faz lookup sem re-verificar clube. Probabilidade próxima de zero — sessões não mudam de clube.
+
 ## Deferred from: code review of 4-9-post-session-questionnaire-fallback-access + 4-10-hoje-questionnaire-answered-state-feedback (2026-05-24)
 
 - **D1: Padrão de renderização de erros em debug-style no questionário** [`sparta/src/app/(player)/questionario/[sessionId]/[phase]/page.tsx`]: Todos os erros da página do questionário usam `<p className="text-red-600 font-mono text-sm">` — padrão de debug exposto a utilizadores finais. Pre-existente da Story 4.2; resolver quando os componentes de erro forem padronizados.

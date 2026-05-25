@@ -58,3 +58,15 @@ export const ACWR_THRESHOLDS: Record<AgeGroup, { lo: number; hi: number }> = {
 export function getThreshold(ageGroup: AgeGroup): { lo: number; hi: number } {
   return ACWR_THRESHOLDS[ageGroup];
 }
+
+/**
+ * Prioridade de ordenação por estado de prontidão.
+ * Exportada como única fonte de verdade (DRY) — usada em Server Actions e Client Components.
+ * alert → caution → ready → neutral → desconhecido (5)
+ */
+export const READINESS_STATE_PRIORITY: Record<string, number> = {
+  alert: 1,
+  caution: 2,
+  ready: 3,
+  neutral: 4,
+} as const;

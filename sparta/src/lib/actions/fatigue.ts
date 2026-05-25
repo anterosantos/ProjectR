@@ -10,6 +10,7 @@ import {
   type FatigueResponseInput,
 } from "@/lib/schemas/fatigue";
 import { calculateSrpeLoad, isSrpeInputValid } from "@/lib/readiness/srpe";
+import { refreshSnapshotForSession } from "@/lib/readiness/snapshot";
 
 /**
  * submitFatigueResponse — Server Action idempotente para submissão de questionário de fadiga.
@@ -272,6 +273,26 @@ export async function submitFatigueResponse(
         error: e instanceof Error ? e.message : String(e),
       });
       // Silently fail — write already succeeded; audit failure doesn't rollback
+    }
+  })();
+
+  // Fire-and-forget refresh de readiness snapshot (Story 5.3)
+  // Triggerado após sucesso de fatigue_responses upsert
+  // Não await — operação assíncrona; falha não afecta resposta da submissão
+  void (async () => {
+    try {
+      await refreshSnapshotForSession(
+        serviceRole,
+        validated.data.session_id
+      );
+    } catch (e) {
+      logger.error("readiness_snapshot.refresh_failed", {
+        session_id: validated.data.session_id,
+        player_id: validated.data.player_id,
+        context: "submitFatigueResponse after()",
+        error: e instanceof Error ? e.message : String(e),
+      });
+      // Silently fail — fatigue response já foi gravada com sucesso
     }
   })();
 
