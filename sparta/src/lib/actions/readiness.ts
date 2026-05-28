@@ -639,16 +639,9 @@ export async function getPlayerDrillDownData(
   // Note: auditedRead() logs audit trail asynchronously (fire-and-forget pattern).
   // If audit logging fails, it is logged separately but does not block data return.
 
+  // Keep responses with all 5 dimensions present; session_id may be null
+  // (null session_id excluded only from attendance numerator, not from the fatigue chart).
   const fatigueResponses = (fatigueResult.data ?? []).filter((r) => {
-    // Validate required fields
-    if (r.session_id == null) {
-      logger.warn('readiness.drilldown.missing_session_id', {
-        response_id: r.id,
-        player_id: playerId,
-      });
-      return false;
-    }
-    // Validate all dimensions exist (skip incomplete responses)
     if (
       r.dim_energy == null ||
       r.dim_focus == null ||
@@ -688,7 +681,10 @@ export async function getPlayerDrillDownData(
   }
 
   const attendanceDenominator = allSessions.length;
-  const respondedSessionIds = new Set(fatigueResponses.map((r) => r.session_id));
+  // Only count responses that are linked to a known session (session_id may be null for offline/fallback submissions)
+  const respondedSessionIds = new Set(
+    fatigueResponses.flatMap((r) => (r.session_id != null ? [r.session_id] : []))
+  );
   const attendanceNumerator = [...respondedSessionIds].filter((sid) => sid in sessions).length;
 
   return ok({
