@@ -4,7 +4,6 @@ import { useState, useEffect, useId } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
 import { DrillDownSheet } from "@/components/ui/drill-down-sheet";
 import { Button } from "@/components/ui/button";
-import { POSITION_VALUES } from "@/lib/actions/load";
 import type { LoadFilters } from "@/lib/actions/load";
 
 const STORAGE_KEY = "sparta:load:filters";
@@ -35,7 +34,9 @@ function loadFiltersFromStorage(): LoadFilters {
     if (!raw) return DEFAULT_FILTERS;
     const parsed = JSON.parse(raw) as Partial<LoadFilters>;
 
-    const validPosition = (POSITION_VALUES as readonly string[]).includes(parsed.position as string)
+    const validPosition = (["all", "GR", "DEF", "MED", "AVA"] as readonly string[]).includes(
+      parsed.position as string
+    )
       ? (parsed.position as LoadFilters["position"])
       : DEFAULT_FILTERS.position;
 

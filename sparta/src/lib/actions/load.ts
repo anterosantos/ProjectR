@@ -32,7 +32,6 @@ export type LoadFilters = {
 };
 
 const STAFF_ROLES = ["coach", "analyst"] as const;
-export const POSITION_VALUES = ["all", "GR", "DEF", "MED", "AVA"] as const;
 
 async function requireStaffRole(): Promise<
   Result<{ userId: string; clubId: string; role: string }, AppError>
