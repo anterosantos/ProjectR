@@ -1,0 +1,202 @@
+
+> sparta@0.1.0 lint
+> eslint
+
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\__tests__\auth-hook-unit.test.ts
+  57:12  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\__tests__\auth-hook.integration.test.ts
+   33:7   warning  'testUsers' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  219:30  warning  'error' is assigned a value but never used      @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\__tests__\components\ui\calm-confirmation.test.tsx
+  12:13  warning  'rerender' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\__tests__\lib\retention-statistics.test.ts
+  1:32  warning  'vi' is defined but never used                          @typescript-eslint/no-unused-vars
+  1:36  warning  'beforeEach' is defined but never used                  @typescript-eslint/no-unused-vars
+  9:7   warning  'FIVE_SEASONS_DAYS' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\scripts\check-docker.js
+  16:10  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\__tests__\app\(staff)\prontidao.test.tsx
+   14:26  warning  'within' is defined but never used            @typescript-eslint/no-unused-vars
+  372:10  warning  'getFormationData' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\__tests__\app\public\direitos\token\retirar\page.test.tsx
+  23:10  warning  'mockTokenFetch' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\__tests__\auth\login-flow.test.ts
+    1:32  warning  'vi' is defined but never used                       @typescript-eslint/no-unused-vars
+    1:36  warning  'beforeEach' is defined but never used               @typescript-eslint/no-unused-vars
+    2:15  warning  'FormEvent' is defined but never used                @typescript-eslint/no-unused-vars
+   92:13  warning  'claims' is assigned a value but never used          @typescript-eslint/no-unused-vars
+  102:13  warning  'user' is assigned a value but never used            @typescript-eslint/no-unused-vars
+  103:13  warning  'claims' is assigned a value but never used          @typescript-eslint/no-unused-vars
+  120:13  warning  'userRole' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  195:13  warning  'defaultRoute' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  252:13  warning  'requestedRoute' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\__tests__\edge-functions\schedule-session-pushes.test.ts
+  124:9  warning  'upsertChain' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\__tests__\hooks\useOutboxDrain.test.ts
+    2:27  warning  'waitFor' is defined but never used          @typescript-eslint/no-unused-vars
+  107:13  warning  'result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\__tests__\lib\actions\consent.test.ts
+  237:9  warning  'playerChain' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\__tests__\lib\actions\data-rights.test.ts
+  68:10  warning  'mockFetchFail' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\__tests__\lib\actions\invite.test.ts
+   5:3  warning  'InvitePlayer' is defined but never used          @typescript-eslint/no-unused-vars
+   6:3  warning  'ResendInvite' is defined but never used          @typescript-eslint/no-unused-vars
+  12:7  warning  'STAFF_UUID' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  13:7  warning  'PLAYER_UUID' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  14:7  warning  'CLUB_UUID' is assigned a value but never used    @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\__tests__\lib\actions\lineups.test.ts
+  248:11  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\__tests__\lib\actions\readiness-snapshots.test.ts
+  248:47  warning  'opts' is defined but never used   @typescript-eslint/no-unused-vars
+  248:53  warning  'fn' is defined but never used     @typescript-eslint/no-unused-vars
+  416:54  warning  '_opts' is defined but never used  @typescript-eslint/no-unused-vars
+  416:61  warning  '_fn' is defined but never used    @typescript-eslint/no-unused-vars
+  424:54  warning  '_opts' is defined but never used  @typescript-eslint/no-unused-vars
+  424:61  warning  '_fn' is defined but never used    @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\__tests__\lib\actions\seasons.test.ts
+  36:3  warning  'seasons' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\__tests__\lib\cron\parental_consent_reminders.test.ts
+  1:36  warning  'beforeEach' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\__tests__\lib\outbox\offline-flow.integration.test.ts
+  182:17  warning  'id1' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  194:17  warning  'id2' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\__tests__\lib\schemas\seasons.test.ts
+  96:17  warning  '_id' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\__tests__\lib\schemas\sessions.test.ts
+    1:32  warning  'beforeEach' is defined but never used           @typescript-eslint/no-unused-vars
+    1:44  warning  'afterEach' is defined but never used            @typescript-eslint/no-unused-vars
+    1:55  warning  'vi' is defined but never used                   @typescript-eslint/no-unused-vars
+   12:10  warning  'futureDatetimeLocal' is defined but never used  @typescript-eslint/no-unused-vars
+   43:26  warning  '_' is assigned a value but never used           @typescript-eslint/no-unused-vars
+   50:23  warning  '_l' is assigned a value but never used          @typescript-eslint/no-unused-vars
+   50:34  warning  '_n' is assigned a value but never used          @typescript-eslint/no-unused-vars
+  151:17  warning  '_id' is assigned a value but never used         @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\__tests__\middleware.test.ts
+  305:13  warning  'response' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  314:13  warning  'response' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  323:13  warning  'response' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\__tests__\readiness\field-formation.test.tsx
+  13:26  warning  'within' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\app\(public)\direitos\[token]\page.tsx
+  1:49  warning  'Users' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\app\(staff)\plantel\[id]\editar\page.tsx
+  13:3  warning  'params' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\app\(staff)\plantel\[id]\page.tsx
+  58:3  warning  'params' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\app\configuracoes\seguranca\actions.ts
+  3:40  warning  'factorId' is defined but never used  @typescript-eslint/no-unused-vars
+  3:58  warning  'password' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\app\reset-password\reset-password-form.tsx
+  107:14  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\components\domain\DataDrivenDecisionInput.test.tsx
+   15:48  warning  'afterEach' is defined but never used               @typescript-eslint/no-unused-vars
+   83:16  warning  'renderAndWaitForButton' is defined but never used  @typescript-eslint/no-unused-vars
+  100:24  warning  '_' is assigned a value but never used              @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\components\domain\DataDrivenDecisionInput.tsx
+  53:10  warning  'loadError' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  70:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\components\domain\DataDrivenDecisionInput.tsx:70:5
+  68 |
+  69 |   useEffect(() => {
+> 70 |     loadDecisions();
+     |     ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  71 |     // eslint-disable-next-line react-hooks/exhaustive-deps
+  72 |   }, [playerId]);
+  73 |  react-hooks/set-state-in-effect
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\components\domain\FatigueTable.test.tsx
+  1:32  warning  'vi' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\components\domain\TrendFilters.test.tsx
+  2:26  warning  'fireEvent' is defined but never used     @typescript-eslint/no-unused-vars
+  7:28  warning  'onOpenChange' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\components\domain\readiness\player-drill-down-sheet.tsx
+  120:5  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/set-state-in-effect')
+  147:6  warning  React Hook useEffect has a missing dependency: 'snapshot'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  154:7  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/set-state-in-effect')
+  156:7  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/set-state-in-effect')
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\components\domain\readiness\readiness-panel.tsx
+  139:24  warning  The ref value 'flashTimeoutsRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'flashTimeoutsRef.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\components\patterns\BottomTabNav.test.tsx
+   1:36  warning  'beforeEach' is defined but never used       @typescript-eslint/no-unused-vars
+  66:13  warning  'styles' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\components\patterns\BottomTabNav.tsx
+  57:11  warning  'hrefPrefix' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\components\patterns\StaffSidebar.tsx
+  5:32  warning  'role' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\components\ui\fatigue-questionnaire.tsx
+  105:11  warning  'isOnline' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  215:18  warning  'cacheErr' is defined but never used           @typescript-eslint/no-unused-vars
+  244:20  warning  'cacheErr' is defined but never used           @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\lib\actions\data-rights.ts
+  134:14  warning  'jsonError' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\lib\actions\players.ts
+  59:7  warning  'AGE_GROUP_ORDER' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\src\lib\data\audited.integration.test.ts
+   2:10  warning  'auditedRead' is defined but never used           @typescript-eslint/no-unused-vars
+   3:10  warning  'createServerClient' is defined but never used    @typescript-eslint/no-unused-vars
+   4:10  warning  'getServiceRoleClient' is defined but never used  @typescript-eslint/no-unused-vars
+  20:7   warning  'testUserId' is defined but never used            @typescript-eslint/no-unused-vars
+  21:7   warning  'testClubId' is defined but never used            @typescript-eslint/no-unused-vars
+  22:7   warning  'testPlayerId' is defined but never used          @typescript-eslint/no-unused-vars
+  23:7   warning  'testSessionId' is defined but never used         @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\supabase\functions\anonymize-player-photos\index.ts
+  6:24  warning  '_req' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\supabase\functions\erase-cascade\index.ts
+  102:11  warning  'profileId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\anter\Documents\GitHub\SPARTA\sparta\supabase\functions\export-csv\index.ts
+  400:15  warning  'timeoutPromise' is assigned a value but never used                                                    @typescript-eslint/no-unused-vars
+  445:11  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+✖ 93 problems (1 error, 92 warnings)
+  0 errors and 5 warnings potentially fixable with the `--fix` option.
+

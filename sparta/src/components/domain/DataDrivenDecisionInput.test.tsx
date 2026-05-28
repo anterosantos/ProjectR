@@ -12,7 +12,7 @@
  * - Acessibilidade axe-core
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { axe } from "vitest-axe";
 
@@ -78,16 +78,6 @@ function mockWithDecisions(decisions: DataDecision[]) {
   });
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-async function renderAndWaitForButton() {
-  const result = render(<DataDrivenDecisionInput playerId={PLAYER_ID} />);
-  await act(async () => {
-    // allow useEffect + startTransition to resolve
-  });
-  return result;
-}
-
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("DataDrivenDecisionInput", () => {
@@ -97,7 +87,7 @@ describe("DataDrivenDecisionInput", () => {
   });
 
   it("renderiza botão ghost colapsado por defeito", async () => {
-    const { container: _ } = render(<DataDrivenDecisionInput playerId={PLAYER_ID} />);
+    render(<DataDrivenDecisionInput playerId={PLAYER_ID} />);
 
     // Button renders immediately (status=idle, expanded=false)
     expect(

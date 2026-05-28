@@ -50,25 +50,15 @@ export function DataDrivenDecisionInput({
   const [editNote, setEditNote] = useState("");
   const [editStatus, setEditStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [isPending, startTransition] = useTransition();
-  const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Load decisions on mount and after save
-  const loadDecisions = () => {
-    setLoadError(null);
+  useEffect(() => {
     startTransition(async () => {
       const result = await getDataDrivenDecisions(playerId);
       if (result.ok) {
         setDecisions(result.data.decisions);
         setCurrentUserId(result.data.currentUserId);
-      } else {
-        setLoadError(result.error.message ?? "Erro ao carregar decisões");
       }
     });
-  };
-
-  useEffect(() => {
-    loadDecisions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerId]);
 
   const handleSave = async () => {
@@ -88,7 +78,12 @@ export function DataDrivenDecisionInput({
       setNote("");
       setDecisionKind(null);
       setWasDataDriven(true);
-      loadDecisions();
+      startTransition(async () => {
+        const freshResult = await getDataDrivenDecisions(playerId);
+        if (freshResult.ok) {
+          setDecisions(freshResult.data.decisions);
+        }
+      });
       const timeoutId = setTimeout(() => {
         setStatus("idle");
         setExpanded(false);
@@ -114,7 +109,12 @@ export function DataDrivenDecisionInput({
       setEditStatus("success");
       setEditingId(null);
       setEditNote("");
-      loadDecisions();
+      startTransition(async () => {
+        const freshResult = await getDataDrivenDecisions(playerId);
+        if (freshResult.ok) {
+          setDecisions(freshResult.data.decisions);
+        }
+      });
       setTimeout(() => setEditStatus("idle"), 1500);
     } else {
       setEditStatus("error");
