@@ -6,7 +6,7 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 vi.mock("@/lib/data/audited", () => ({
-  auditedRead: vi.fn(),
+  auditedRead: vi.fn((_opts: unknown, fn: () => Promise<unknown>) => fn()),
 }));
 
 import { createServerClient } from "@/lib/supabase/server";
@@ -132,7 +132,6 @@ describe("getFatigueTrendsData", () => {
       }),
     };
     (createServerClient as any).mockResolvedValue(mockClient);
-    (auditedRead as any).mockResolvedValue(undefined);
 
     const result = await getFatigueTrendsData();
 
@@ -195,7 +194,6 @@ describe("getFatigueTrendsData", () => {
       }),
     };
     (createServerClient as any).mockResolvedValue(mockClient);
-    (auditedRead as any).mockResolvedValue(undefined);
 
     const result = await getFatigueTrendsData();
 
@@ -252,7 +250,6 @@ describe("getFatigueTrendsData", () => {
       }),
     };
     (createServerClient as any).mockResolvedValue(mockClient);
-    (auditedRead as any).mockResolvedValue(undefined);
 
     const filters: TrendFilters = { position: "all", ageGroup: "all", sortBy: "delta" };
     const result = await getFatigueTrendsData(filters);

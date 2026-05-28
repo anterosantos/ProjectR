@@ -115,7 +115,7 @@ export async function getFatigueTrendsData(
   }
 
   // Get primary positions for all players
-  const playerIds = playersData.map((p: any) => p.id);
+  const playerIds = playersData.map((p) => p.id);
 
   if (playerIds.length === 0) {
     return ok({ players: [] });
@@ -141,25 +141,9 @@ export async function getFatigueTrendsData(
     }
   }
 
-  // 3. Query batch única — respostas dos últimos 28 dias
+  // 3. Query batch única — respostas dos últimos 28 dias via auditedRead (FR50)
   const since = new Date(Date.now() - DURATION_DAYS * 24 * 60 * 60 * 1000).toISOString();
-  const { data: responses, error: responsesError } = await supabase
-    .from("fatigue_responses")
-    .select("player_id, submitted_at, dim_energy, dim_focus, dim_sleep, dim_soreness, dim_mood")
-    .eq("club_id", clubId)
-    .in("player_id", playerIds)
-    .gte("submitted_at", since)
-    .order("submitted_at", { ascending: true });
-
-  if (responsesError) {
-    return err({
-      code: "db_error",
-      message: responsesError.message,
-    });
-  }
-
-  // 4. Audit log fire-and-forget (schedules audit after data load)
-  void auditedRead(
+  const responsesResult = await auditedRead(
     {
       action: "trends.viewed",
       targetKind: "fatigue_responses",
@@ -168,8 +152,25 @@ export async function getFatigueTrendsData(
       clubId,
       payload: { player_count: playersData.length },
     },
-    async () => responses ?? []
+    () =>
+      // eslint-disable-next-line custom/no-direct-health-data-read -- query is legitimately wrapped in auditedRead()
+      supabase
+        .from("fatigue_responses")
+        .select("player_id, submitted_at, dim_energy, dim_focus, dim_sleep, dim_soreness, dim_mood")
+        .eq("club_id", clubId)
+        .in("player_id", playerIds)
+        .gte("submitted_at", since)
+        .order("submitted_at", { ascending: true })
   );
+
+  if (responsesResult.error) {
+    return err({
+      code: "db_error",
+      message: responsesResult.error.message,
+    });
+  }
+
+  const responses = responsesResult.data;
 
   // 5. Agrupar respostas por player_id
   const responsesByPlayer = new Map<string, typeof responses>();
