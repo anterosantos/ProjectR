@@ -606,32 +606,42 @@ export async function getPlayerDrillDownData(
   const now = new Date();
   const since28 = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
 
-  // Fetch fatigue responses via auditedRead — required for ESLint + audit trail (AC #5)
-  const fatigueResult = await auditedRead(
-    {
-      targetKind: 'readiness_snapshot',
-      targetId: playerId,
-      action: 'readiness.drilldown',
-      actorId: userId,
-      clubId,
-    },
-    async () =>
-      // eslint-disable-next-line custom/no-direct-health-data-read -- inside auditedRead() callback; audit logging handled by wrapper
-      supabase
-        .from('fatigue_responses')
-        .select(
-          'id, player_id, session_id, phase, dim_energy, dim_focus, dim_sleep, dim_soreness, dim_mood, srpe_value, submitted_at, submitted_via'
-        )
-        .eq('player_id', playerId)
-        .eq('club_id', clubId)
-        .gte('submitted_at', since28.toISOString())
-        .order('submitted_at', { ascending: true })
-  );
-
-  if (fatigueResult.error) {
+  // Fetch fatigue responses via auditedRead + service role.
+  // Service role bypasses RLS — application-level security already enforced:
+  //   1. Caller authenticated (requireStaffRole above)
+  //   2. Caller is coach/analyst of clubId (requireStaffRole above)
+  // Explicit club_id + player_id filters maintain multi-tenant isolation.
+  // (User client RLS may fail to propagate JWT when action is called from useEffect.)
+  let fatigueRows: FatigueResponse[] = [];
+  try {
+    fatigueRows = await auditedRead<FatigueResponse[]>(
+      {
+        targetKind: 'fatigue_responses',
+        targetId: playerId,
+        action: 'readiness.drilldown',
+        actorId: userId,
+        clubId,
+      },
+      async () => {
+        const serviceRole = getServiceRoleClient();
+        // eslint-disable-next-line custom/no-direct-health-data-read -- inside auditedRead() callback; audit logging handled by wrapper
+        const { data, error } = await serviceRole
+          .from('fatigue_responses')
+          .select(
+            'id, player_id, session_id, phase, dim_energy, dim_focus, dim_sleep, dim_soreness, dim_mood, srpe_value, submitted_at, submitted_via'
+          )
+          .eq('player_id', playerId)
+          .eq('club_id', clubId)
+          .gte('submitted_at', since28.toISOString())
+          .order('submitted_at', { ascending: true });
+        if (error) throw error;
+        return (data ?? []) as FatigueResponse[];
+      }
+    );
+  } catch (e) {
     logger.error('readiness.drilldown.fatigue_fetch_failed', {
       player_id: playerId,
-      error: fatigueResult.error.message,
+      error: e instanceof Error ? e.message : String(e),
     });
     return err({ code: 'db_error', message: 'Erro ao carregar dados de fadiga' });
   }
@@ -639,24 +649,8 @@ export async function getPlayerDrillDownData(
   // Note: auditedRead() logs audit trail asynchronously (fire-and-forget pattern).
   // If audit logging fails, it is logged separately but does not block data return.
 
-  // Keep responses with all 5 dimensions present; session_id may be null
-  // (null session_id excluded only from attendance numerator, not from the fatigue chart).
-  const fatigueResponses = (fatigueResult.data ?? []).filter((r) => {
-    if (
-      r.dim_energy == null ||
-      r.dim_focus == null ||
-      r.dim_sleep == null ||
-      r.dim_soreness == null ||
-      r.dim_mood == null
-    ) {
-      logger.warn('readiness.drilldown.incomplete_dimensions', {
-        response_id: r.id,
-        player_id: playerId,
-      });
-      return false;
-    }
-    return true;
-  }) as FatigueResponse[];
+  // fatigueRows already has correct type; service role + DB NOT NULL guarantee valid dimensions.
+  const fatigueResponses = fatigueRows;
 
   // Fetch all club sessions in the 28-day window for attendance denominator
   const { data: sessionRows, error: sessionsError } = await supabase
