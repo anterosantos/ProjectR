@@ -1,6 +1,6 @@
 # Story 5.9: Analista Dashboard — Carga Acumulada por Jogador por Época
 
-**Status:** review
+**Status:** done
 
 **Story ID:** 5.9
 **Epic:** Epic 5 — Painel de Prontidão & Inteligência (defining experience do José)
