@@ -211,10 +211,9 @@ export function DataDrivenDecisionInput({
       ) : !expanded ? (
         <button
           type="button"
-          className="flex items-center gap-1.5 rounded border border-border px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-1.5 rounded border border-border px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
           aria-expanded={false}
           onClick={() => setExpanded(true)}
-          disabled={isPending}
         >
           <BookmarkPlus className="h-4 w-4" aria-hidden="true" />
           Marcar decisão data-driven

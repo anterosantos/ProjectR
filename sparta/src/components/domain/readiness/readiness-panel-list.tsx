@@ -23,18 +23,29 @@ const POSITIONS: PositionKey[] = ["GR", "DEF", "MED", "AVA"];
 /**
  * Maps raw position string from DB → canonical PositionKey.
  *
- * P-24: "centrocampista" verificado antes de "central" para evitar classificação DEF errada
- *       ("centrocampista central" é Médio, não Defesa).
- * Também adicionado .trim() para ignorar espaços extra.
+ * Handles both schema abbreviations (GR, DD, DC, DE, LIB, MDC, MC, MO, MD, ME, EXD, EXE, SC, PL)
+ * and Portuguese text names (e.g. "guarda-redes", "defesa central").
+ *
+ * Abbreviations are checked first via exact match (no ordering sensitivity).
+ * Text names are checked after, with P-24 preserved: "centrocampista" before "central"
+ * so "centrocampista central" maps to MED, not DEF.
  */
 export function getPositionKey(position: string | null): PositionKey {
   if (!position) return "MED";
   const p = position.toLowerCase().trim();
-  if (p.includes("guarda") || p === "gr") return "GR";
-  // P-24: MED antes de DEF para "centrocampista" ter prioridade sobre "central"
+
+  // Schema abbreviations — exact match, order-insensitive
+  if (p === "gr") return "GR";
+  if (p === "dd" || p === "dc" || p === "de" || p === "lib") return "DEF";
+  if (p === "mdc" || p === "mc" || p === "mo" || p === "md" || p === "me") return "MED";
+  if (p === "exd" || p === "exe" || p === "sc" || p === "pl") return "AVA";
+
+  // Text-based names and legacy compat values — P-24: MED before DEF ("centrocampista central" → MED)
+  if (p.includes("guarda")) return "GR";
   if (p.includes("meio") || p === "med" || p.includes("centrocampista")) return "MED";
   if (p.includes("defesa") || p === "def" || p.includes("lateral") || p.includes("central")) return "DEF";
   if (p.includes("avançado") || p === "ava" || p.includes("ponta") || p.includes("extremo")) return "AVA";
+
   return "MED"; // fallback
 }
 

@@ -472,8 +472,26 @@ describe("AC #3 (Story 5.7) — Botão Atualizar fora da janela 4h", () => {
 import { getPositionKey } from "@/components/domain/readiness/readiness-panel-list";
 
 describe("getPositionKey — mapeamento de posições", () => {
+  // Schema abbreviations — GR
   it("mapeia 'GR' → GR", () => expect(getPositionKey("GR")).toBe("GR"));
   it("mapeia 'gr' → GR", () => expect(getPositionKey("gr")).toBe("GR"));
+  // Schema abbreviations — DEF
+  it("mapeia 'DD' → DEF", () => expect(getPositionKey("DD")).toBe("DEF"));
+  it("mapeia 'DC' → DEF", () => expect(getPositionKey("DC")).toBe("DEF"));
+  it("mapeia 'DE' → DEF", () => expect(getPositionKey("DE")).toBe("DEF"));
+  it("mapeia 'LIB' → DEF", () => expect(getPositionKey("LIB")).toBe("DEF"));
+  // Schema abbreviations — MED
+  it("mapeia 'MDC' → MED", () => expect(getPositionKey("MDC")).toBe("MED"));
+  it("mapeia 'MC' → MED", () => expect(getPositionKey("MC")).toBe("MED"));
+  it("mapeia 'MO' → MED", () => expect(getPositionKey("MO")).toBe("MED"));
+  it("mapeia 'MD' → MED", () => expect(getPositionKey("MD")).toBe("MED"));
+  it("mapeia 'ME' → MED", () => expect(getPositionKey("ME")).toBe("MED"));
+  // Schema abbreviations — AVA
+  it("mapeia 'EXD' → AVA", () => expect(getPositionKey("EXD")).toBe("AVA"));
+  it("mapeia 'EXE' → AVA", () => expect(getPositionKey("EXE")).toBe("AVA"));
+  it("mapeia 'SC' → AVA", () => expect(getPositionKey("SC")).toBe("AVA"));
+  it("mapeia 'PL' → AVA", () => expect(getPositionKey("PL")).toBe("AVA"));
+  // Text-based names
   it("mapeia 'Guarda-Redes' → GR", () => expect(getPositionKey("Guarda-Redes")).toBe("GR"));
   it("mapeia 'DEF' → DEF", () => expect(getPositionKey("DEF")).toBe("DEF"));
   it("mapeia 'Defesa Central' → DEF", () => expect(getPositionKey("Defesa Central")).toBe("DEF"));
@@ -483,6 +501,9 @@ describe("getPositionKey — mapeamento de posições", () => {
   it("mapeia 'AVA' → AVA", () => expect(getPositionKey("AVA")).toBe("AVA"));
   it("mapeia 'Avançado' → AVA", () => expect(getPositionKey("Avançado")).toBe("AVA"));
   it("mapeia 'Ponta de Lança' → AVA", () => expect(getPositionKey("Ponta de Lança")).toBe("AVA"));
+  // P-24: "centrocampista central" → MED, não DEF
+  it("mapeia 'Centrocampista Central' → MED (P-24)", () => expect(getPositionKey("Centrocampista Central")).toBe("MED"));
+  // Fallbacks
   it("mapeia null → MED (fallback)", () => expect(getPositionKey(null)).toBe("MED"));
   it("mapeia string desconhecida → MED (fallback)", () => expect(getPositionKey("Desconhecida")).toBe("MED"));
 });

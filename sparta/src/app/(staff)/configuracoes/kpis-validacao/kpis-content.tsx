@@ -1,52 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { CheckCircle, AlertCircle, BarChart2 } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
-import { getDecisionKpiData } from "@/lib/actions/decisions-server";
 import { DECISION_KIND_LABELS, DECISION_KINDS } from "@/lib/types/decisions";
 import type { MonthlyKpiRow } from "@/lib/types/decisions";
 
-export function KpisContent() {
-  const [rows, setRows] = useState<MonthlyKpiRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface KpisContentProps {
+  rows: MonthlyKpiRow[];
+}
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const result = await getDecisionKpiData();
-        if (result.ok) {
-          setRows(result.data);
-        } else {
-          setError(result.error.message ?? "Erro ao carregar KPIs");
-        }
-      } catch (err) {
-        setError("Erro ao carregar KPIs");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
-  if (error) {
-    return (
-      <div className="px-4 py-6 sm:px-6 max-w-4xl mx-auto">
-        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
-          {error}
-        </div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="px-4 py-6 sm:px-6 max-w-4xl mx-auto">
-        <div className="h-12 w-full animate-pulse rounded bg-muted"></div>
-      </div>
-    );
-  }
-
+export function KpisContent({ rows }: KpisContentProps) {
   return (
     <div className="px-4 py-6 sm:px-6 max-w-4xl mx-auto">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground mb-1">
