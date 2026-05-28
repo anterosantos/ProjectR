@@ -44,21 +44,21 @@ function loadFiltersFromStorage(): TrendFilters {
     const parsed = JSON.parse(raw) as Partial<TrendFilters>;
 
     // Validate position
-    const validPosition = (["all", "GR", "DEF", "MED", "AVA"] as const).includes(
-      parsed.position as any
+    const validPosition = (["all", "GR", "DEF", "MED", "AVA"] as readonly string[]).includes(
+      parsed.position as string
     )
       ? (parsed.position as TrendFilters["position"])
       : DEFAULT_FILTERS.position;
 
     // Validate ageGroup
-    const validAgeGroup = (["all", "u14", "u15", "u17", "u19", "senior"] as const).includes(
-      parsed.ageGroup as any
+    const validAgeGroup = (["all", "u14", "u15", "u17", "u19", "senior"] as readonly string[]).includes(
+      parsed.ageGroup as string
     )
       ? (parsed.ageGroup as TrendFilters["ageGroup"])
       : DEFAULT_FILTERS.ageGroup;
 
     // Validate sortBy
-    const validSortBy = (["delta", "alphabetic"] as const).includes(parsed.sortBy as any)
+    const validSortBy = (["delta", "alphabetic"] as readonly string[]).includes(parsed.sortBy as string)
       ? (parsed.sortBy as TrendFilters["sortBy"])
       : DEFAULT_FILTERS.sortBy;
 
@@ -116,10 +116,12 @@ export function TrendFilters({ onFilter, initialFilters }: TrendFiltersProps) {
   // Hydrate from sessionStorage on mount
   useEffect(() => {
     const stored = loadFiltersFromStorage();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional SSR-safe sessionStorage sync: server renders defaults, effect updates after hydration to avoid mismatch
     setFilters(stored);
     setDraft(stored);
     onFilter(stored);
-  }, [onFilter]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const applyFilters = () => {
     setFilters(draft);

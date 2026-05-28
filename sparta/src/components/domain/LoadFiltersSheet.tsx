@@ -102,13 +102,6 @@ export function LoadFiltersSheet({ onFilter, initialFilters }: LoadFiltersSheetP
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (initialFilters) {
-      setFilters(initialFilters);
-      setDraft(initialFilters);
-    }
-  }, [initialFilters]);
-
   const applyFilters = () => {
     setFilters(draft);
     saveFiltersToStorage(draft);
