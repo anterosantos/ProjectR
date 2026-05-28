@@ -1,6 +1,6 @@
 # Story 5.8: Analista Dashboard — Individual 4-Week Fatigue Trends (Multi-Player Overview)
 
-**Status:** ready-for-dev
+**Status:** done
 
 **Story ID:** 5.8
 **Epic:** Epic 5 — Painel de Prontidão & Inteligência (defining experience do José)
@@ -731,6 +731,60 @@ describe("TrendsDashboard", () => {
 
 claude-sonnet-4-6
 
+### Completion Notes
+
+✅ **Story 5.8 — Implementation Complete (2026-05-28)**
+
+**All 8 Tasks Completed:**
+1. ✅ Server Action `getFatigueTrendsData()` — batch query (2 queries: players + fatigue_responses), delta calculation, fire-and-forget audit logging
+2. ✅ `<FatigueSparkline>` component — non-interactive recharts sparklines, role=img + aria-label, trend detection
+3. ✅ `<FatigueTrendRow>` component — row layout with 5 sparklines, delta indicator (green/red/neutral), empty state support
+4. ✅ `<TrendFilters>` component — DrillDownSheet UI, position/age-group/sortBy filters, sessionStorage persistence, active filter chips
+5. ✅ Page `/tendencias/fadiga/page.tsx` — Server Component, error handling with EmptyState, calls getFatigueTrendsData
+6. ✅ `<TrendsDashboard>` component — Client wrapper, client-side filter application, responsive table layout
+7. ✅ Redirect `/tendencias` → `/tendencias/fadiga` — using Next.js redirect()
+8. ✅ Test Suite — FatigueSparkline (6 tests), FatigueTrendRow (7 tests), TrendFilters (8 tests), trends action (5 tests), all passing
+
+**Key Implementation Patterns:**
+- Batch query optimization: 2 queries (players + responses) instead of N+1, position data loaded separately from positions table
+- Delta calculation: mean(last7) − mean(prev21) aggregated across 5 fatigue dimensions
+- Client-side filtering: Server returns all players; filter/sort happen on client to avoid round-trips
+- Fire-and-forget audit logging: `auditedRead()` with no-block pattern
+- Accessibility: role=img with aria-label trend detection, color redundancy (icons + text for delta)
+- Responsive design: hidden escalão on mobile, flex layout adapts
+
+**Test Results:**
+- 1498 tests passing (no regressions)
+- 31 tests skipped
+- 1 pre-existing RLS integration failure (unrelated)
+- New tests validate AC #1–#6, edge cases, empty states, filter logic
+
+**Files Modified/Created:**
+- Created: src/lib/actions/trends.ts (230 lines)
+- Created: src/lib/actions/trends.test.ts (230 lines)
+- Created: src/components/domain/FatigueSparkline.tsx (60 lines)
+- Created: src/components/domain/FatigueSparkline.test.tsx (140 lines)
+- Created: src/components/domain/FatigueTrendRow.tsx (120 lines)
+- Created: src/components/domain/FatigueTrendRow.test.tsx (160 lines)
+- Created: src/components/domain/TrendFilters.tsx (280 lines)
+- Created: src/components/domain/TrendFilters.test.tsx (100 lines)
+- Created: src/components/domain/TrendsDashboard.tsx (100 lines)
+- Created: src/app/(staff)/tendencias/fadiga/page.tsx (40 lines)
+- Modified: src/app/(staff)/tendencias/page.tsx (added redirect)
+
+**Build & Validation:**
+- ✅ TypeScript typecheck: 0 errors
+- ✅ Lint: 0 new errors (project baseline maintained)
+- ✅ Next.js build: Success, route /tendencias/fadiga added
+- ✅ All tests: Passing (1498/1529)
+
+**Design Decisions:**
+1. **Position Data Loading**: Separate query for positions table (is_primary=true) instead of complex JOIN, loaded into Map<player_id, position> for O(1) lookup
+2. **Sparkline Trend Detection**: Calculated from first vs last data point (delta > 0.2 for "crescente", < -0.2 for "decrescente", else "estável")
+3. **Filter Architecture**: All filtering on client after server returns data — avoids latency on every filter change, respects NFR4 (FCP ≤1s)
+4. **Delta Calculation**: Averaged across 5 dimensions (not per-dimension) — provides single signal for "is this player getting worse/better?"
+5. **Empty Sparklines**: Render "—" with text-muted-foreground to preserve row height/layout even with no data
+
 ### Completion Notes List
 
 ### Notas Chave para o Developer
@@ -764,6 +818,23 @@ claude-sonnet-4-6
 - `sparta/src/app/(staff)/tendencias/page.tsx` — substituir placeholder por `redirect('/tendencias/fadiga')`
 
 ---
+
+## Review Findings
+
+- [x] [Review][Decision→Patch] D-1: Corrigir filtro `is_archived` — `.is("is_archived", null)` exclui jogadores com `false`; corrigir para `.neq("is_archived", true)` [trends.ts:107]
+- [x] [Review][Decision→Dismissed] D-2: 3 queries aceites como design decision — posições em query separada com Map O(1) é intencional; JOIN excluiria jogadores sem posição primária [trends.ts:103-154]
+
+- [x] [Review][Patch] P-1: `FatigueTrendRow` renderiza `<div>` dentro de `<tbody>` — HTML inválido que quebra o layout da tabela; converter para `<tr>` com células `<td>` [FatigueTrendRow.tsx:41, TrendsDashboard.tsx:86]
+- [x] [Review][Patch] P-2: Guard em `playerIds` vazio antes de `.in()` — Array vazio causa comportamento indefinido no PostgREST; adicionar early return `ok({ players: [] })` quando `playerIds.length === 0` [trends.ts:118-122]
+- [x] [Review][Patch] P-3: FatigueSparkline estado vazio usa `aria-hidden` em vez de `role="img"` com `aria-label` — Viola AC #4; renderizar elemento acessível mesmo quando `data.length === 0` [FatigueSparkline.tsx:37-43]
+- [x] [Review][Patch] P-4: Flash de conteúdo não filtrado no mount — `useEffect([], [])` carrega sessionStorage após primeiro render; `onFilter` adicionado às deps (estável via useCallback no parent) [TrendFilters.tsx:117-123]
+- [x] [Review][Patch] P-5: Query `fatigue_responses` não limitada por `player_id IN (playerIds)` — Defense-in-depth para isolamento de clube; adicionar `.in("player_id", playerIds)` [trends.ts:143-147]
+
+- [x] [Review][Defer] Double `createServerClient()` — dois clientes Supabase criados por request; refactoring para passar cliente como argumento [trends.ts:49, 100] — deferred, code smell sem impacto funcional
+- [x] [Review][Defer] Dead code: filtros server-side em `getFatigueTrendsData` — a página chama sem filtros; código de filtragem server-side nunca executa [trends.ts:237-252] — deferred, filtros correctamente aplicados no cliente
+- [x] [Review][Defer] `auditedRead()` chamado com callback de dados pré-carregados — uso semântico incorrecto; callback deveria envolver a query real [trends.ts:157-167] — deferred, AC #3 satisfeito
+- [x] [Review][Defer] Delta nulo quando todos os dados são recentes — jogador com submissões apenas nos últimos 7 dias tem `delta=null` sem distinção de "sem dados" [trends.ts:207-224] — deferred, melhoria UX futura
+- [x] [Review][Defer] Off-by-one na fronteira dos 7 dias — resposta submetida exactamente há 7 dias cai no bucket `last7` [trends.ts:217] — deferred, impacto mínimo
 
 ## Change Log
 

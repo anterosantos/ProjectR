@@ -2,6 +2,14 @@
 
 Items deferred from code reviews — pre-existing issues, out-of-scope work, or items blocked by future stories.
 
+## Deferred from: code review of 5-8-analista-dashboard-individual-4-week-fatigue-trends-multi-player-overview (2026-05-28)
+
+- **Double `createServerClient()`** [`trends.ts:49, 100`]: `requireStaffRole()` e `getFatigueTrendsData()` criam dois clientes Supabase separados por request. Refactorizar para retornar o cliente de `requireStaffRole` ou passá-lo como argumento. Code smell sem impacto funcional em SSR com cookies imutáveis.
+- **Dead code: filtros server-side em `getFatigueTrendsData`** [`trends.ts:237-252`]: A página chama a server action sem filtros (todos os filtros são aplicados no cliente em `TrendsDashboard`). O código de filtragem server-side é dead code que induz em erro — remover quando a arquitectura de filtros for consolidada.
+- **`auditedRead()` com callback de dados pré-carregados** [`trends.ts:157-167`]: Padrão correcto é `auditedRead(metadata, () => supabase.from(...).select(...))` com a query real no callback. Aqui o callback devolve dados já carregados. AC #3 (fire-and-forget) está satisfeito; rever se `auditedRead` se tornar sensível ao padrão de invocação.
+- **Delta nulo para jogadores com dados apenas recentes** [`trends.ts:207-224`]: Jogador com submissões apenas nos últimos 7 dias tem `prev21` vazio, resultando em `delta=null` — indistinguível de "sem dados" no UI. Considerar label ou tooltip diferenciado em iteração UX futura.
+- **Off-by-one na fronteira dos 7 dias** [`trends.ts:217`]: Resposta submetida exactamente há 7 dias é incluída em `last7` (condição `<=`), enquanto a query de 28 dias usa `>=`. Fronteiras inconsistentes mas impacto negligenciável na prática.
+
 ## Deferred from: code review of 5-4-painel-de-prontidao-lista-por-posicao-default-view (2026-05-25)
 
 - **D-1: Calls DB em série N×2 em `refreshSnapshotForSession`** [`sparta/src/lib/readiness/snapshot.ts:144`]: Loop sequencial sobre todos os jogadores do clube — 2N round-trips de DB (computeAcwr + fatigue_responses por jogador). Operação background fire-and-forget; não bloqueia render da página. Otimizar com `Promise.all` batching quando Story 5.7 (realtime) for implementada.
