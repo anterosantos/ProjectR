@@ -51,19 +51,22 @@ export interface PlayerRowProps {
   snapshot: PlayerReadinessData;
   position: string;
   onSelect?: (snapshot: PlayerReadinessData) => void;
+  flashed?: boolean;
 }
 
-export function PlayerRow({ snapshot, position, onSelect }: PlayerRowProps) {
-  const { playerName, jerseyNum, state, data_sufficient } = snapshot;
+export function PlayerRow({ snapshot, position, onSelect, flashed = false }: PlayerRowProps) {
+  const { playerName, jerseyNum, state, data_sufficient, player_id } = snapshot;
   const stateLabel = STATE_LABEL[state] ?? state;
   // P-16: comparação explícita para não disparar com undefined
   const hasInsufficientData = data_sufficient === false;
-  const tooltipId = hasInsufficientData ? `insufficient-${snapshot.player_id}` : undefined;
+  // TR-010: Use compound ID to avoid collision if PlayerRow instances duplicated
+  const tooltipId = hasInsufficientData ? `insufficient-${player_id}-tooltip` : undefined;
 
   const ariaLabel = [
     playerName,
     // P-17: jerseyNum != null para suportar camisola 0 (antes: 0 era falsy)
-    jerseyNum != null ? `Número ${jerseyNum}` : null,
+    // TR-005: Type coercion guard — ensure jerseyNum is converted to string safely
+    jerseyNum != null ? `Número ${String(jerseyNum)}` : null,
     `Posição ${position}`,
     `Estado ${stateLabel}`,
   ]
@@ -73,7 +76,12 @@ export function PlayerRow({ snapshot, position, onSelect }: PlayerRowProps) {
   return (
     <button
       type="button"
-      className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 rounded-lg cursor-pointer transition-colors text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className={`w-full px-4 py-3 flex items-center justify-between rounded-lg cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring${
+        flashed
+          ? " motion-safe:bg-primary/10 motion-safe:transition-all motion-safe:duration-200 motion-safe:ease-out hover:bg-muted/50"
+          : " hover:bg-muted/50 transition-colors"
+      }`}
+      data-flashed={flashed ? "true" : undefined}
       aria-label={ariaLabel}
       // P-14: aria-describedby aponta para tooltip acessível (role="tooltip")
       aria-describedby={tooltipId}

@@ -21,6 +21,7 @@ const STATE_LABELS: Record<string, string> = {
 export interface ReadinessPanelFormationProps {
   players: PlayerReadinessData[];
   sessionId: string;
+  flashedIds?: Set<string>;
 }
 
 type LoadStatus = 'loading' | 'loaded' | 'error';
@@ -29,7 +30,7 @@ function isValidState(state: unknown): state is keyof typeof STATE_LABELS {
   return typeof state === 'string' && state in STATE_LABELS;
 }
 
-export function ReadinessPanelFormation({ players, sessionId }: ReadinessPanelFormationProps) {
+export function ReadinessPanelFormation({ players, sessionId, flashedIds }: ReadinessPanelFormationProps) {
   const [status, setStatus] = useState<LoadStatus>('loading');
   const [formationData, setFormationData] = useState<FormationResult | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerReadinessData | null>(null);
@@ -136,7 +137,7 @@ export function ReadinessPanelFormation({ players, sessionId }: ReadinessPanelFo
   return (
     <div data-testid="readiness-panel-formation" className="flex flex-col pb-6">
       <div className="px-4 pt-4">
-        <FieldFormation starters={starters} onSelectPlayer={setSelectedPlayer} />
+        <FieldFormation starters={starters} onSelectPlayer={setSelectedPlayer} flashedIds={flashedIds} />
       </div>
 
       {bench.length > 0 && (
@@ -151,11 +152,17 @@ export function ReadinessPanelFormation({ players, sessionId }: ReadinessPanelFo
                 ? player.acwr.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                 : 'indisponível';
 
+              const isFlashed = flashedIds?.has(player.player_id) ?? false;
               return (
                 <button
                   key={player.player_id}
                   type="button"
-                  className="flex items-center gap-1.5 px-2 py-1 rounded-lg border bg-card hover:bg-accent transition-colors"
+                  className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border bg-card hover:bg-accent transition-colors${
+                    isFlashed
+                      ? " motion-safe:bg-primary/10 motion-safe:transition-colors motion-safe:duration-200 motion-safe:ease-out"
+                      : ""
+                  }`}
+                  data-flashed={isFlashed ? "true" : undefined}
                   onClick={() => setSelectedPlayer(player)}
                   aria-label={`Estado: ${stateLabel}, ${player.playerName}, ${player.primaryPosition ?? 'posição desconhecida'}, ACWR ${acwrLabel}`}
                 >

@@ -6,6 +6,7 @@ import type { PlayerReadinessData } from "@/types/supabase";
 export interface FieldFormationProps {
   starters: PlayerReadinessData[];
   onSelectPlayer: (p: PlayerReadinessData) => void;
+  flashedIds?: Set<string>;
 }
 
 const STATE_COLORS: Record<string, string> = {
@@ -43,12 +44,7 @@ function distributePositions(count: number): number[] {
   return positions;
 }
 
-export interface FieldFormationProps {
-  starters: PlayerReadinessData[];
-  onSelectPlayer: (p: PlayerReadinessData) => void;
-}
-
-export function FieldFormation({ starters, onSelectPlayer }: FieldFormationProps) {
+export function FieldFormation({ starters, onSelectPlayer, flashedIds }: FieldFormationProps) {
   const byPosition: Record<'GR' | 'DEF' | 'MED' | 'AVA', PlayerReadinessData[]> = {
     GR:  starters.filter(p => getPositionKey(p.primaryPosition) === 'GR'),
     DEF: starters.filter(p => getPositionKey(p.primaryPosition) === 'DEF'),
@@ -112,12 +108,18 @@ export function FieldFormation({ starters, onSelectPlayer }: FieldFormationProps
             const acwrLabel = player.acwr != null
               ? player.acwr.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
               : 'indisponível';
+            const isFlashed = flashedIds?.has(player.player_id) ?? false;
 
             return (
               <button
                 key={player.player_id}
                 type="button"
-                className="absolute flex flex-col items-center gap-0.5 -translate-x-1/2 -translate-y-1/2 touch-manipulation"
+                className={`absolute flex flex-col items-center gap-0.5 -translate-x-1/2 -translate-y-1/2 touch-manipulation${
+                  isFlashed
+                    ? " motion-safe:ring-2 motion-safe:ring-primary motion-safe:transition-all motion-safe:duration-200 motion-safe:ease-out"
+                    : ""
+                }`}
+                data-flashed={isFlashed ? "true" : undefined}
                 style={{ left: `${leftPct}%`, top: `${topPct}%` }}
                 onClick={() => onSelectPlayer(player)}
                 aria-label={`Estado: ${stateLabel}, ${player.playerName}, ${player.primaryPosition ?? 'posição desconhecida'}, ACWR ${acwrLabel}`}

@@ -38,12 +38,14 @@ export interface PositionGroupProps {
   position: PositionKey;
   players: PlayerReadinessData[];
   onSelectPlayer?: (snapshot: PlayerReadinessData) => void;
+  flashedIds?: Set<string>;
 }
 
 export function PositionGroup({
   position,
   players,
   onSelectPlayer,
+  flashedIds,
 }: PositionGroupProps) {
   if (players.length === 0) return null;
 
@@ -71,6 +73,7 @@ export function PositionGroup({
               snapshot={snapshot}
               position={config.label}
               onSelect={onSelectPlayer}
+              flashed={flashedIds?.has(snapshot.player_id) ?? false}
             />
           </li>
         ))}

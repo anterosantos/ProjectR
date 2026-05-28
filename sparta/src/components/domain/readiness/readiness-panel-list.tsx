@@ -54,15 +54,15 @@ function sortGroup(players: PlayerReadinessData[]): PlayerReadinessData[] {
 
 export interface ReadinessPanelListProps {
   players: PlayerReadinessData[];
-  /** sessionId will be used by TanStack Query in Story 5.7 for stale-time caching */
   sessionId: string;
+  flashedIds?: Set<string>;
 }
 
 export function ReadinessPanelList({
   players,
   sessionId: _,
+  flashedIds,
 }: ReadinessPanelListProps) {
-  // _ (sessionId) reserved for TanStack Query in Story 5.7
   void _;
   const [selectedPlayer, setSelectedPlayer] =
     useState<PlayerReadinessData | null>(null);
@@ -94,6 +94,7 @@ export function ReadinessPanelList({
               position={pos}
               players={group}
               onSelectPlayer={setSelectedPlayer}
+              flashedIds={flashedIds}
             />
           );
         })}

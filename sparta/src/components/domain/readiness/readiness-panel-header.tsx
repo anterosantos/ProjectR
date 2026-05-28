@@ -1,10 +1,13 @@
 /**
  * ReadinessPanelHeader — Cabeçalho sticky com 3 números agregados e toggle de vista.
  *
- * AC #1: Toggle "Formação" desactivado com aria-disabled em MVP
+ * AC #1: Toggle "Formação" ativo
  * AC #2: 3 grandes números (Verde/Amarelo/Vermelho) com labels PT-PT
+ * AC #3: Botão "Atualizar" com RefreshCw fora da janela 4h (Story 5.7)
  * AC #8: aria-label em cada número; role/heading em secção
  */
+
+import { RefreshCw } from "lucide-react";
 
 export interface ReadinessPanelHeaderProps {
   readyCount: number;
@@ -12,6 +15,9 @@ export interface ReadinessPanelHeaderProps {
   alertCount: number;
   view: "list" | "formation";
   onViewChange: (v: "list" | "formation") => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
+  inWindow?: boolean;
 }
 
 export function ReadinessPanelHeader({
@@ -20,6 +26,9 @@ export function ReadinessPanelHeader({
   alertCount,
   view,
   onViewChange,
+  onRefresh,
+  isRefreshing = false,
+  inWindow = false,
 }: ReadinessPanelHeaderProps) {
   return (
     <div
@@ -79,7 +88,7 @@ export function ReadinessPanelHeader({
         </div>
       </div>
 
-      {/* View toggle */}
+      {/* View toggle + botão Atualizar */}
       <div className="flex items-center justify-end gap-2" role="group" aria-label="Vista do painel">
         <button
           type="button"
@@ -106,6 +115,23 @@ export function ReadinessPanelHeader({
         >
           Formação
         </button>
+
+        {/* Botão Atualizar — apenas fora da janela 4h (AC #3) */}
+        {!inWindow && onRefresh && (
+          <button
+            type="button"
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            aria-label={isRefreshing ? "Atualizando dados de prontidão" : "Atualizar dados de prontidão"}
+            aria-busy={isRefreshing}
+          >
+            <RefreshCw
+              className={`size-4 ${isRefreshing ? "animate-spin" : ""}`}
+              aria-hidden="true"
+            />
+          </button>
+        )}
       </div>
     </div>
   );

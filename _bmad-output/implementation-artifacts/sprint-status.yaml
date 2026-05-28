@@ -193,8 +193,8 @@ development_status:
   5-3-readiness-snapshots-materialized-source-for-the-painel: done
   5-4-painel-de-prontidao-lista-por-posicao-default-view: done
   5-5-painel-drill-down-sheet-with-4-week-series-banda-acwr-presences-nota-livre: done
-  5-6-painel-field-formation-4-3-3-view-with-toggle: in-progress
-  5-7-realtime-updates-window-4h-pre-session: ready-for-dev
+  5-6-painel-field-formation-4-3-3-view-with-toggle: done
+  5-7-realtime-updates-window-4h-pre-session: done
   5-8-analista-dashboard-individual-4-week-fatigue-trends-multi-player-overview: ready-for-dev
   5-9-analista-dashboard-cumulative-load-per-player-per-season: ready-for-dev
   5-10-data-driven-decision-input-audit-fr52: ready-for-dev

@@ -78,6 +78,7 @@ export default async function ProntidaoPage() {
       <ReadinessPanel
         players={players}
         sessionId={sessionId}
+        scheduledAt={scheduledAt}
         view="list"
       />
     </div>

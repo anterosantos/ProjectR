@@ -441,6 +441,33 @@ describe("AC #1 (Story 5.6) — Toggle 'Formação' ativa ReadinessPanelFormatio
   });
 });
 
+// ── Story 5.7: Botão Atualizar no painel (sessão fora da janela 4h) ───────────
+describe("AC #3 (Story 5.7) — Botão Atualizar fora da janela 4h", () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it("mostra botão 'Atualizar' quando sessão está além de 4h (FUTURE_AT = 3 dias)", async () => {
+    // FUTURE_AT = 3 dias no futuro → fora da janela 4h → inWindow=false → botão visível
+    vi.mocked(getUpcomingSession).mockResolvedValue({
+      ok: true,
+      data: { sessionId: SESSION_UUID, scheduledAt: FUTURE_AT },
+    });
+    vi.mocked(getReadinessPanelData).mockResolvedValue({
+      ok: true,
+      data: { players: [] },
+    });
+
+    const jsx = await ProntidaoPage();
+    render(jsx);
+
+    expect(
+      screen.getByRole("button", { name: /atualizar dados de prontidão/i })
+    ).toBeInTheDocument();
+  });
+});
+
 // ── Unit tests for getPositionKey ────────────────────────────────────────────
 import { getPositionKey } from "@/components/domain/readiness/readiness-panel-list";
 
