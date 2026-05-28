@@ -10,7 +10,6 @@ vi.mock("@/lib/data/audited", () => ({
 }));
 
 import { createServerClient } from "@/lib/supabase/server";
-import { auditedRead } from "@/lib/data/audited";
 
 describe("getFatigueTrendsData", () => {
   beforeEach(() => {

@@ -36,6 +36,16 @@ export type TrendFilters = {
   sortBy: "delta" | "alphabetic";
 };
 
+type TrendResponseRow = {
+  player_id: string;
+  submitted_at: string | null;
+  dim_energy: number | null;
+  dim_focus: number | null;
+  dim_sleep: number | null;
+  dim_soreness: number | null;
+  dim_mood: number | null;
+};
+
 const STAFF_ROLES = ["coach", "analyst"] as const;
 const DURATION_DAYS = 28;
 
@@ -143,34 +153,36 @@ export async function getFatigueTrendsData(
 
   // 3. Query batch única — respostas dos últimos 28 dias via auditedRead (FR50)
   const since = new Date(Date.now() - DURATION_DAYS * 24 * 60 * 60 * 1000).toISOString();
-  const responsesResult = await auditedRead(
-    {
-      action: "trends.viewed",
-      targetKind: "fatigue_responses",
-      targetId: clubId,
-      actorId: userId,
-      clubId,
-      payload: { player_count: playersData.length },
-    },
-    () =>
-      // eslint-disable-next-line custom/no-direct-health-data-read -- query is legitimately wrapped in auditedRead()
-      supabase
-        .from("fatigue_responses")
-        .select("player_id, submitted_at, dim_energy, dim_focus, dim_sleep, dim_soreness, dim_mood")
-        .eq("club_id", clubId)
-        .in("player_id", playerIds)
-        .gte("submitted_at", since)
-        .order("submitted_at", { ascending: true })
-  );
-
-  if (responsesResult.error) {
+  let responses: TrendResponseRow[] = [];
+  try {
+    responses = await auditedRead<TrendResponseRow[]>(
+      {
+        action: "trends.viewed",
+        targetKind: "fatigue_responses",
+        targetId: clubId,
+        actorId: userId,
+        clubId,
+        payload: { player_count: playersData.length },
+      },
+      async () => {
+        // eslint-disable-next-line custom/no-direct-health-data-read -- query is legitimately wrapped in auditedRead()
+        const { data, error } = await supabase
+          .from("fatigue_responses")
+          .select("player_id, submitted_at, dim_energy, dim_focus, dim_sleep, dim_soreness, dim_mood")
+          .eq("club_id", clubId)
+          .in("player_id", playerIds)
+          .gte("submitted_at", since)
+          .order("submitted_at", { ascending: true });
+        if (error) throw error;
+        return (data ?? []) as TrendResponseRow[];
+      }
+    );
+  } catch (error) {
     return err({
       code: "db_error",
-      message: responsesResult.error.message,
+      message: error instanceof Error ? error.message : "Erro ao carregar respostas de fadiga",
     });
   }
-
-  const responses = responsesResult.data;
 
   // 5. Agrupar respostas por player_id
   const responsesByPlayer = new Map<string, typeof responses>();
