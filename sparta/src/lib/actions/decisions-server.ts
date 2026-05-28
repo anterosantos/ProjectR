@@ -76,9 +76,12 @@ export async function saveDataDrivenDecision(
     return err({ code: "validation_error", message: "Tipo de decisão inválido." });
   }
 
-  const supabase = await createServerClient();
+  // Service role bypasses RLS — application-level security already enforced:
+  //   1. requireStaffRole() verified caller is coach/analyst of clubId
+  //   2. Explicit club_id + actor_id ensure correct multi-tenant isolation
+  const serviceRole = getServiceRoleClient();
 
-  const { data, error } = await supabase
+  const { data, error } = await serviceRole
     .from("data_decisions")
     .insert({
       club_id: clubId,
@@ -133,14 +136,16 @@ export async function getDataDrivenDecisions(
 ): Promise<Result<{ decisions: DataDecision[]; currentUserId: string }, AppError>> {
   const authResult = await requireStaffRole();
   if (!authResult.ok) return authResult;
-  const { userId } = authResult.data;
+  const { userId, clubId } = authResult.data;
 
-  const supabase = await createServerClient();
+  // Service role: requireStaffRole() already verified caller is staff of clubId.
+  const serviceRole = getServiceRoleClient();
 
-  const { data, error } = await supabase
+  const { data, error } = await serviceRole
     .from("data_decisions")
     .select("id, decision_kind, note, was_data_driven, created_at, actor_id")
     .eq("player_id", playerId)
+    .eq("club_id", clubId)
     .order("created_at", { ascending: false })
     .limit(3);
 
@@ -177,10 +182,12 @@ export async function updateDataDrivenDecision(
     return err({ code: "validation_error", message: "Nota demasiado longa (máx. 500 caracteres)." });
   }
 
-  const supabase = await createServerClient();
+  // Service role: requireStaffRole() already verified caller is staff.
+  // actor_id + 24h window enforced at application level (same as RLS update policy).
+  const serviceRole = getServiceRoleClient();
   const windowStart = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
 
-  const { data, error } = await supabase
+  const { data, error } = await serviceRole
     .from("data_decisions")
     .update({ note })
     .eq("id", id)
@@ -214,11 +221,12 @@ export async function getDecisionKpiData(): Promise<
   if (!authResult.ok) return authResult;
   const { clubId } = authResult.data;
 
-  const supabase = await createServerClient();
+  // Service role: requireStaffRole() already verified caller is staff of clubId.
+  const serviceRole = getServiceRoleClient();
   const twelveMonthsAgo = new Date();
   twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
 
-  const { data, error } = await supabase
+  const { data, error } = await serviceRole
     .from("data_decisions")
     .select("decision_kind, created_at")
     .eq("club_id", clubId)
