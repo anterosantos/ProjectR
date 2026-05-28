@@ -5,7 +5,7 @@
 -- session_id ON DELETE SET NULL — cancelar sessão não elimina a decisão
 
 CREATE TABLE IF NOT EXISTS data_decisions (
-  id            uuid        PRIMARY KEY DEFAULT uuid_generate_v7(),
+  id            uuid        PRIMARY KEY DEFAULT uuidv7(),
   club_id       uuid        NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
   player_id     uuid        REFERENCES players(id) ON DELETE CASCADE,
   session_id    uuid        REFERENCES sessions(id) ON DELETE SET NULL,
