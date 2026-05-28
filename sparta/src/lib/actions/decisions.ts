@@ -6,50 +6,14 @@ import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { logTelemetry } from "@/lib/actions/telemetry";
 import { err, ok } from "@/lib/types";
 import type { Result, AppError } from "@/lib/types";
-
-// ── Types ─────────────────────────────────────────────────────────────────────
-
-export type DecisionKind =
-  | "roster"
-  | "management"
-  | "load_adjustment"
-  | "rest"
-  | "other";
-
-export const DECISION_KIND_LABELS: Record<DecisionKind, string> = {
-  roster: "Convocatória",
-  management: "Gestão do jogador",
-  load_adjustment: "Ajuste de carga",
-  rest: "Descanso",
-  other: "Outra",
-};
-
-export const DECISION_KINDS = Object.keys(
-  DECISION_KIND_LABELS
-) as DecisionKind[];
-
-export type DataDecision = {
-  id: string;
-  decisionKind: DecisionKind;
-  note: string | null;
-  wasDataDriven: boolean;
-  createdAt: string;
-  actorId: string;
-};
-
-export type SaveDecisionInput = {
-  playerId: string;
-  sessionId?: string | null;
-  decisionKind: DecisionKind;
-  note?: string | null;
-  wasDataDriven?: boolean;
-};
-
-export type MonthlyKpiRow = {
-  month: string;
-  total: number;
-  byKind: Partial<Record<DecisionKind, number>>;
-};
+import {
+  DECISION_KIND_LABELS,
+  DECISION_KINDS,
+  type DataDecision,
+  type DecisionKind,
+  type SaveDecisionInput,
+  type MonthlyKpiRow,
+} from "@/lib/types/decisions";
 
 // ── Auth guard ────────────────────────────────────────────────────────────────
 

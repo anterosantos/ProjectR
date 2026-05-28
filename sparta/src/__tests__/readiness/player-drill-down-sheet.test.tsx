@@ -31,6 +31,9 @@ vi.mock("@/lib/actions/decisions", () => ({
   }),
   saveDataDrivenDecision: vi.fn(),
   updateDataDrivenDecision: vi.fn(),
+}));
+
+vi.mock("@/lib/types/decisions", () => ({
   DECISION_KIND_LABELS: {
     roster: "Convocatória",
     management: "Gestão do jogador",

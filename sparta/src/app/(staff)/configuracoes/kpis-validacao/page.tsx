@@ -1,6 +1,7 @@
 import { CheckCircle, AlertCircle, BarChart2 } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
-import { getDecisionKpiData, DECISION_KIND_LABELS, DECISION_KINDS } from "@/lib/actions/decisions";
+import { getDecisionKpiData } from "@/lib/actions/decisions";
+import { DECISION_KIND_LABELS, DECISION_KINDS } from "@/lib/types/decisions";
 
 export const metadata = {
   title: "KPIs de Validação — SPARTA",

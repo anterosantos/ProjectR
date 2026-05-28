@@ -10,12 +10,15 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
-import type { MonthlyKpiRow } from "@/lib/actions/decisions";
+import type { MonthlyKpiRow } from "@/lib/types/decisions";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
 vi.mock("@/lib/actions/decisions", () => ({
   getDecisionKpiData: vi.fn(),
+}));
+
+vi.mock("@/lib/types/decisions", () => ({
   DECISION_KIND_LABELS: {
     roster: "Convocatória",
     management: "Gestão do jogador",

@@ -8,11 +8,13 @@ import {
   getDataDrivenDecisions,
   saveDataDrivenDecision,
   updateDataDrivenDecision,
+} from "@/lib/actions/decisions";
+import {
   DECISION_KIND_LABELS,
   DECISION_KINDS,
   type DataDecision,
   type DecisionKind,
-} from "@/lib/actions/decisions";
+} from "@/lib/types/decisions";
 
 interface DataDrivenDecisionInputProps {
   playerId: string;
