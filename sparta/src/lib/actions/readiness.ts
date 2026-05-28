@@ -27,6 +27,16 @@ import type { ReadinessSnapshot, PlayerReadinessData } from "@/types/supabase";
 import type { FatigueResponse, SessionInfo } from "@/lib/actions/fatigue-staff";
 import { READINESS_STATE_PRIORITY } from "@/lib/readiness/thresholds";
 
+export interface FormationEntry {
+  player_id: string;
+  role: 'starter' | 'bench';
+}
+
+export interface FormationResult {
+  lineups: FormationEntry[];
+  source: 'session_lineup' | 'recent_lineup' | 'none';
+}
+
 export interface DrillDownData {
   fatigueResponses: FatigueResponse[];
   sessions: Record<string, SessionInfo>;
@@ -475,6 +485,102 @@ export async function getReadinessPanelData(
     });
 
   return ok({ players });
+}
+
+/**
+ * getFormationData — Returns lineup for the upcoming session (or most recent match).
+ *
+ * AUTHORIZATION: Staff only (coach/analyst). Players cannot access this (FR26).
+ *
+ * BEHAVIOR:
+ * - If session is match/friendly with defined lineup → return it (source='session_lineup')
+ * - Otherwise: search last 5 past match/friendly sessions for a full lineup (source='recent_lineup')
+ * - If none found → return empty lineups (source='none')
+ */
+export async function getFormationData(
+  sessionId: string
+): Promise<Result<FormationResult, AppError>> {
+  const authResult = await requireStaffRole();
+  if (!authResult.ok) return authResult;
+
+  if (!sessionId?.trim()) {
+    return err({ code: 'not_found', message: 'Sessão inválida' });
+  }
+
+  const { clubId } = authResult.data;
+  const supabase = await createServerClient();
+
+  const { data: session, error: sessionError } = await supabase
+    .from('sessions')
+    .select('type')
+    .eq('id', sessionId)
+    .eq('club_id', clubId)
+    .single();
+
+  if (sessionError) {
+    logger.error('readiness.formation.session_fetch_failed', { session_id: sessionId, error: sessionError.message });
+    return err({ code: 'db_error', message: 'Erro ao carregar sessão' });
+  }
+  if (!session) {
+    return err({ code: 'not_found', message: 'Sessão não encontrada' });
+  }
+
+  const isMatch = session.type === 'match' || session.type === 'friendly';
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const matchLineupTable = (supabase.from as any)('match_lineups');
+
+  if (isMatch) {
+    const { data: currentLineups, error: lineupError } = await matchLineupTable
+      .select('player_id, role')
+      .eq('session_id', sessionId);
+
+    if (lineupError) {
+      logger.error('readiness.formation.lineup_fetch_failed', { session_id: sessionId, error: lineupError.message ?? 'Unknown error' });
+      return err({ code: 'db_error', message: 'Erro ao carregar convocatória' });
+    }
+
+    const starters = (currentLineups ?? []).filter((l) => l.role === 'starter');
+    if (starters.length > 0) {
+      return ok({ lineups: starters, source: 'session_lineup' });
+    }
+  }
+
+  // Fallback: most recent match/friendly with a full lineup
+  const now = new Date();
+  const { data: recentSessions, error: recentError } = await supabase
+    .from('sessions')
+    .select('id')
+    .eq('club_id', clubId)
+    .in('type', ['match', 'friendly'])
+    .lt('scheduled_at', now.toISOString())
+    .order('scheduled_at', { ascending: false })
+    .limit(5);
+
+  if (recentError) {
+    logger.error('readiness.formation.recent_sessions_failed', { error: recentError.message });
+    return err({ code: 'db_error', message: 'Erro ao buscar convocatórias anteriores' });
+  }
+
+  for (const s of recentSessions ?? []) {
+    if (s.id == null) continue;
+
+    const { data: pastLineups, error: pastError } = await matchLineupTable
+      .select('player_id, role')
+      .eq('session_id', s.id);
+
+    if (pastError) {
+      logger.warn('readiness.formation.past_lineup_failed', { session_id: s.id, error: pastError.message ?? 'Unknown error' });
+      continue;
+    }
+
+    const pastStarters = (pastLineups ?? []).filter((l) => l.role === 'starter');
+    if (pastStarters.length >= 1) {
+      return ok({ lineups: pastStarters, source: 'recent_lineup' });
+    }
+  }
+
+  return ok({ lineups: [], source: 'none' });
 }
 
 /**

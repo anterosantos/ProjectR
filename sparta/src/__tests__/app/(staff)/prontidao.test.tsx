@@ -33,6 +33,7 @@ vi.mock("@/lib/actions/readiness", () => ({
   getPlayerAcwrTrend: vi.fn(),
   refreshUpcomingReadiness: vi.fn(),
   getPlayerDrillDownData: vi.fn(),
+  getFormationData: vi.fn(),
 }));
 
 import { getUpcomingSession, getReadinessPanelData } from "@/lib/actions/readiness";
@@ -364,6 +365,79 @@ describe("AC #4 (Story 5.5) — Click PlayerRow abre PlayerDrillDownSheet", () =
     await waitFor(() => {
       expect(getPlayerDrillDownData).toHaveBeenCalledWith("p-click-test");
     });
+  });
+});
+
+// ── Story 5.6: Toggle "Formação" ativa vista de formação ─────────────────────
+import { getFormationData } from "@/lib/actions/readiness";
+import { ReadinessPanel } from "@/components/domain/readiness/readiness-panel";
+
+vi.mock("@/components/domain/readiness/readiness-panel-formation", () => ({
+  ReadinessPanelFormation: ({ sessionId }: { sessionId: string }) => (
+    <div data-testid="readiness-panel-formation" data-session={sessionId} />
+  ),
+}));
+
+describe("AC #1 (Story 5.6) — Toggle 'Formação' ativa ReadinessPanelFormation", () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it("ReadinessPanel mostra ReadinessPanelList por defeito", () => {
+    render(
+      <ReadinessPanel
+        players={[makeSnapshot({ player_id: "p-1", state: "ready", primaryPosition: "MED" })]}
+        sessionId={SESSION_UUID}
+      />
+    );
+    expect(screen.queryByTestId("readiness-panel-formation")).not.toBeInTheDocument();
+  });
+
+  it("clicar em 'Formação' troca para ReadinessPanelFormation", async () => {
+    render(
+      <ReadinessPanel
+        players={[makeSnapshot({ player_id: "p-1", state: "ready", primaryPosition: "MED" })]}
+        sessionId={SESSION_UUID}
+      />
+    );
+
+    const formacaoBtn = screen.getByRole("button", { name: /^Formação$/i });
+    expect(formacaoBtn).not.toBeDisabled();
+
+    fireEvent.click(formacaoBtn);
+    expect(screen.getByTestId("readiness-panel-formation")).toBeInTheDocument();
+  });
+
+  it("botão 'Formação' tem aria-pressed=false por defeito e =true após clique", async () => {
+    render(
+      <ReadinessPanel
+        players={[makeSnapshot({ player_id: "p-1", state: "ready", primaryPosition: "MED" })]}
+        sessionId={SESSION_UUID}
+      />
+    );
+
+    const formacaoBtn = screen.getByRole("button", { name: /^Formação$/i });
+    expect(formacaoBtn).toHaveAttribute("aria-pressed", "false");
+
+    fireEvent.click(formacaoBtn);
+    expect(formacaoBtn).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("botão 'Lista' tem aria-pressed=true por defeito e =false após clicar 'Formação'", async () => {
+    render(
+      <ReadinessPanel
+        players={[makeSnapshot({ player_id: "p-1", state: "ready", primaryPosition: "MED" })]}
+        sessionId={SESSION_UUID}
+      />
+    );
+
+    const listaBtn   = screen.getByRole("button", { name: /^Lista$/i });
+    const formacaoBtn = screen.getByRole("button", { name: /^Formação$/i });
+
+    expect(listaBtn).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(formacaoBtn);
+    expect(listaBtn).toHaveAttribute("aria-pressed", "false");
   });
 });
 

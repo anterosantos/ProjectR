@@ -94,17 +94,17 @@ export function ReadinessPanelHeader({
           Lista
         </button>
 
-        {/* Formação — desactivado em MVP (Story 5.6) */}
-        {/* P-18: aria-disabled removido (redundante com disabled); aria-pressed sempre false */}
         <button
           type="button"
-          className="text-sm font-medium px-3 py-1.5 rounded-md text-muted-foreground opacity-50 cursor-not-allowed"
-          aria-pressed={false}
-          title="Em breve — vista de campo com formação táctica."
-          disabled
+          className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
+            view === "formation"
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+          onClick={() => onViewChange("formation")}
+          aria-pressed={view === "formation"}
         >
           Formação
-          <span className="sr-only"> (em breve)</span>
         </button>
       </div>
     </div>

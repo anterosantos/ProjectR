@@ -13,6 +13,7 @@
 import { useState, useEffect, startTransition } from "react";
 import { ReadinessPanelHeader } from "@/components/domain/readiness/readiness-panel-header";
 import { ReadinessPanelList } from "@/components/domain/readiness/readiness-panel-list";
+import { ReadinessPanelFormation } from "@/components/domain/readiness/readiness-panel-formation";
 import type { PlayerReadinessData } from "@/types/supabase";
 
 const SESSION_STORAGE_KEY = "readiness-panel-view";
@@ -70,16 +71,10 @@ export function ReadinessPanel({
         onViewChange={handleViewChange}
       />
 
-      {/* Lista (default) ou Formação (Story 5.6 — deferred) */}
       {view === "list" ? (
         <ReadinessPanelList players={players} sessionId={sessionId} />
       ) : (
-        /* Formação — deferred to Story 5.6 */
-        <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-          <p className="text-muted-foreground text-sm">
-            Vista de formação disponível em breve.
-          </p>
-        </div>
+        <ReadinessPanelFormation players={players} sessionId={sessionId} />
       )}
     </div>
   );
