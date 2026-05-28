@@ -22,25 +22,44 @@ ALTER TABLE data_decisions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "staff read own club" ON data_decisions
   FOR SELECT TO authenticated
   USING (
-    club_id = auth.club_id()
-    AND (auth.jwt() -> 'user_role')::text IN ('"coach"', '"analyst"')
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = auth.uid()
+        AND role IN ('coach', 'analyst')
+        AND club_id = data_decisions.club_id
+    )
   );
 
 CREATE POLICY "staff insert own club" ON data_decisions
   FOR INSERT TO authenticated
   WITH CHECK (
-    club_id = auth.club_id()
-    AND (auth.jwt() -> 'user_role')::text IN ('"coach"', '"analyst"')
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = auth.uid()
+        AND role IN ('coach', 'analyst')
+        AND club_id = data_decisions.club_id
+    )
   );
 
 CREATE POLICY "actor update within 24h" ON data_decisions
   FOR UPDATE TO authenticated
   USING (
-    club_id = auth.club_id()
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = auth.uid()
+        AND role IN ('coach', 'analyst')
+        AND club_id = data_decisions.club_id
+    )
     AND actor_id = auth.uid()
     AND created_at + INTERVAL '24 hours' > NOW()
   )
-  WITH CHECK (club_id = auth.club_id());
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = auth.uid()
+        AND club_id = data_decisions.club_id
+    )
+  );
 
 GRANT SELECT, INSERT, UPDATE ON data_decisions TO authenticated;
 
