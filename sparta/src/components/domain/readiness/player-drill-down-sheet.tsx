@@ -18,6 +18,7 @@ import { DrillDownSheet } from "@/components/ui/drill-down-sheet";
 import { SemaforoBadge } from "@/components/ui/semaforo-badge";
 import { TooltipExplain } from "@/components/ui/tooltip-explain";
 import { EmptyState } from "@/components/ui/empty-state";
+import { DataDrivenDecisionInput } from "@/components/domain/DataDrivenDecisionInput";
 import { getPlayerDrillDownData } from "@/lib/actions/readiness";
 import { logger } from "@/lib/logger";
 import type { PlayerReadinessData } from "@/types/supabase";
@@ -321,18 +322,16 @@ export function PlayerDrillDownSheet({
             </section>
           )}
 
-          {/* Nota de decisão data-driven — disabled MVP (Story 5.10) */}
-          <div>
-            <button
-              type="button"
-              className="text-sm font-normal text-muted-foreground opacity-50 cursor-not-allowed"
-              aria-disabled="true"
-              disabled
-              tabIndex={-1}
-            >
-              Nota de decisão data-driven — Disponível em breve
-            </button>
-          </div>
+          {/* Decisão data-driven — Story 5.10 */}
+          {snapshot.player_id && (
+            <section aria-label="Decisão data-driven">
+              <h3 className="mb-2 text-sm font-medium text-foreground">Decisão Data-Driven</h3>
+              <DataDrivenDecisionInput
+                playerId={snapshot.player_id}
+                sessionId={snapshot.session_id}
+              />
+            </section>
+          )}
         </div>
       )}
     </DrillDownSheet>

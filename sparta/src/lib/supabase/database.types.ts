@@ -968,6 +968,71 @@ export type Database = {
           },
         ]
       }
+      data_decisions: {
+        Row: {
+          id: string
+          club_id: string
+          player_id: string | null
+          session_id: string | null
+          actor_id: string | null
+          decision_kind: string
+          note: string | null
+          was_data_driven: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          club_id: string
+          player_id?: string | null
+          session_id?: string | null
+          actor_id?: string | null
+          decision_kind: string
+          note?: string | null
+          was_data_driven?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          club_id?: string
+          player_id?: string | null
+          session_id?: string | null
+          actor_id?: string | null
+          decision_kind?: string
+          note?: string | null
+          was_data_driven?: boolean
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_decisions_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_decisions_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_decisions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_decisions_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

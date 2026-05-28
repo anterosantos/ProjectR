@@ -24,6 +24,23 @@ vi.mock("@/lib/actions/readiness", () => ({
   getPlayerDrillDownData: vi.fn(),
 }));
 
+vi.mock("@/lib/actions/decisions", () => ({
+  getDataDrivenDecisions: vi.fn().mockResolvedValue({
+    ok: true,
+    data: { decisions: [], currentUserId: "user-uuid-staff" },
+  }),
+  saveDataDrivenDecision: vi.fn(),
+  updateDataDrivenDecision: vi.fn(),
+  DECISION_KIND_LABELS: {
+    roster: "Convocatória",
+    management: "Gestão do jogador",
+    load_adjustment: "Ajuste de carga",
+    rest: "Descanso",
+    other: "Outra",
+  },
+  DECISION_KINDS: ["roster", "management", "load_adjustment", "rest", "other"],
+}));
+
 vi.mock("recharts", () => ({
   LineChart: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="line-chart">{children}</div>
@@ -299,9 +316,9 @@ describe("PlayerDrillDownSheet", () => {
     });
   });
 
-  // ── AC #6: Botão nota disabled ─────────────────────────────────────────────
-  describe("AC #6 — Nota de decisão disabled (MVP — Story 5.10)", () => {
-    it("renderiza botão de nota com aria-disabled='true'", async () => {
+  // ── AC #6: Zona de decisão data-driven (Story 5.10) ──────────────────────
+  describe("AC #6 — Zona de decisão data-driven implementada (Story 5.10)", () => {
+    it("renderiza botão 'Marcar decisão data-driven' clicável", async () => {
       render(
         <PlayerDrillDownSheet
           snapshot={fixtureSnapshot}
@@ -310,11 +327,10 @@ describe("PlayerDrillDownSheet", () => {
         />
       );
 
-      const btn = screen.getByRole("button", {
-        name: /Nota de decisão data-driven/i,
-      });
-      expect(btn).toBeDisabled();
-      expect(btn).toHaveAttribute("aria-disabled", "true");
+      // DataDrivenDecisionInput renders the button immediately (no disabled state during load)
+      const btn = screen.getByRole("button", { name: /Marcar decisão data-driven/i });
+      expect(btn).toBeInTheDocument();
+      expect(btn).not.toBeDisabled();
     });
   });
 
@@ -394,12 +410,10 @@ describe("PlayerDrillDownSheet", () => {
         expect(screen.getByTestId("line-chart")).toBeInTheDocument();
       });
 
-      // Verify button is focusable and interactive
-      const notaBtn = screen.getByRole("button", {
-        name: /Nota de decisão data-driven/i,
-      });
+      // Verify DataDrivenDecisionInput button is focusable (Story 5.10)
+      const notaBtn = screen.getByRole("button", { name: /Marcar decisão data-driven/i });
       expect(notaBtn).toBeInTheDocument();
-      expect(notaBtn).toBeDisabled();
+      expect(notaBtn).not.toBeDisabled();
     });
 
     it("suporta navegação por teclado (Dialog wrapper handles ESC, Tab, focus trap)", async () => {
