@@ -533,7 +533,7 @@ export async function getFormationData(
   if (isMatch) {
     const { data: currentLineups, error: lineupError } = await matchLineupTable
       .select('player_id, role')
-      .eq('session_id', sessionId);
+      .eq('session_id', sessionId) as { data: FormationEntry[] | null; error: { message?: string } | null };
 
     if (lineupError) {
       logger.error('readiness.formation.lineup_fetch_failed', { session_id: sessionId, error: lineupError.message ?? 'Unknown error' });
@@ -567,7 +567,7 @@ export async function getFormationData(
 
     const { data: pastLineups, error: pastError } = await matchLineupTable
       .select('player_id, role')
-      .eq('session_id', s.id);
+      .eq('session_id', s.id) as { data: FormationEntry[] | null; error: { message?: string } | null };
 
     if (pastError) {
       logger.warn('readiness.formation.past_lineup_failed', { session_id: s.id, error: pastError.message ?? 'Unknown error' });
