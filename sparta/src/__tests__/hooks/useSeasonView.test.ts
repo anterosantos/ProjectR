@@ -4,7 +4,7 @@ import { useSeasonView } from "@/hooks/useSeasonView";
 
 describe("useSeasonView", () => {
   beforeEach(() => {
-    localStorage.clear();
+    sessionStorage.clear();
     vi.clearAllMocks();
   });
 
@@ -14,8 +14,8 @@ describe("useSeasonView", () => {
     expect(view).toBe("current");
   });
 
-  it("lê valor 'cumulative' do localStorage ao montar", async () => {
-    localStorage.setItem("season_view", "cumulative");
+  it("lê valor 'cumulative' do sessionStorage ao montar", async () => {
+    sessionStorage.setItem("season_view", "cumulative");
     const { result } = renderHook(() => useSeasonView());
 
     // Wait for useEffect
@@ -25,8 +25,8 @@ describe("useSeasonView", () => {
     expect(view).toBe("cumulative");
   });
 
-  it("lê valor 'current' do localStorage ao montar", async () => {
-    localStorage.setItem("season_view", "current");
+  it("lê valor 'current' do sessionStorage ao montar", async () => {
+    sessionStorage.setItem("season_view", "current");
     const { result } = renderHook(() => useSeasonView());
 
     await act(async () => {});
@@ -35,8 +35,8 @@ describe("useSeasonView", () => {
     expect(view).toBe("current");
   });
 
-  it("ignora valores inválidos no localStorage", async () => {
-    localStorage.setItem("season_view", "invalid-value");
+  it("ignora valores inválidos no sessionStorage", async () => {
+    sessionStorage.setItem("season_view", "invalid-value");
     const { result } = renderHook(() => useSeasonView());
 
     await act(async () => {});
@@ -45,7 +45,7 @@ describe("useSeasonView", () => {
     expect(view).toBe("current");
   });
 
-  it("altera para 'cumulative' e persiste no localStorage", () => {
+  it("altera para 'cumulative' e persiste no sessionStorage", () => {
     const { result } = renderHook(() => useSeasonView());
 
     act(() => {
@@ -55,11 +55,11 @@ describe("useSeasonView", () => {
 
     const [view] = result.current;
     expect(view).toBe("cumulative");
-    expect(localStorage.getItem("season_view")).toBe("cumulative");
+    expect(sessionStorage.getItem("season_view")).toBe("cumulative");
   });
 
-  it("altera de volta para 'current' e persiste no localStorage", () => {
-    localStorage.setItem("season_view", "cumulative");
+  it("altera de volta para 'current' e persiste no sessionStorage", () => {
+    sessionStorage.setItem("season_view", "cumulative");
     const { result } = renderHook(() => useSeasonView());
 
     act(() => {
@@ -69,6 +69,6 @@ describe("useSeasonView", () => {
 
     const [view] = result.current;
     expect(view).toBe("current");
-    expect(localStorage.getItem("season_view")).toBe("current");
+    expect(sessionStorage.getItem("season_view")).toBe("current");
   });
 });

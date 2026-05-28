@@ -1,6 +1,6 @@
 # Story 5.9: Analista Dashboard — Carga Acumulada por Jogador por Época
 
-**Status:** ready-for-dev
+**Status:** review
 
 **Story ID:** 5.9
 **Epic:** Epic 5 — Painel de Prontidão & Inteligência (defining experience do José)
@@ -147,104 +147,71 @@ so that I can spot under-trained or over-trained athletes at a glance and at dep
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Server Action `getCumulativeLoadData()` em `src/lib/actions/load.ts`** (AC: #1, #5, #7, #8)
-  - [ ] Criar `sparta/src/lib/actions/load.ts` com `"use server"` no topo
-  - [ ] Definir tipos `PlayerLoadData`, `MonthlyLoad`, `LoadFilters` (ver secção Architecture)
-  - [ ] Implementar `requireStaffRole()` guard (copiar de `readiness.ts` — importar de `@/lib/actions/readiness` se exportada, senão duplicar o pattern)
-  - [ ] Buscar época atual: chamar `getCurrentSeason()` de `@/lib/actions/seasons`
-  - [ ] Query batch 1 — jogadores activos:
-    ```sql
-    SELECT id, full_name, position, age_group
-    FROM players
-    WHERE club_id = auth.club_id() AND archived_at IS NULL
-    ORDER BY full_name ASC
-    ```
-  - [ ] Query batch 2 — session_metrics com JOIN sessions (para obter season_id e scheduled_at):
-    ```typescript
-    supabase
-      .from("session_metrics")
-      .select("player_id, srpe_load, sessions!inner(season_id, scheduled_at)")
-      .eq("club_id", clubId)
-    ```
-    CRÍTICO: `session_metrics` não tem `season_id` — é obrigatório o JOIN via `sessions`.
-  - [ ] Agrupar métricas por `player_id` em TypeScript (Map para O(1) lookup)
-  - [ ] Calcular `total_load` e `monthly_breakdown` por jogador (ver lógica em Architecture)
-  - [ ] Calcular `season_avg` para os badges de threshold
-  - [ ] Chamar `auditedRead()` com `action='load.viewed'`, `target_kind='session_metrics'`, `target_id=clubId` (fire-and-forget)
-  - [ ] Retornar `Result<{ players: PlayerLoadData[]; currentSeason: Season | null }, AppError>`
+- [x] **Task 1: Server Action `getCumulativeLoadData()` em `src/lib/actions/load.ts`** (AC: #1, #5, #7, #8)
+  - [x] Criar `sparta/src/lib/actions/load.ts` com `"use server"` no topo
+  - [x] Definir tipos `PlayerLoadData`, `MonthlyLoad`, `LoadFilters` (ver secção Architecture)
+  - [x] Implementar `requireStaffRole()` guard (copiar de `readiness.ts` — importar de `@/lib/actions/readiness` se exportada, senão duplicar o pattern)
+  - [x] Buscar época atual: chamar `getCurrentSeason()` de `@/lib/actions/seasons`
+  - [x] Query batch 1 — jogadores activos (`id, full_name, age_group`) + query separada `positions` para posição primária
+  - [x] Query batch 2 — session_metrics com JOIN sessions (para obter season_id e scheduled_at)
+  - [x] Agrupar métricas por `player_id` em TypeScript (Map para O(1) lookup)
+  - [x] Calcular `total_load` e `monthly_breakdown` por jogador (ver lógica em Architecture)
+  - [x] Chamar `after()` fire-and-forget para audit log `action='load.viewed'`
+  - [x] Retornar `Result<{ players: PlayerLoadData[]; currentSeason: Season | null }, AppError>`
 
-- [ ] **Task 2: Componente `<MonthlyLoadBar>` em `src/components/domain/MonthlyLoadBar.tsx`** (AC: #1)
-  - [ ] Criar como Client Component
-  - [ ] Props: `data: MonthlyLoad[]` (array de `{ month: string; load: number }`)
-  - [ ] Usar `<BarChart>` do recharts: sem eixo X visível, eixo Y opcional, sem tooltip complexo, `isAnimationActive={false}`
-  - [ ] `role="img"` + `aria-label="Carga mensal: {meses_resumo}"` no wrapper div
-  - [ ] Estado vazio: se `data.length === 0`, renderizar `<span aria-hidden="true">—</span>`
-  - [ ] Cor das barras: `#3B82F6` (azul — consistente com a cor de energia de fadiga)
-  - [ ] Mock de recharts para testes: `vi.mock("recharts", ...)` (copiar de `FatigueChart.test.tsx`)
+- [x] **Task 2: Componente `<MonthlyLoadBar>` em `src/components/domain/MonthlyLoadBar.tsx`** (AC: #1)
+  - [x] Criar como Client Component
+  - [x] Props: `data: MonthlyLoad[]` (array de `{ month: string; load: number }`)
+  - [x] Usar `<BarChart>` do recharts com `isAnimationActive={false}`
+  - [x] `role="img"` + `aria-label="Carga mensal: {meses_resumo}"` no wrapper div
+  - [x] Estado vazio: se `data.length === 0`, renderizar `<span aria-hidden="true">—</span>`
+  - [x] Cor das barras: `#3B82F6`
 
-- [ ] **Task 3: Componente `<PlayerLoadRow>` em `src/components/domain/PlayerLoadRow.tsx`** (AC: #1, #4)
-  - [ ] Props: `player: PlayerLoadData`, `seasonAvg: number`
-  - [ ] Layout: `nome | posição | escalão | carga_total | [bar chart] | sessões | [badge?]`
-  - [ ] Badge threshold:
-    - `total_load < seasonAvg × 0.5` → badge com classe `bg-blue-100 text-blue-700` + ícone `<TrendingDown>` + "Carga baixa"
-    - `total_load > seasonAvg × 1.5` → badge com classe `bg-amber-100 text-amber-700` + ícone `<TrendingUp>` + "Carga alta"
-    - Sempre cor + ícone redundante (UX-DR1)
-  - [ ] Se `total_load === 0`: mostrar "0" e não mostrar badge de "Carga baixa" (jogador sem dados ≠ jogador treinado)
-  - [ ] Responsivo: em mobile (<640px) ocultar escalão e posição; em desktop mostrar tudo
+- [x] **Task 3: Componente `<PlayerLoadRow>` em `src/components/domain/PlayerLoadRow.tsx`** (AC: #1, #4)
+  - [x] Props: `player: PlayerLoadData`, `seasonAvg: number`, `load: number`, `monthly`, `sessions`
+  - [x] Layout: `nome | posição | escalão | carga_total | [bar chart] | sessões | [badge?]`
+  - [x] Badge threshold com ícone redundante (UX-DR1): Carga baixa / Carga alta
+  - [x] Se `load === 0`: não mostrar badge de "Carga baixa"
+  - [x] Responsivo: posição/escalão ocultos em mobile
 
-- [ ] **Task 4: Componente `<LoadFiltersSheet>` em `src/components/domain/LoadFiltersSheet.tsx`** (AC: #3)
-  - [ ] Client Component com props: `onFilter: (f: LoadFilters) => void`, `initialFilters: LoadFilters`
-  - [ ] Trigger: botão `<SlidersHorizontal>` lucide + "Filtros" abrindo `<DrillDownSheet side="bottom">`
-  - [ ] Filtros:
-    - RadioGroup posição: `Todas · GR · DEF · MED · AVA`
-    - RadioGroup ordenação: `Carga ↓ (default) · Sessões ↓ · Nome A→Z`
-  - [ ] Chips removíveis acima da lista (UX-DR35)
-  - [ ] Persistência: `sessionStorage` com chave `sparta:load:filters`
-  - [ ] Padrão identico ao `FatigueFilters.tsx`: `loadFiltersFromStorage()`, `saveFiltersToStorage()`, `useEffect` no mount
+- [x] **Task 4: Componente `<LoadFiltersSheet>` em `src/components/domain/LoadFiltersSheet.tsx`** (AC: #3)
+  - [x] Client Component com props: `onFilter`, `initialFilters`
+  - [x] RadioGroup posição + RadioGroup ordenação em DrillDownSheet
+  - [x] Chips removíveis acima da lista (UX-DR35)
+  - [x] Persistência: `sessionStorage` com chave `sparta:load:filters`
+  - [x] Padrão idêntico ao `TrendFilters.tsx`
 
-- [ ] **Task 5: Componente `<LoadDashboard>` (Client Component wrapper) em `src/components/domain/LoadDashboard.tsx`** (AC: #1, #2, #3, #6)
-  - [ ] Props: `players: PlayerLoadData[]`, `currentSeason: Season | null`
-  - [ ] State: `filters: LoadFilters`, `seasonView: SeasonView` (de `useSeasonView()`)
-  - [ ] Lógica de filtro client-side: aplicar `position`, `sortBy` ao array filtrado
-  - [ ] Lógica de toggle de época:
-    - `seasonView === 'current'`: usar `player.currentSeasonLoad` e `player.currentSeasonMonthly`
-    - `seasonView === 'cumulative'`: usar `player.totalLoad` e `player.allTimeMonthly`
-  - [ ] Calcular `seasonAvg` com base nos dados activos da view actual (recalcular ao mudar toggle)
-  - [ ] Renderizar `<SeasonToggle currentSeason={currentSeason} />` no header
-  - [ ] Renderizar `<LoadFiltersSheet onFilter={setFilters} />` + chips
-  - [ ] Renderizar lista de `<PlayerLoadRow>` para cada jogador filtrado
-  - [ ] Botão "Exportar CSV" que invoca `exportLoadCsv(filteredPlayers, seasonView)`
-  - [ ] `<EmptyState>` quando lista filtrada está vazia
+- [x] **Task 5: Componente `<LoadDashboard>` (Client Component wrapper) em `src/components/domain/LoadDashboard.tsx`** (AC: #1, #2, #3, #6)
+  - [x] Props: `players: PlayerLoadData[]`, `currentSeason: Season | null`
+  - [x] State: `filters: LoadFilters`, `seasonView` de `useSeasonView()`
+  - [x] Lógica de filtro e ordenação client-side
+  - [x] `seasonAvg` calculado com base nos dados da view actual
+  - [x] SeasonToggle + LoadFiltersSheet + PlayerLoadRow + Exportar CSV
+  - [x] EmptyState quando lista filtrada está vazia
 
-- [ ] **Task 6: Função `exportLoadCsv()` em `src/lib/utils/export.ts`** (AC: #6)
-  - [ ] Função pura (não é Server Action): `exportLoadCsv(players: PlayerLoadData[], view: SeasonView): void`
-  - [ ] Gerar headers CSV: `Nome,Posição,Escalão,Carga Total,Sessões,{meses...}`
-  - [ ] Meses em formato `AAAA-MM` (derivados das chaves de `monthly_breakdown`)
-  - [ ] Criar `Blob` e usar `URL.createObjectURL` + click sintético para download
-  - [ ] Nome do ficheiro: `sparta-carga-{YYYY-MM-DD}.csv`
-  - [ ] Escapar campos com vírgulas/aspas (formula injection prevention: prefixar com `'` se começa com `=`, `+`, `-`, `@`)
+- [x] **Task 6: Função `exportLoadCsv()` em `src/lib/utils/export.ts`** (AC: #6)
+  - [x] Função pura: `exportLoadCsv(players: PlayerLoadData[], view: SeasonView): void`
+  - [x] Headers CSV com colunas mensais dinâmicas
+  - [x] Blob + URL.createObjectURL + click sintético
+  - [x] Nome do ficheiro: `sparta-carga-{YYYY-MM-DD}.csv`
+  - [x] Prevenção de formula injection
 
-- [ ] **Task 7: Página `/tendencias/carga/page.tsx`** (AC: #1, #5, #7)
-  - [ ] Criar `sparta/src/app/(staff)/tendencias/carga/page.tsx` como Server Component
-  - [ ] Chamar `getCumulativeLoadData()` (sem filtros — filtros aplicados no cliente)
-  - [ ] Se `result.ok === false`: renderizar `<EmptyState>` com mensagem de erro
-  - [ ] Se sem época atual: renderizar `<EmptyState>` com link para `/configuracoes/epocas`
-  - [ ] Renderizar `<LoadDashboard players={players} currentSeason={currentSeason} />`
-  - [ ] Metadata: `title: "Carga Acumulada — SPARTA"`
+- [x] **Task 7: Página `/tendencias/carga/page.tsx`** (AC: #1, #5, #7)
+  - [x] Criar `sparta/src/app/(staff)/tendencias/carga/page.tsx` como Server Component
+  - [x] EmptyState para erro, sem época, sem dados de carga
+  - [x] Renderizar `<LoadDashboard players={players} currentSeason={currentSeason} />`
+  - [x] Metadata: `title: "Carga Acumulada — SPARTA"`
 
-- [ ] **Task 8: Layout `/tendencias/layout.tsx` com tabs Fadiga / Carga** (AC: #1)
-  - [ ] Criar `sparta/src/app/(staff)/tendencias/layout.tsx`
-  - [ ] Tabs com `<Link href="/tendencias/fadiga">` e `<Link href="/tendencias/carga">`
-  - [ ] Usar `usePathname()` (hook de `next/navigation`) para marcar tab activo com `aria-current="page"`
-  - [ ] ATENÇÃO: `layout.tsx` é um Server Component mas `usePathname()` é client-only → criar um sub-componente Client Component `<TendenciasTabNav>` para a navegação
-  - [ ] Se Story 5.8 já tiver modificado `/tendencias/page.tsx` para fazer `redirect('/tendencias/fadiga')`, manter esse redirect (o layout renderiza-se mas o redirect da `page.tsx` acontece primeiro)
+- [x] **Task 8: Layout `/tendencias/layout.tsx` com tabs Fadiga / Carga** (AC: #1)
+  - [x] Criar `sparta/src/app/(staff)/tendencias/layout.tsx`
+  - [x] TendenciasTabNav Client Component com usePathname() + aria-current="page"
+  - [x] redirect em /tendencias/page.tsx mantido (Story 5.8)
 
-- [ ] **Task 9: Testes** (AC: #1–#9)
-  - [ ] `sparta/src/components/domain/MonthlyLoadBar.test.tsx`
-  - [ ] `sparta/src/components/domain/PlayerLoadRow.test.tsx`
-  - [ ] `sparta/src/components/domain/LoadFiltersSheet.test.tsx`
-  - [ ] `sparta/src/__tests__/app/(staff)/tendencias-carga.test.tsx`
-  - [ ] Ver secção Testes abaixo para fixtures e casos obrigatórios
+- [x] **Task 9: Testes** (AC: #1–#9)
+  - [x] `sparta/src/components/domain/MonthlyLoadBar.test.tsx` (6 testes)
+  - [x] `sparta/src/components/domain/PlayerLoadRow.test.tsx` (8 testes)
+  - [x] `sparta/src/components/domain/LoadFiltersSheet.test.tsx` (7 testes)
+  - [x] `sparta/src/__tests__/app/(staff)/tendencias-carga.test.tsx` (10 testes)
 
 ---
 
@@ -707,6 +674,18 @@ claude-sonnet-4-6
 
 ### Completion Notes List
 
+- ✅ `getCumulativeLoadData()` implementado em `src/lib/actions/load.ts`: requireStaffRole guard, getCurrentSeason, batch query jogadores + positions separado (coluna `position` não existe em `players`), batch query session_metrics com JOIN sessions!inner, agrupamento por Map, after() fire-and-forget audit log
+- ✅ `MonthlyLoadBar` com BarChart recharts isAnimationActive=false, role=img, aria-label, empty state —
+- ✅ `PlayerLoadRow` com badges Carga baixa/alta (ícone redundante), responsivo mobile, load=0 sem badge
+- ✅ `LoadFiltersSheet` com sessionStorage chave `sparta:load:filters`, chips removíveis, padrão TrendFilters
+- ✅ `LoadDashboard` com SeasonToggle + useSeasonView, filtros/ordenação client-side, seasonAvg calculado dinamicamente
+- ✅ `exportLoadCsv()` em `src/lib/utils/export.ts`: Blob + URL.createObjectURL, colunas mensais dinâmicas, formula injection prevention
+- ✅ `/tendencias/carga/page.tsx` Server Component com EmptyState para 3 casos (erro, sem época, sem dados)
+- ✅ `/tendencias/layout.tsx` + `TendenciasTabNav` com usePathname e aria-current="page"
+- ✅ 31 testes novos passam (6 MonthlyLoadBar + 8 PlayerLoadRow + 7 LoadFiltersSheet + 10 integração)
+- ✅ 1529/1529 testes unitários ✅; lint ✅; typecheck ✅ (sem regressões)
+- ⚠️ NOTA: `players` não tem coluna `position` — query separada à tabela `positions` (is_primary=true)
+
 ### Notas Chave para o Developer
 
 1. **JOIN obrigatório sessions→season_id** — `session_metrics` não tem `season_id`. Usar `sessions!inner(season_id, scheduled_at)` na query Supabase.
@@ -722,7 +701,7 @@ claude-sonnet-4-6
 
 ### File List
 
-**Ficheiros a Criar:**
+**Ficheiros Criados:**
 - `sparta/src/app/(staff)/tendencias/layout.tsx`
 - `sparta/src/app/(staff)/tendencias/carga/page.tsx`
 - `sparta/src/lib/actions/load.ts`
@@ -737,12 +716,53 @@ claude-sonnet-4-6
 - `sparta/src/lib/utils/export.ts`
 - `sparta/src/__tests__/app/(staff)/tendencias-carga.test.tsx`
 
-**Ficheiros a Verificar/Modificar:**
-- `sparta/src/app/(staff)/tendencias/page.tsx` — verificar se Story 5.8 já adicionou `redirect('/tendencias/fadiga')`; se não, mantê-lo ou deixar o layout de tabs tratar da navegação
+**Ficheiros Verificados (sem alteração necessária):**
+- `sparta/src/app/(staff)/tendencias/page.tsx` — já tem `redirect('/tendencias/fadiga')` da Story 5.8 ✅
+
+---
+
+## Review Findings
+
+### Decision-Needed
+
+- [x] [Review][Decision] **AC #2 CRÍTICA — localStorage vs sessionStorage** — RESOLVED: Mudado para sessionStorage em `sparta/src/hooks/useSeasonView.ts` (linhas 13, 23). Alinhado com AC #2 spec.
+
+### Patches
+
+- [x] [Review][Patch] seasonAvg exclui jogadores com carga zero — documentado [LoadDashboard.tsx:57]
+- [x] [Review][Patch] Hardcoded position values — exportado POSITION_VALUES const [load.ts, LoadFiltersSheet.tsx]
+- [x] [Review][Patch] MetricRow sessions type — validação de schema adicionada [load.ts:168-178]
+- [x] [Review][Patch] GroupByMonth slice — ISO date regex validation [load.ts:82-85]
+- [x] [Review][Patch] Monthly data holes — comentário explicativo adicionado [export.ts:41]
+- [x] [Review][Patch] Season toggle + filter interaction — closeAndReset adicionado [LoadFiltersSheet.tsx:109-112]
+- [x] [Review][Patch] SessionStorage key collision — initialFilters sync effect [LoadFiltersSheet.tsx:104-108]
+- [x] [Review][Patch] sessionStorage access — typeof window guard adicionado [LoadFiltersSheet.tsx:97]
+- [x] [Review][Patch] Filter chip removal — initialFilters synced via prop [LoadDashboard.tsx:77]
+- [x] [Review][Patch] Zero sessions + non-zero load — sessions > 0 check [PlayerLoadRow.tsx:17-18]
+- [x] [Review][Patch] Negative load values — filter srpe_load > 0 [load.ts:168-178]
+- [x] [Review][Patch] AllMetrics filter — currentSeason?.id null-safe [load.ts:181]
+- [x] [Review][Patch] Sorting modifies reference — spread em alphabetic sort [LoadDashboard.tsx:52-54]
+- [x] [Review][Patch] CSV export empty list — button disabled + guard [LoadDashboard.tsx:78-81, export.ts:15]
+
+### Deferred
+
+- [x] [Review][Defer] CSV filename uniqueness — data colisão no download [export.ts:60] — deferred, pre-existing, low severity
 
 ---
 
 ## Change Log
+
+### 2026-05-28 (Story Implemented — dev-story complete)
+- ✅ `load.ts` Server Action com requireStaffRole, getCurrentSeason, 3 queries batch (players+positions+session_metrics JOIN sessions), after() audit log fire-and-forget
+- ✅ `MonthlyLoadBar.tsx` BarChart recharts role=img, aria-label, isAnimationActive=false
+- ✅ `PlayerLoadRow.tsx` badges threshold Carga baixa/alta com ícone redundante (UX-DR1), load=0 sem badge, responsivo
+- ✅ `LoadFiltersSheet.tsx` sessionStorage `sparta:load:filters`, chips removíveis, DrillDownSheet
+- ✅ `LoadDashboard.tsx` SeasonToggle + useSeasonView, seasonAvg dinâmico, filtros client-side, Exportar CSV
+- ✅ `export.ts` exportLoadCsv Blob + URL.createObjectURL, colunas mensais dinâmicas, formula injection prevention
+- ✅ `/tendencias/carga/page.tsx` Server Component, 3 estados vazios
+- ✅ `/tendencias/layout.tsx` + `TendenciasTabNav.tsx` com aria-current
+- ✅ 31 testes novos; 1529/1529 testes ✅; lint ✅; typecheck ✅
+- ⚠️ Descoberta: `players` não tem `position` — query separada à tabela `positions` (padrão trends.ts)
 
 ### 2026-05-27 (Story Created)
 - ✅ Análise do Epic 5.9 (FR38, season toggle, threshold badges, CSV export)
