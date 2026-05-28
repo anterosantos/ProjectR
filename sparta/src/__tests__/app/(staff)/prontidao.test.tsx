@@ -11,7 +11,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, waitFor, fireEvent } from "@testing-library/react";
 import { axe } from "vitest-axe";
 
 // ── UUIDs ────────────────────────────────────────────────────────────────────
@@ -32,6 +32,7 @@ vi.mock("@/lib/actions/readiness", () => ({
   getPlayerReadinessSnapshot: vi.fn(),
   getPlayerAcwrTrend: vi.fn(),
   refreshUpcomingReadiness: vi.fn(),
+  getPlayerDrillDownData: vi.fn(),
 }));
 
 import { getUpcomingSession, getReadinessPanelData } from "@/lib/actions/readiness";
@@ -313,6 +314,55 @@ describe("ProntidaoPage", () => {
 
       const results = await axe(container);
       expect(results).toHaveNoViolations();
+    });
+  });
+});
+
+// ── AC #4 (Story 5.5): Click num PlayerRow abre DrillDownSheet ────────────────
+import { getPlayerDrillDownData } from "@/lib/actions/readiness";
+
+describe("AC #4 (Story 5.5) — Click PlayerRow abre PlayerDrillDownSheet", () => {
+  it("ao clicar num player row, getPlayerDrillDownData é chamado com o player_id correcto", async () => {
+    vi.mocked(getPlayerDrillDownData).mockResolvedValue({
+      ok: true,
+      data: {
+        fatigueResponses: [],
+        sessions: {},
+        attendanceNumerator: 0,
+        attendanceDenominator: 0,
+      },
+    });
+
+    vi.mocked(getUpcomingSession).mockResolvedValue({
+      ok: true,
+      data: { sessionId: SESSION_UUID, scheduledAt: FUTURE_AT },
+    });
+    vi.mocked(getReadinessPanelData).mockResolvedValue({
+      ok: true,
+      data: {
+        players: [
+          makeSnapshot({
+            player_id: "p-click-test",
+            state: "alert",
+            acwr: 1.9,
+            jerseyNum: 7,
+            playerName: "Clique Teste",
+            primaryPosition: "MED",
+          }),
+        ],
+      },
+    });
+
+    const jsx = await ProntidaoPage();
+    render(jsx);
+
+    // Clicar no PlayerRow
+    const playerBtn = screen.getByRole("button", { name: /Clique Teste/i });
+    fireEvent.click(playerBtn);
+
+    // A sheet deve tentar carregar os dados do jogador
+    await waitFor(() => {
+      expect(getPlayerDrillDownData).toHaveBeenCalledWith("p-click-test");
     });
   });
 });

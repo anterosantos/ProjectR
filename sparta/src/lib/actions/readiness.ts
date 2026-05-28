@@ -24,7 +24,15 @@ import { err, ok } from "@/lib/types";
 import { logger } from "@/lib/logger";
 import type { Result, AppError } from "@/lib/types";
 import type { ReadinessSnapshot, PlayerReadinessData } from "@/types/supabase";
+import type { FatigueResponse, SessionInfo } from "@/lib/actions/fatigue-staff";
 import { READINESS_STATE_PRIORITY } from "@/lib/readiness/thresholds";
+
+export interface DrillDownData {
+  fatigueResponses: FatigueResponse[];
+  sessions: Record<string, SessionInfo>;
+  attendanceNumerator: number;
+  attendanceDenominator: number;
+}
 
 const STAFF_ROLES = ["coach", "analyst"] as const;
 
@@ -417,6 +425,37 @@ export async function getReadinessPanelData(
   const players: PlayerReadinessData[] = snapshots
     .map((snapshot) => {
       const player = playerMap.get(snapshot.player_id);
+
+      // Validate state is known
+      if (!(snapshot.state in READINESS_STATE_PRIORITY)) {
+        logger.warn('readiness.unknown_state', {
+          player_id: snapshot.player_id,
+          state: snapshot.state,
+        });
+      }
+
+      // Validate ACWR band is complete or null
+      const acwrComplete =
+        snapshot.acwr != null &&
+        snapshot.acwr_band_lo != null &&
+        snapshot.acwr_band_hi != null;
+      if ((snapshot.acwr != null || snapshot.acwr_band_lo != null || snapshot.acwr_band_hi != null) && !acwrComplete) {
+        logger.warn('readiness.partial_acwr_band', {
+          player_id: snapshot.player_id,
+          acwr: snapshot.acwr,
+          band_lo: snapshot.acwr_band_lo,
+          band_hi: snapshot.acwr_band_hi,
+        });
+      }
+
+      // Log missing player records (data consistency issue)
+      if (!player) {
+        logger.warn('readiness.missing_player_record', {
+          player_id: snapshot.player_id,
+          session_id: sessionId,
+        });
+      }
+
       return {
         ...snapshot,
         // P-11: trim + fallback para full_name vazio
@@ -436,4 +475,125 @@ export async function getReadinessPanelData(
     });
 
   return ok({ players });
+}
+
+/**
+ * getPlayerDrillDownData — Returns 28-day fatigue series + attendance for drill-down sheet.
+ *
+ * AUTHORIZATION: Staff only (coach/analyst). Players cannot access this (FR26).
+ * AUDIT: auditedRead() with action='readiness.drilldown' (AC #5, FR50, Story 3.11).
+ * ESLint: fatigue_responses query is inside auditedRead() callback (no-direct-health-data-read).
+ */
+export async function getPlayerDrillDownData(
+  playerId: string
+): Promise<Result<DrillDownData, AppError>> {
+  const authResult = await requireStaffRole();
+  if (!authResult.ok) return authResult;
+
+  if (!playerId?.trim()) {
+    return err({ code: 'not_found', message: 'Recurso não encontrado' });
+  }
+
+  const { userId, clubId } = authResult.data;
+  const supabase = await createServerClient();
+
+  const now = new Date();
+  const since28 = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
+
+  // Fetch fatigue responses via auditedRead — required for ESLint + audit trail (AC #5)
+  const fatigueResult = await auditedRead(
+    {
+      targetKind: 'readiness_snapshot',
+      targetId: playerId,
+      action: 'readiness.drilldown',
+      actorId: userId,
+      clubId,
+    },
+    async () =>
+      // eslint-disable-next-line custom/no-direct-health-data-read -- inside auditedRead() callback; audit logging handled by wrapper
+      supabase
+        .from('fatigue_responses')
+        .select(
+          'id, player_id, session_id, phase, dim_energy, dim_focus, dim_sleep, dim_soreness, dim_mood, srpe_value, submitted_at, submitted_via'
+        )
+        .eq('player_id', playerId)
+        .eq('club_id', clubId)
+        .gte('submitted_at', since28.toISOString())
+        .order('submitted_at', { ascending: true })
+  );
+
+  if (fatigueResult.error) {
+    logger.error('readiness.drilldown.fatigue_fetch_failed', {
+      player_id: playerId,
+      error: fatigueResult.error.message,
+    });
+    return err({ code: 'db_error', message: 'Erro ao carregar dados de fadiga' });
+  }
+
+  // Validate audit logging succeeded
+  if (!fatigueResult.ok) {
+    logger.error('readiness.drilldown.audit_log_failed', {
+      player_id: playerId,
+    });
+    return err({ code: 'audit_error', message: 'Erro ao registar acesso aos dados' });
+  }
+
+  const fatigueResponses = (fatigueResult.data ?? []).filter((r) => {
+    // Validate required fields
+    if (r.session_id == null) {
+      logger.warn('readiness.drilldown.missing_session_id', {
+        response_id: r.id,
+        player_id: playerId,
+      });
+      return false;
+    }
+    // Validate all dimensions exist (skip incomplete responses)
+    if (
+      r.dim_energy == null ||
+      r.dim_focus == null ||
+      r.dim_sleep == null ||
+      r.dim_soreness == null ||
+      r.dim_mood == null
+    ) {
+      logger.warn('readiness.drilldown.incomplete_dimensions', {
+        response_id: r.id,
+        player_id: playerId,
+      });
+      return false;
+    }
+    return true;
+  }) as FatigueResponse[];
+
+  // Fetch all club sessions in the 28-day window for attendance denominator
+  const { data: sessionRows, error: sessionsError } = await supabase
+    .from('sessions')
+    .select('id, type, scheduled_at')
+    .eq('club_id', clubId)
+    .gte('scheduled_at', since28.toISOString())
+    .lte('scheduled_at', now.toISOString());
+
+  if (sessionsError) {
+    logger.error('readiness.drilldown.sessions_fetch_failed', {
+      player_id: playerId,
+      error: sessionsError.message,
+    });
+    return err({ code: 'db_error', message: 'Erro ao carregar sessões' });
+  }
+
+  const allSessions = sessionRows ?? [];
+  const sessions: Record<string, SessionInfo> = {};
+  for (const s of allSessions) {
+    sessions[s.id] = { id: s.id, type: s.type, scheduled_at: s.scheduled_at };
+  }
+
+  const attendanceDenominator = allSessions.length;
+  const respondedSessionIds = new Set(fatigueResponses.map((r) => r.session_id));
+  const attendanceNumerator = [...respondedSessionIds].filter((sid) => sid in sessions).length;
+
+  return ok({
+    fatigueResponses,
+    sessions,
+    attendanceNumerator,
+    attendanceDenominator,
+  });
 }

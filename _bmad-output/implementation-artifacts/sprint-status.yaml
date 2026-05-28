@@ -192,7 +192,7 @@ development_status:
   5-2-acwr-calculation-engine-with-age-group-thresholds: done
   5-3-readiness-snapshots-materialized-source-for-the-painel: done
   5-4-painel-de-prontidao-lista-por-posicao-default-view: done
-  5-5-painel-drill-down-sheet-with-4-week-series-banda-acwr-presences-nota-livre: ready-for-dev
+  5-5-painel-drill-down-sheet-with-4-week-series-banda-acwr-presences-nota-livre: done
   5-6-painel-field-formation-4-3-3-view-with-toggle: ready-for-dev
   5-7-realtime-updates-window-4h-pre-session: ready-for-dev
   5-8-analista-dashboard-individual-4-week-fatigue-trends-multi-player-overview: ready-for-dev

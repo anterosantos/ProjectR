@@ -9,7 +9,7 @@
  */
 
 import { useState } from "react";
-import { DrillDownSheet } from "@/components/ui/drill-down-sheet";
+import { PlayerDrillDownSheet } from "@/components/domain/readiness/player-drill-down-sheet";
 import {
   PositionGroup,
   type PositionKey,
@@ -99,21 +99,11 @@ export function ReadinessPanelList({
         })}
       </div>
 
-      {/* Drill-down sheet — placeholder até Story 5.5 */}
-      <DrillDownSheet
+      <PlayerDrillDownSheet
+        snapshot={selectedPlayer}
         open={selectedPlayer !== null}
-        onOpenChange={(open) => {
-          if (!open) setSelectedPlayer(null);
-        }}
-      >
-        {selectedPlayer && (
-          <div className="py-4">
-            <p className="text-sm text-muted-foreground text-center">
-              Detalhes de {selectedPlayer.playerName} — disponível na Story 5.5
-            </p>
-          </div>
-        )}
-      </DrillDownSheet>
+        onClose={() => setSelectedPlayer(null)}
+      />
     </>
   );
 }
