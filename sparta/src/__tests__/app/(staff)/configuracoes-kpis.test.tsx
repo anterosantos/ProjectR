@@ -14,7 +14,7 @@ import type { MonthlyKpiRow } from "@/lib/types/decisions";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
-vi.mock("@/lib/actions/decisions", () => ({
+vi.mock("@/lib/actions/decisions-server", () => ({
   getDecisionKpiData: vi.fn(),
 }));
 
@@ -34,7 +34,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
-import { getDecisionKpiData } from "@/lib/actions/decisions";
+import { getDecisionKpiData } from "@/lib/actions/decisions-server";
 import KpisValidacaoPage from "@/app/(staff)/configuracoes/kpis-validacao/page";
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────

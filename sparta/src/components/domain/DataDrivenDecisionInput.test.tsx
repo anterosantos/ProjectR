@@ -40,7 +40,7 @@ import {
   getDataDrivenDecisions,
   saveDataDrivenDecision,
 } from "@/lib/actions/decisions";
-import type { DataDecision } from "@/lib/actions/decisions";
+import type { DataDecision } from "@/lib/types/decisions";
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 

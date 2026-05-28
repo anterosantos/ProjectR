@@ -1,4 +1,4 @@
-import { getDecisionKpiData } from "@/lib/actions/decisions";
+import { getDecisionKpiData } from "@/lib/actions/decisions-server";
 import { KpisContent } from "./kpis-content";
 
 export default async function KpisValidacaoPage() {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { TelemetryPayloadSchema } from "@/lib/actions/telemetry";
+import { TelemetryPayloadSchema } from "@/lib/schemas/telemetry";
 
 /**
  * Simple validation tests for telemetry logging

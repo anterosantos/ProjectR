@@ -1,31 +1,13 @@
 "use server";
 
-import { z } from "zod";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { logger } from "@/lib/logger";
 import { createServerClient } from "@/lib/supabase/server";
 import type { Result, AppError } from "@/lib/types";
 import type { Json } from "@/lib/supabase/database.types";
 import { ok } from "@/lib/types";
-
-/**
- * Zod schema for telemetry payload validation.
- * Accepts any JSON-serializable value (object, array, primitive).
- * Exported so tests can import directly without re-declaring.
- */
-export const TelemetryPayloadSchema = z.custom<unknown>(
-  (val) => {
-    try {
-      JSON.stringify(val);
-      return true;
-    } catch {
-      return false;
-    }
-  },
-  "payload must be JSON-serializable"
-);
-
-export type TelemetryPayload = z.infer<typeof TelemetryPayloadSchema>;
+import { TelemetryPayloadSchema } from "@/lib/schemas/telemetry";
+import type { TelemetryPayload } from "@/lib/schemas/telemetry";
 
 /**
  * Log a telemetry event to the database
