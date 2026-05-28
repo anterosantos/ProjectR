@@ -530,13 +530,8 @@ export async function getPlayerDrillDownData(
     return err({ code: 'db_error', message: 'Erro ao carregar dados de fadiga' });
   }
 
-  // Validate audit logging succeeded
-  if (!fatigueResult.ok) {
-    logger.error('readiness.drilldown.audit_log_failed', {
-      player_id: playerId,
-    });
-    return err({ code: 'audit_error', message: 'Erro ao registar acesso aos dados' });
-  }
+  // Note: auditedRead() logs audit trail asynchronously (fire-and-forget pattern).
+  // If audit logging fails, it is logged separately but does not block data return.
 
   const fatigueResponses = (fatigueResult.data ?? []).filter((r) => {
     // Validate required fields
