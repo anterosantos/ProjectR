@@ -4,6 +4,8 @@ export const metadata = {
   title: "KPIs de Validação — SPARTA",
 };
 
+export const dynamic = "force-dynamic";
+
 export default function KpisValidacaoLayout({
   children,
 }: {

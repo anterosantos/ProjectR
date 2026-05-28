@@ -3,8 +3,6 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { getDecisionKpiData } from "@/lib/actions/decisions";
 import { DECISION_KIND_LABELS, DECISION_KINDS } from "@/lib/types/decisions";
 
-export const dynamic = "force-dynamic";
-
 export default async function KpisValidacaoPage() {
   const result = await getDecisionKpiData();
 
