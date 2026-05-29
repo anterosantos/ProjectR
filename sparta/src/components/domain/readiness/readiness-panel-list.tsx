@@ -14,7 +14,7 @@ import {
   PositionGroup,
   type PositionKey,
 } from "@/components/domain/readiness/position-group";
-import type { PlayerReadinessData } from "@/types/supabase";
+import type { PlayerReadinessData, PlayerSessionHistory } from "@/types/supabase";
 // P-22: usar constante partilhada (DRY — evita divergência com Server Actions)
 import { READINESS_STATE_PRIORITY } from "@/lib/readiness/thresholds";
 
@@ -65,12 +65,14 @@ function sortGroup(players: PlayerReadinessData[]): PlayerReadinessData[] {
 
 export interface ReadinessPanelListProps {
   players: PlayerReadinessData[];
+  history: PlayerSessionHistory;
   sessionId: string;
   flashedIds?: Set<string>;
 }
 
 export function ReadinessPanelList({
   players,
+  history,
   sessionId: _,
   flashedIds,
 }: ReadinessPanelListProps) {
@@ -104,6 +106,7 @@ export function ReadinessPanelList({
               key={pos}
               position={pos}
               players={group}
+              history={history}
               onSelectPlayer={setSelectedPlayer}
               flashedIds={flashedIds}
             />

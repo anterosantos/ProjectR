@@ -23,7 +23,7 @@ import { refreshSnapshotForSession } from "@/lib/readiness/snapshot";
 import { err, ok } from "@/lib/types";
 import { logger } from "@/lib/logger";
 import type { Result, AppError } from "@/lib/types";
-import type { ReadinessSnapshot, PlayerReadinessData } from "@/types/supabase";
+import type { ReadinessSnapshot, PlayerReadinessData, SessionHistoryEntry, PlayerSessionHistory } from "@/types/supabase";
 import type { FatigueResponse, SessionInfo } from "@/lib/actions/fatigue-staff";
 import { READINESS_STATE_PRIORITY } from "@/lib/readiness/thresholds";
 
@@ -355,7 +355,7 @@ export async function getUpcomingSession(): Promise<
  */
 export async function getReadinessPanelData(
   sessionId: string
-): Promise<Result<{ players: PlayerReadinessData[] }, AppError>> {
+): Promise<Result<{ players: PlayerReadinessData[]; history: PlayerSessionHistory }, AppError>> {
   const authResult = await requireStaffRole();
   if (!authResult.ok) return authResult;
 
@@ -391,7 +391,7 @@ export async function getReadinessPanelData(
   const snapshots: ReadinessSnapshot[] = snapshotResult.data ?? [];
 
   if (snapshots.length === 0) {
-    return ok({ players: [] });
+    return ok({ players: [], history: {} });
   }
 
   // Fetch player info (full_name, jersey_num) for these players
@@ -484,7 +484,41 @@ export async function getReadinessPanelData(
       return acwrB - acwrA;
     });
 
-  return ok({ players });
+  // Fetch session history: last 8 past snapshots per player (excluding current session)
+  const SESSION_HISTORY_COUNT = 8;
+  const historyLookbackMs = 90 * 24 * 60 * 60 * 1000;
+  const historyStart = new Date(Date.now() - historyLookbackMs);
+
+  // eslint-disable-next-line custom/no-direct-health-data-read -- read inside staff-auth-guarded action; audit already logged above for this panel load
+  const { data: historyRows } = await supabase
+    .from('readiness_snapshots')
+    .select('player_id, session_id, state, computed_at')
+    .in('player_id', playerIds)
+    .eq('club_id', clubId)
+    .neq('session_id', sessionId)
+    .gte('computed_at', historyStart.toISOString())
+    .order('computed_at', { ascending: false });
+
+  // Group by player_id, take first SESSION_HISTORY_COUNT (most recent), then reverse to oldest→newest
+  const historyByPlayer = new Map<string, SessionHistoryEntry[]>();
+  for (const row of historyRows ?? []) {
+    const existing = historyByPlayer.get(row.player_id) ?? [];
+    if (existing.length < SESSION_HISTORY_COUNT) {
+      existing.push({
+        sessionId: row.session_id,
+        computedAt: row.computed_at,
+        state: row.state as SessionHistoryEntry['state'],
+      });
+      historyByPlayer.set(row.player_id, existing);
+    }
+  }
+  // Reverse each player's list so it's oldest→newest (for left-to-right display)
+  const history: PlayerSessionHistory = {};
+  for (const [playerId, entries] of historyByPlayer) {
+    history[playerId] = entries.reverse();
+  }
+
+  return ok({ players, history });
 }
 
 /**

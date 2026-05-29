@@ -81,6 +81,7 @@ export default async function ProntidaoPage() {
       {/* Panel (Client Component — toggle + drill-down) */}
       <ReadinessPanel
         players={players}
+        history={panelResult.data.history}
         sessionId={sessionId}
         scheduledAt={scheduledAt}
         view="list"

@@ -8,7 +8,7 @@
 
 import { Shield, ShieldAlert, Zap, Target } from "lucide-react";
 import { PlayerRow } from "@/components/domain/readiness/player-row";
-import type { PlayerReadinessData } from "@/types/supabase";
+import type { PlayerReadinessData, PlayerSessionHistory } from "@/types/supabase";
 
 export type PositionKey = "GR" | "DEF" | "MED" | "AVA";
 
@@ -37,6 +37,7 @@ const POSITION_CONFIG: Record<
 export interface PositionGroupProps {
   position: PositionKey;
   players: PlayerReadinessData[];
+  history: PlayerSessionHistory;
   onSelectPlayer?: (snapshot: PlayerReadinessData) => void;
   flashedIds?: Set<string>;
 }
@@ -44,6 +45,7 @@ export interface PositionGroupProps {
 export function PositionGroup({
   position,
   players,
+  history,
   onSelectPlayer,
   flashedIds,
 }: PositionGroupProps) {
@@ -66,11 +68,12 @@ export function PositionGroup({
       </h2>
 
       {/* Player rows */}
-      <ul role="list" className="divide-y divide-border/40">
+      <ul role="list" className="space-y-2 px-4">
         {players.map((snapshot) => (
           <li key={snapshot.player_id} role="listitem">
             <PlayerRow
               snapshot={snapshot}
+              history={history[snapshot.player_id] ?? []}
               position={config.label}
               onSelect={onSelectPlayer}
               flashed={flashedIds?.has(snapshot.player_id) ?? false}

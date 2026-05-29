@@ -18,12 +18,13 @@ import { ReadinessPanelFormation } from "@/components/domain/readiness/readiness
 import { createClient } from "@/lib/supabase/client";
 import { isInPreSessionWindow } from "@/lib/readiness/realtime-window";
 import { getReadinessPanelData, refreshUpcomingReadiness } from "@/lib/actions/readiness";
-import type { PlayerReadinessData } from "@/types/supabase";
+import type { PlayerReadinessData, PlayerSessionHistory } from "@/types/supabase";
 
 const SESSION_STORAGE_KEY = "readiness-panel-view";
 
 export interface ReadinessPanelProps {
   players: PlayerReadinessData[];
+  history: PlayerSessionHistory;
   sessionId: string;
   scheduledAt?: string;
   view?: "list" | "formation";
@@ -31,6 +32,7 @@ export interface ReadinessPanelProps {
 
 export function ReadinessPanel({
   players: initialPlayers,
+  history: initialHistory,
   sessionId,
   scheduledAt,
   view: initialView = "list",
@@ -38,6 +40,7 @@ export function ReadinessPanel({
   // P-12: Inicializar com a prop (server-safe) e sincronizar de sessionStorage após hydration.
   const [view, setView] = useState<"list" | "formation">(initialView);
   const [players, setPlayers] = useState<PlayerReadinessData[]>(initialPlayers);
+  const [history, setHistory] = useState<PlayerSessionHistory>(initialHistory);
   const [flashedIds, setFlashedIds] = useState<Set<string>>(new Set());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [inWindow, setInWindow] = useState(() =>
@@ -93,7 +96,6 @@ export function ReadinessPanel({
           filter: `session_id=eq.${sessionId}`,
         },
         async (payload) => {
-          // TR-003: Guard callback with ref check to prevent stale updates after inWindow=false
           if (!inWindowRef.current) return;
 
           const updatedPlayerId =
@@ -104,10 +106,10 @@ export function ReadinessPanel({
             const result = await getReadinessPanelData(sessionId);
             if (result.ok) {
               setPlayers(result.data.players);
+              setHistory(result.data.history);
               if (updatedPlayerId) {
                 setFlashedIds((prev) => new Set(prev).add(updatedPlayerId));
 
-                // Clear any existing timeout for this player to avoid race conditions
                 const existingTimeout = flashTimeoutsRef.current.get(updatedPlayerId);
                 if (existingTimeout) clearTimeout(existingTimeout);
 
@@ -134,24 +136,22 @@ export function ReadinessPanel({
       supabase.removeChannel(channel).catch((error) => {
         console.error("Failed to remove Realtime channel:", error);
       });
-      // TR-002: Clean up all pending flash timeouts on unmount
       flashTimeoutsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
       flashTimeoutsRef.current.clear();
     };
   }, [sessionId, inWindow]);
 
   const handleManualRefresh = async () => {
-    // TR-001: Debounce concurrent refresh requests
     if (refreshInProgressRef.current) return;
 
     refreshInProgressRef.current = true;
     setIsRefreshing(true);
     try {
-      // Recalculate snapshots first, then read the updated data
       await refreshUpcomingReadiness(sessionId);
       const result = await getReadinessPanelData(sessionId);
       if (result.ok) {
         setPlayers(result.data.players);
+        setHistory(result.data.history);
       } else {
         console.error("Failed to refresh readiness panel data:", result);
       }
@@ -173,10 +173,15 @@ export function ReadinessPanel({
     }
   };
 
-  // Aggregate counts — neutros excluídos (FR34, UX-DR12) — usa players state
-  const readyCount = players.filter((p) => p.state === "ready").length;
+  const readyCount   = players.filter((p) => p.state === "ready").length;
   const cautionCount = players.filter((p) => p.state === "caution").length;
-  const alertCount = players.filter((p) => p.state === "alert").length;
+  const alertCount   = players.filter((p) => p.state === "alert").length;
+  const neutralCount = players.filter((p) => p.state === "neutral").length;
+
+  // Format session time as "HH:MM" for display
+  const sessionTime = scheduledAt
+    ? new Date(scheduledAt).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })
+    : null;
 
   return (
     <div className="flex flex-col min-h-0">
@@ -184,6 +189,8 @@ export function ReadinessPanel({
         readyCount={readyCount}
         cautionCount={cautionCount}
         alertCount={alertCount}
+        neutralCount={neutralCount}
+        sessionTime={sessionTime}
         view={view}
         onViewChange={handleViewChange}
         onRefresh={handleManualRefresh}
@@ -192,7 +199,12 @@ export function ReadinessPanel({
       />
 
       {view === "list" ? (
-        <ReadinessPanelList players={players} sessionId={sessionId} flashedIds={flashedIds} />
+        <ReadinessPanelList
+          players={players}
+          history={history}
+          sessionId={sessionId}
+          flashedIds={flashedIds}
+        />
       ) : (
         <ReadinessPanelFormation players={players} sessionId={sessionId} flashedIds={flashedIds} />
       )}

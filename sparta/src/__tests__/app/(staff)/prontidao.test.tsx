@@ -145,36 +145,36 @@ describe("ProntidaoPage", () => {
       });
       vi.mocked(getReadinessPanelData).mockResolvedValue({
         ok: true,
-        data: { players: makeFixturePlayers() },
+        data: { players: makeFixturePlayers(), history: {} },
       });
 
       const jsx = await ProntidaoPage();
       render(jsx);
 
       // 3 alert: p-gr-1, p-def-1, p-ava-2
-      expect(screen.getByRole("img", { name: /3 jogadores em alerta/i })).toBeInTheDocument();
+      expect(screen.getByText("3 Alerta")).toBeInTheDocument();
       // 2 caution: p-def-2, p-med-1
-      expect(screen.getByRole("img", { name: /2 jogadores com cuidado/i })).toBeInTheDocument();
+      expect(screen.getByText("2 Atenção")).toBeInTheDocument();
       // 4 ready: p-gr-2, p-def-3, p-med-2, p-ava-1
-      expect(screen.getByRole("img", { name: /4 jogadores prontos/i })).toBeInTheDocument();
+      expect(screen.getByText("4 Verdes")).toBeInTheDocument();
     });
 
-    it("exibe labels PT-PT: Prontos, Cuidado, Alerta", async () => {
+    it("exibe labels PT-PT: Verdes, Atenção, Alerta", async () => {
       vi.mocked(getUpcomingSession).mockResolvedValue({
         ok: true,
         data: { sessionId: SESSION_UUID, scheduledAt: FUTURE_AT },
       });
       vi.mocked(getReadinessPanelData).mockResolvedValue({
         ok: true,
-        data: { players: makeFixturePlayers() },
+        data: { players: makeFixturePlayers(), history: {} },
       });
 
       const jsx = await ProntidaoPage();
       render(jsx);
 
-      expect(screen.getByText("Prontos")).toBeInTheDocument();
-      expect(screen.getByText("Cuidado")).toBeInTheDocument();
-      expect(screen.getByText("Alerta")).toBeInTheDocument();
+      expect(screen.getByText(/Verdes/)).toBeInTheDocument();
+      expect(screen.getByText(/Atenção/)).toBeInTheDocument();
+      expect(screen.getByText(/Alerta/)).toBeInTheDocument();
     });
   });
 
@@ -187,7 +187,7 @@ describe("ProntidaoPage", () => {
       });
       vi.mocked(getReadinessPanelData).mockResolvedValue({
         ok: true,
-        data: { players: makeFixturePlayers() },
+        data: { players: makeFixturePlayers(), history: {} },
       });
     });
 
@@ -231,7 +231,7 @@ describe("ProntidaoPage", () => {
       });
       vi.mocked(getReadinessPanelData).mockResolvedValue({
         ok: true,
-        data: { players: makeFixturePlayers() },
+        data: { players: makeFixturePlayers(), history: {} },
       });
 
       const jsx = await ProntidaoPage();
@@ -271,17 +271,14 @@ describe("ProntidaoPage", () => {
               primaryPosition: "MED",
             }),
           ],
+          history: {},
         },
       });
 
       const jsx = await ProntidaoPage();
       render(jsx);
 
-      // Visual indicator renders (aria-hidden, but data-testid accessible in tests)
-      expect(
-        screen.getByTestId("insufficient-data-indicator")
-      ).toBeInTheDocument();
-      // Button aria-label includes "Estado Sem dados" for screen readers
+      // Card renders with accessible aria-label including "Estado Sem dados"
       expect(
         screen.getByRole("button", { name: /estado sem dados/i })
       ).toBeInTheDocument();
@@ -297,7 +294,7 @@ describe("ProntidaoPage", () => {
       });
       vi.mocked(getReadinessPanelData).mockResolvedValue({
         ok: true,
-        data: { players: makeFixturePlayers() },
+        data: { players: makeFixturePlayers(), history: {} },
       });
 
       const jsx = await ProntidaoPage();
@@ -351,6 +348,7 @@ describe("AC #4 (Story 5.5) — Click PlayerRow abre PlayerDrillDownSheet", () =
             primaryPosition: "MED",
           }),
         ],
+        history: {},
       },
     });
 
@@ -388,6 +386,7 @@ describe("AC #1 (Story 5.6) — Toggle 'Formação' ativa ReadinessPanelFormatio
     render(
       <ReadinessPanel
         players={[makeSnapshot({ player_id: "p-1", state: "ready", primaryPosition: "MED" })]}
+        history={{}}
         sessionId={SESSION_UUID}
       />
     );
@@ -398,6 +397,7 @@ describe("AC #1 (Story 5.6) — Toggle 'Formação' ativa ReadinessPanelFormatio
     render(
       <ReadinessPanel
         players={[makeSnapshot({ player_id: "p-1", state: "ready", primaryPosition: "MED" })]}
+        history={{}}
         sessionId={SESSION_UUID}
       />
     );
@@ -413,6 +413,7 @@ describe("AC #1 (Story 5.6) — Toggle 'Formação' ativa ReadinessPanelFormatio
     render(
       <ReadinessPanel
         players={[makeSnapshot({ player_id: "p-1", state: "ready", primaryPosition: "MED" })]}
+        history={{}}
         sessionId={SESSION_UUID}
       />
     );
@@ -428,6 +429,7 @@ describe("AC #1 (Story 5.6) — Toggle 'Formação' ativa ReadinessPanelFormatio
     render(
       <ReadinessPanel
         players={[makeSnapshot({ player_id: "p-1", state: "ready", primaryPosition: "MED" })]}
+        history={{}}
         sessionId={SESSION_UUID}
       />
     );
@@ -456,7 +458,7 @@ describe("AC #3 (Story 5.7) — Botão Atualizar fora da janela 4h", () => {
     });
     vi.mocked(getReadinessPanelData).mockResolvedValue({
       ok: true,
-      data: { players: [] },
+      data: { players: [], history: {} },
     });
 
     const jsx = await ProntidaoPage();

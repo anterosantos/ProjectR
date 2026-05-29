@@ -38,3 +38,13 @@ export interface PlayerReadinessData extends ReadinessSnapshot {
   /** Primary position string from positions table (e.g. 'GR', 'DEF', 'MED', 'AVA') */
   primaryPosition: string | null;
 }
+
+/** One entry in the per-player session history bar (last N past sessions). */
+export interface SessionHistoryEntry {
+  sessionId: string;
+  computedAt: string; // ISO string — used for ordering (oldest → newest)
+  state: 'ready' | 'caution' | 'alert' | 'neutral';
+}
+
+/** Session history keyed by player_id — max SESSION_HISTORY_COUNT entries per player, sorted oldest→newest. */
+export type PlayerSessionHistory = Record<string, SessionHistoryEntry[]>;

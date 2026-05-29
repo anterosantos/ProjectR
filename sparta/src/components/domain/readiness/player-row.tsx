@@ -1,74 +1,77 @@
 "use client";
 
-/**
- * PlayerRow — Linha individual de jogador no Painel de Prontidão.
- *
- * AC #4: jersey + nome + SemaforoBadge alinhado à direita
- * AC #7: InsufficientDataIndicator com role="tooltip" + aria-describedby (P-14)
- * AC #8: ARIA label completo (nome, número, posição, estado)
- *
- * P-14: Tooltip acessível via role="tooltip" + aria-describedby no button (antes: aria-hidden total)
- * P-16: data_sufficient === false (explícito; antes !undefined também disparava)
- * P-17: jerseyNum != null para suportar camisola 0 (antes: 0 exibia "—")
- */
+import { cn } from "@/lib/utils";
+import { SessionHistoryBar } from "@/components/domain/readiness/session-history-bar";
+import type { PlayerReadinessData, SessionHistoryEntry } from "@/types/supabase";
 
-import { HelpCircle } from "lucide-react";
-import { SemaforoBadge } from "@/components/ui/semaforo-badge";
-import type { PlayerReadinessData } from "@/types/supabase";
+// ─── Age group display ────────────────────────────────────────────────────────
 
-const STATE_LABEL: Record<string, string> = {
-  ready: "Pronto",
-  caution: "Cuidado",
-  alert: "Alerta",
-  neutral: "Sem dados",
+const AGE_GROUP_LABEL: Record<string, string> = {
+  senior: "Sénior",
+  u19: "Sub-19",
+  u17: "Sub-17",
+  u15: "Sub-15",
+  u14: "Sub-14",
 };
 
-/**
- * Indicator for players with insufficient historical data.
- * P-14: Tooltip acessível via role="tooltip" + id linkado por aria-describedby no button pai.
- * O icon é aria-hidden; o texto do tooltip é exposto a AT via aria-describedby.
- */
-function InsufficientDataIndicator({ id }: { id: string }) {
+function ageGroupLabel(raw: string | null): string {
+  if (!raw) return "";
+  return AGE_GROUP_LABEL[raw.toLowerCase()] ?? raw;
+}
+
+// ─── Readiness badge ──────────────────────────────────────────────────────────
+
+const BADGE_CONFIG = {
+  ready:   { label: "OK",        ariaLabel: "OK",        className: "bg-signal-ready/10 text-signal-ready" },
+  caution: { label: "ATENÇÃO",   ariaLabel: "Atenção",   className: "bg-signal-caution/10 text-signal-caution" },
+  alert:   { label: "ALERTA",    ariaLabel: "Alerta",    className: "bg-signal-alert/10 text-signal-alert" },
+  neutral: { label: "—",         ariaLabel: "Sem dados", className: "bg-muted text-muted-foreground" },
+} as const satisfies Record<string, { label: string; ariaLabel: string; className: string }>;
+
+function ReadinessBadge({ state }: { state: string }) {
+  const config = BADGE_CONFIG[state as keyof typeof BADGE_CONFIG] ?? BADGE_CONFIG.neutral;
   return (
     <span
-      className="relative inline-flex items-center group shrink-0"
-      data-testid="insufficient-data-indicator"
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-medium shrink-0",
+        config.className
+      )}
+      aria-hidden="true"
     >
-      <HelpCircle className="size-4 text-muted-foreground" aria-hidden="true" />
-      {/* role="tooltip" expõe o texto a AT; CSS hover para utilizadores com visão */}
-      <span
-        id={id}
-        role="tooltip"
-        className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 w-52 rounded-lg border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-      >
-        Sem dados suficientes. O jogador precisa de pelo menos 2 questionários submetidos.
-      </span>
+      <span className="text-[10px]">●</span>
+      {config.label}
     </span>
   );
 }
 
+// ─── PlayerRow ────────────────────────────────────────────────────────────────
+
 export interface PlayerRowProps {
   snapshot: PlayerReadinessData;
+  history: SessionHistoryEntry[];
   position: string;
   onSelect?: (snapshot: PlayerReadinessData) => void;
   flashed?: boolean;
 }
 
-export function PlayerRow({ snapshot, position, onSelect, flashed = false }: PlayerRowProps) {
-  const { playerName, jerseyNum, state, data_sufficient, player_id } = snapshot;
-  const stateLabel = STATE_LABEL[state] ?? state;
-  // P-16: comparação explícita para não disparar com undefined
-  const hasInsufficientData = data_sufficient === false;
-  // TR-010: Use compound ID to avoid collision if PlayerRow instances duplicated
-  const tooltipId = hasInsufficientData ? `insufficient-${player_id}-tooltip` : undefined;
+export function PlayerRow({
+  snapshot,
+  history,
+  position,
+  onSelect,
+  flashed = false,
+}: PlayerRowProps) {
+  const { playerName, jerseyNum, state, acwr, derived_age_group, player_id } = snapshot;
+
+  const acwrLabel = acwr != null ? `ACWR ${acwr.toFixed(2)}` : null;
+  const categoryLabel = ageGroupLabel(derived_age_group);
+  const subtitle = [categoryLabel, acwrLabel].filter(Boolean).join(" · ");
 
   const ariaLabel = [
     playerName,
-    // P-17: jerseyNum != null para suportar camisola 0 (antes: 0 era falsy)
-    // TR-005: Type coercion guard — ensure jerseyNum is converted to string safely
     jerseyNum != null ? `Número ${String(jerseyNum)}` : null,
     `Posição ${position}`,
-    `Estado ${stateLabel}`,
+    `Estado ${BADGE_CONFIG[state as keyof typeof BADGE_CONFIG]?.ariaLabel ?? state}`,
   ]
     .filter(Boolean)
     .join(", ");
@@ -76,37 +79,42 @@ export function PlayerRow({ snapshot, position, onSelect, flashed = false }: Pla
   return (
     <button
       type="button"
-      className={`w-full px-4 py-3 flex items-center justify-between rounded-lg cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring${
-        flashed
-          ? " motion-safe:bg-primary/10 motion-safe:transition-all motion-safe:duration-200 motion-safe:ease-out hover:bg-muted/50"
-          : " hover:bg-muted/50 transition-colors"
-      }`}
-      data-flashed={flashed ? "true" : undefined}
+      className={cn(
+        "w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl",
+        flashed && "motion-safe:bg-primary/5 motion-safe:transition-all motion-safe:duration-200"
+      )}
       aria-label={ariaLabel}
-      // P-14: aria-describedby aponta para tooltip acessível (role="tooltip")
-      aria-describedby={tooltipId}
+      data-player-id={player_id}
       onClick={() => onSelect?.(snapshot)}
     >
-      {/* Jersey number — P-17: suporta camisola 0 */}
-      <span className="text-sm text-muted-foreground w-6 shrink-0 text-right" aria-hidden="true">
-        {jerseyNum != null ? jerseyNum : "—"}
-      </span>
+      <div className="bg-card rounded-xl shadow-sm border border-border/50 p-4 hover:shadow-md transition-shadow">
+        {/* Top row: jersey | name+subtitle | badge */}
+        <div className="flex items-center gap-3">
+          {/* Jersey badge */}
+          <div
+            className="w-12 h-12 bg-muted rounded-xl flex items-center justify-center shrink-0"
+            aria-hidden="true"
+          >
+            <span className="text-lg font-bold text-muted-foreground">
+              {jerseyNum != null ? jerseyNum : "—"}
+            </span>
+          </div>
 
-      {/* Player name */}
-      <span className="flex-1 mx-3 text-sm font-medium text-foreground flex items-center gap-1.5" aria-hidden="true">
-        {playerName}
-      </span>
+          {/* Name + subtitle */}
+          <div className="flex-1 min-w-0" aria-hidden="true">
+            <p className="font-semibold text-foreground truncate">{playerName}</p>
+            {subtitle && (
+              <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>
+            )}
+          </div>
 
-      {/* P-14: InsufficientDataIndicator fora do span aria-hidden para que role="tooltip" seja exposto */}
-      {hasInsufficientData && <InsufficientDataIndicator id={tooltipId!} />}
+          {/* State badge */}
+          <ReadinessBadge state={state} />
+        </div>
 
-      {/* Semáforo badge */}
-      <SemaforoBadge
-        state={state}
-        size="md"
-        className="shrink-0"
-        aria-hidden="true"
-      />
+        {/* History bar */}
+        <SessionHistoryBar history={history} className="mt-3" />
+      </div>
     </button>
   );
 }
