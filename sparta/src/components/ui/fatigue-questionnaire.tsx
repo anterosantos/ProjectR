@@ -23,6 +23,7 @@ import { submitFatigueResponse } from "@/lib/actions/fatigue";
 import { enqueueFatigueSubmit } from "@/lib/outbox/enqueue";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { CalmConfirmation } from "@/components/ui/calm-confirmation";
+import { FatigueEmojiPicker } from "@/components/ui/fatigue-emoji-picker";
 import { FatigueSlider } from "@/components/ui/fatigue-slider";
 import { getFatigueCopy } from "@/lib/i18n/pt-PT/fatigue";
 
@@ -278,21 +279,18 @@ export function FatigueQuestionnaire({
         </p>
       )}
 
-      {/* 5 sliders de dimensão — copy vem do i18n (Story 4.3) */}
+      {/* 5 dimensões com emoji picker — copy vem do i18n (Story 4.3) */}
       <div className="flex flex-col gap-6">
         {copy.dimensions.map((dim) => (
-          <FatigueSlider
+          <FatigueEmojiPicker
             key={dim.key}
-            id={`slider-${dim.key}`}
+            id={`picker-${dim.key}`}
+            dimKey={dim.key}
             label={dim.label}
-            minLabel={dim.minLabel}
-            maxLabel={dim.maxLabel}
-            min={1}
-            max={5}
+            emojis={dim.emojis}
             value={values[dim.key]}
             onChange={(v) => handleChange(dim.key, v)}
             disabled={isSubmitting}
-            ageGroup={ageGroup}
           />
         ))}
 

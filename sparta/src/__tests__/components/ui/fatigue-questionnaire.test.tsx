@@ -62,12 +62,13 @@ async function renderAndSettle(props: FatigueQuestionnaireProps = BASE_PROPS) {
   });
 }
 
-/** Define todos os 5 sliders obrigatórios */
-async function setAllRequiredSliders(value = "3") {
-  const sliders = screen.getAllByRole("slider");
+const DIMS = ["dim_energy", "dim_focus", "dim_sleep", "dim_soreness", "dim_mood"] as const;
+
+/** Seleciona o emoji de valor `value` (1–5) em todas as 5 dimensões */
+async function setAllRequiredEmojis(value: 1 | 2 | 3 | 4 | 5 = 3) {
   await act(async () => {
-    for (let i = 0; i < 5; i++) {
-      fireEvent.change(sliders[i]!, { target: { value } });
+    for (const dim of DIMS) {
+      fireEvent.click(screen.getByTestId(`emoji-${dim}-${value}`));
     }
   });
 }
@@ -95,16 +96,16 @@ describe("FatigueQuestionnaire — renderização", () => {
     expect(h1.textContent).toMatch(/questionário/i);
   });
 
-  it("renderiza os 5 sliders de dimensão na fase pre", async () => {
+  it("renderiza os 5 grupos de emoji na fase pre (sem slider de sRPE)", async () => {
     await renderAndSettle();
-    const sliders = screen.getAllByRole("slider");
-    expect(sliders).toHaveLength(5);
+    expect(screen.getAllByRole("radiogroup")).toHaveLength(5);
+    expect(screen.queryByRole("slider")).not.toBeInTheDocument();
   });
 
-  it("renderiza 6 sliders na fase post (inclui sRPE)", async () => {
+  it("renderiza 5 grupos de emoji + 1 slider de sRPE na fase post", async () => {
     await renderAndSettle({ ...BASE_PROPS, phase: "post" });
-    const sliders = screen.getAllByRole("slider");
-    expect(sliders).toHaveLength(6);
+    expect(screen.getAllByRole("radiogroup")).toHaveLength(5);
+    expect(screen.getAllByRole("slider")).toHaveLength(1);
   });
 
   it("NÃO renderiza slider de sRPE na fase pre", async () => {
@@ -140,20 +141,20 @@ describe("FatigueQuestionnaire — botão Submeter", () => {
 
   it("botão está desactivado com apenas 4 dimensões definidas", async () => {
     await renderAndSettle();
-    const sliders = screen.getAllByRole("slider");
     await act(async () => {
-      fireEvent.change(sliders[0]!, { target: { value: "3" } });
-      fireEvent.change(sliders[1]!, { target: { value: "4" } });
-      fireEvent.change(sliders[2]!, { target: { value: "2" } });
-      fireEvent.change(sliders[3]!, { target: { value: "5" } });
+      fireEvent.click(screen.getByTestId("emoji-dim_energy-3"));
+      fireEvent.click(screen.getByTestId("emoji-dim_focus-4"));
+      fireEvent.click(screen.getByTestId("emoji-dim_sleep-2"));
+      fireEvent.click(screen.getByTestId("emoji-dim_soreness-5"));
+      // dim_mood não é selecionado
     });
     const btn = screen.getByRole("button", { name: /submeter/i });
     expect(btn).toBeDisabled();
   });
 
-  it("botão fica activo quando todos os 5 sliders estão definidos", async () => {
+  it("botão fica activo quando todos os 5 emojis estão definidos", async () => {
     await renderAndSettle();
-    await setAllRequiredSliders("3");
+    await setAllRequiredEmojis(3);
     await waitFor(() => {
       expect(
         screen.getByRole("button", { name: /submeter/i })
@@ -163,13 +164,7 @@ describe("FatigueQuestionnaire — botão Submeter", () => {
 
   it("sRPE não bloqueia o botão quando não definido (opcional)", async () => {
     await renderAndSettle({ ...BASE_PROPS, phase: "post" });
-    // Definir só os 5 obrigatórios (deixar sRPE em null)
-    const sliders = screen.getAllByRole("slider");
-    await act(async () => {
-      for (let i = 0; i < 5; i++) {
-        fireEvent.change(sliders[i]!, { target: { value: "3" } });
-      }
-    });
+    await setAllRequiredEmojis(3);
     await waitFor(() => {
       expect(
         screen.getByRole("button", { name: /submeter/i })
@@ -188,14 +183,13 @@ describe("FatigueQuestionnaire — submissão", () => {
     });
 
     await renderAndSettle();
-    const sliders = screen.getAllByRole("slider");
 
     await act(async () => {
-      fireEvent.change(sliders[0]!, { target: { value: "4" } }); // dim_energy
-      fireEvent.change(sliders[1]!, { target: { value: "3" } }); // dim_focus
-      fireEvent.change(sliders[2]!, { target: { value: "5" } }); // dim_sleep
-      fireEvent.change(sliders[3]!, { target: { value: "2" } }); // dim_soreness
-      fireEvent.change(sliders[4]!, { target: { value: "4" } }); // dim_mood
+      fireEvent.click(screen.getByTestId("emoji-dim_energy-4"));
+      fireEvent.click(screen.getByTestId("emoji-dim_focus-3"));
+      fireEvent.click(screen.getByTestId("emoji-dim_sleep-5"));
+      fireEvent.click(screen.getByTestId("emoji-dim_soreness-2"));
+      fireEvent.click(screen.getByTestId("emoji-dim_mood-4"));
     });
 
     // Esperar que o botão fique activo
@@ -231,7 +225,7 @@ describe("FatigueQuestionnaire — submissão", () => {
     });
 
     await renderAndSettle({ ...BASE_PROPS, phase: "pre" });
-    await setAllRequiredSliders("3");
+    await setAllRequiredEmojis(3);
 
     await waitFor(() => {
       expect(
@@ -255,7 +249,7 @@ describe("FatigueQuestionnaire — submissão", () => {
     });
 
     await renderAndSettle();
-    await setAllRequiredSliders("3");
+    await setAllRequiredEmojis(3);
 
     await waitFor(() => {
       expect(
@@ -280,7 +274,7 @@ describe("FatigueQuestionnaire — submissão", () => {
     });
 
     await renderAndSettle();
-    await setAllRequiredSliders("3");
+    await setAllRequiredEmojis(3);
 
     await waitFor(() => {
       expect(
@@ -324,18 +318,16 @@ describe("FatigueQuestionnaire — IndexedDB draft", () => {
     await renderAndSettle();
 
     await waitFor(() => {
-      const sliders = screen.getAllByRole("slider");
-      // dim_energy (índice 0) deve ter valor 4
-      expect((sliders[0] as HTMLInputElement).value).toBe("4");
+      // dim_energy restaurado com valor 4 — botão emoji correspondente deve estar selecionado
+      expect(screen.getByTestId("emoji-dim_energy-4")).toHaveAttribute("aria-checked", "true");
     });
   });
 
   it("guarda draft no IndexedDB após debounce de 800ms", async () => {
     await renderAndSettle();
 
-    const sliders = screen.getAllByRole("slider");
     await act(async () => {
-      fireEvent.change(sliders[0]!, { target: { value: "3" } });
+      fireEvent.click(screen.getByTestId("emoji-dim_energy-3"));
     });
 
     const draftKey = `draft:questionnaire:${SESSION_ID}:pre:${PLAYER_ID}`;
@@ -383,22 +375,20 @@ describe("variante sub-14 (ageGroup='u14')", () => {
   it("renderiza labels simplificados para dim_energy", async () => {
     await renderAndSettle({ ...BASE_PROPS, ageGroup: "u14" });
     expect(screen.getByText("Como te sentes de energia?")).toBeInTheDocument();
-    expect(screen.getByText("Cansado")).toBeInTheDocument();
-    expect(screen.getByText("Cheio de energia")).toBeInTheDocument();
+    // emoji picker renderiza 5 botões para a dimensão
+    expect(screen.getByTestId("emoji-dim_energy-1")).toBeInTheDocument();
   });
 
   it("renderiza labels simplificados para dim_focus", async () => {
     await renderAndSettle({ ...BASE_PROPS, ageGroup: "u14" });
     expect(screen.getByText("Estás atento?")).toBeInTheDocument();
-    expect(screen.getByText("Distraído")).toBeInTheDocument();
-    expect(screen.getByText("Atento")).toBeInTheDocument();
+    expect(screen.getByTestId("emoji-dim_focus-1")).toBeInTheDocument();
   });
 
   it("renderiza labels simplificados para dim_mood", async () => {
     await renderAndSettle({ ...BASE_PROPS, ageGroup: "u14" });
     expect(screen.getByText("Como estás de humor?")).toBeInTheDocument();
-    expect(screen.getByText("Triste/zangado")).toBeInTheDocument();
-    expect(screen.getByText("Bem-disposto")).toBeInTheDocument();
+    expect(screen.getByTestId("emoji-dim_mood-1")).toBeInTheDocument();
   });
 
   it("botão de submissão diz 'Pronto, terminámos'", async () => {

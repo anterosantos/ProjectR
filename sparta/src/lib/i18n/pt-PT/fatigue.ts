@@ -15,6 +15,8 @@ export interface FatigueDimensionCopy {
   label: string;
   minLabel: string;
   maxLabel: string;
+  /** Emojis para valores 1–5 (índice 0 = valor 1, índice 4 = valor 5) */
+  emojis: readonly [string, string, string, string, string];
 }
 
 export interface FatigueCopySet {
@@ -29,11 +31,11 @@ export interface FatigueCopySet {
 export const FATIGUE_COPY = {
   senior: {
     dimensions: [
-      { key: "dim_energy", label: "Energia muscular", minLabel: "Esgotado", maxLabel: "Pleno" },
-      { key: "dim_focus", label: "Concentração", minLabel: "Disperso", maxLabel: "Concentrado" },
-      { key: "dim_sleep", label: "Sono", minLabel: "Mau", maxLabel: "Excelente sono" },
-      { key: "dim_soreness", label: "Desconforto físico", minLabel: "Muito dor", maxLabel: "Sem dor" },
-      { key: "dim_mood", label: "Estado emocional", minLabel: "Mau", maxLabel: "Bom estado" },
+      { key: "dim_energy",   label: "Energia muscular",    minLabel: "Esgotado",    maxLabel: "Pleno",         emojis: ["😴", "😩", "😐", "😊", "💪"] },
+      { key: "dim_focus",    label: "Concentração",        minLabel: "Disperso",    maxLabel: "Concentrado",   emojis: ["😵‍💫", "😕", "😐", "🎯", "🧠"] },
+      { key: "dim_sleep",    label: "Sono",                minLabel: "Mau",         maxLabel: "Excelente sono",emojis: ["😫", "😪", "😐", "😊", "⭐"] },
+      { key: "dim_soreness", label: "Desconforto físico",  minLabel: "Muito dor",   maxLabel: "Sem dor",       emojis: ["😣", "😖", "😐", "🙂", "✅"] },
+      { key: "dim_mood",     label: "Estado emocional",    minLabel: "Mau",         maxLabel: "Bom estado",    emojis: ["😞", "😕", "😐", "🙂", "😄"] },
     ],
     submitLabel: "Submeter",
     submittingLabel: "A submeter…",
@@ -42,11 +44,11 @@ export const FATIGUE_COPY = {
   },
   u14: {
     dimensions: [
-      { key: "dim_energy", label: "Como te sentes de energia?", minLabel: "Cansado", maxLabel: "Cheio de energia" },
-      { key: "dim_focus", label: "Estás atento?", minLabel: "Distraído", maxLabel: "Atento" },
-      { key: "dim_sleep", label: "Como dormiste?", minLabel: "Dormi mal", maxLabel: "Dormi bem" },
-      { key: "dim_soreness", label: "Tens dor em algum sítio?", minLabel: "Tenho dor", maxLabel: "Sem dor" },
-      { key: "dim_mood", label: "Como estás de humor?", minLabel: "Triste/zangado", maxLabel: "Bem-disposto" },
+      { key: "dim_energy",   label: "Como te sentes de energia?", minLabel: "Cansado",       maxLabel: "Cheio de energia", emojis: ["😴", "😩", "😐", "😊", "💪"] },
+      { key: "dim_focus",    label: "Estás atento?",              minLabel: "Distraído",      maxLabel: "Atento",           emojis: ["😵‍💫", "😕", "😐", "🎯", "🧠"] },
+      { key: "dim_sleep",    label: "Como dormiste?",             minLabel: "Dormi mal",      maxLabel: "Dormi bem",        emojis: ["😫", "😪", "😐", "😊", "⭐"] },
+      { key: "dim_soreness", label: "Tens dor em algum sítio?",   minLabel: "Tenho dor",      maxLabel: "Sem dor",          emojis: ["😣", "😖", "😐", "🙂", "✅"] },
+      { key: "dim_mood",     label: "Como estás de humor?",       minLabel: "Triste/zangado", maxLabel: "Bem-disposto",     emojis: ["😞", "😕", "😐", "🙂", "😄"] },
     ],
     submitLabel: "Pronto, terminámos",
     submittingLabel: "A registar…",
