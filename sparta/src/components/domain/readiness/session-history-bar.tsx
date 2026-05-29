@@ -3,12 +3,12 @@ import type { SessionHistoryEntry } from "@/types/supabase";
 
 const SESSION_HISTORY_COUNT = 8;
 
-const SLOT_COLOR: Record<SessionHistoryEntry['state'], string> = {
-  ready:   "bg-signal-ready",
-  caution: "bg-signal-caution",
-  alert:   "bg-signal-alert",
-  neutral: "bg-signal-neutral/60",
-};
+/** Classify srpe_value (1–10) into a load category for bar color */
+function srpeColor(srpeValue: number): string {
+  if (srpeValue <= 4) return "bg-signal-ready";    // low load — recovery/light
+  if (srpeValue <= 7) return "bg-signal-caution";  // moderate load
+  return "bg-signal-alert";                         // high load — intense
+}
 
 export interface SessionHistoryBarProps {
   history: SessionHistoryEntry[];
@@ -19,15 +19,24 @@ export function SessionHistoryBar({ history, className }: SessionHistoryBarProps
   const slots = Array.from({ length: SESSION_HISTORY_COUNT }, (_, i) => history[i] ?? null);
 
   return (
-    <div className={cn("flex gap-1", className)} aria-hidden="true">
+    <div
+      className={cn("flex items-end gap-0.5 h-6", className)}
+      aria-hidden="true"
+    >
       {slots.map((entry, i) => (
-        <div
-          key={i}
-          className={cn(
-            "h-2.5 flex-1 rounded-sm",
-            entry ? SLOT_COLOR[entry.state] : "bg-muted"
-          )}
-        />
+        entry ? (
+          <div
+            key={i}
+            className={cn("flex-1 rounded-sm transition-all", srpeColor(entry.srpeValue))}
+            style={{ height: `${Math.max(20, (entry.srpeValue / 10) * 100)}%` }}
+          />
+        ) : (
+          <div
+            key={i}
+            className="flex-1 rounded-sm bg-muted"
+            style={{ height: "20%" }}
+          />
+        )
       ))}
     </div>
   );

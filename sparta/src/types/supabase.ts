@@ -43,7 +43,8 @@ export interface PlayerReadinessData extends ReadinessSnapshot {
 export interface SessionHistoryEntry {
   sessionId: string;
   computedAt: string; // ISO string — used for ordering (oldest → newest)
-  state: 'ready' | 'caution' | 'alert' | 'neutral';
+  /** Session Rating of Perceived Exertion: 1–10 (Foster scale). Used for bar height. */
+  srpeValue: number;
 }
 
 /** Session history keyed by player_id — max SESSION_HISTORY_COUNT entries per player, sorted oldest→newest. */

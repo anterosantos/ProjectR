@@ -484,15 +484,17 @@ export async function getReadinessPanelData(
       return acwrB - acwrA;
     });
 
-  // Fetch session history: last 8 snapshots per player (includes current session as most recent)
+  // Fetch session history from session_metrics (srpe_value per session, last 8 per player)
+  // Source: session_metrics, not readiness_snapshots — ensures all sessions with recorded
+  // sRPE appear in the bar, regardless of whether a readiness snapshot was computed.
   const SESSION_HISTORY_COUNT = 8;
   const historyLookbackMs = 90 * 24 * 60 * 60 * 1000;
   const historyStart = new Date(Date.now() - historyLookbackMs);
 
   // eslint-disable-next-line custom/no-direct-health-data-read -- read inside staff-auth-guarded action; audit already logged above for this panel load
   const { data: historyRows } = await supabase
-    .from('readiness_snapshots')
-    .select('player_id, session_id, state, computed_at')
+    .from('session_metrics')
+    .select('player_id, session_id, srpe_value, computed_at')
     .in('player_id', playerIds)
     .eq('club_id', clubId)
     .gte('computed_at', historyStart.toISOString())
@@ -506,7 +508,7 @@ export async function getReadinessPanelData(
       existing.push({
         sessionId: row.session_id,
         computedAt: row.computed_at,
-        state: row.state as SessionHistoryEntry['state'],
+        srpeValue: row.srpe_value,
       });
       historyByPlayer.set(row.player_id, existing);
     }
