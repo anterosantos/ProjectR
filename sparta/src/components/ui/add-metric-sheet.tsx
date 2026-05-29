@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -34,6 +35,7 @@ interface AddMetricSheetProps {
 }
 
 export function AddMetricSheet({ playerId, lastWeight, lastHeight, onSuccess }: AddMetricSheetProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const isMounted = useRef(true);
@@ -79,6 +81,7 @@ export function AddMetricSheet({ playerId, lastWeight, lastHeight, onSuccess }: 
         height_cm: data.height_cm,
         recorded_at: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
       });
+      router.refresh();
       onSuccess?.();
     } else {
       form.setError("root", { message: result.error.message });
