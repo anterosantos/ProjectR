@@ -484,7 +484,7 @@ export async function getReadinessPanelData(
       return acwrB - acwrA;
     });
 
-  // Fetch session history: last 8 past snapshots per player (excluding current session)
+  // Fetch session history: last 8 snapshots per player (includes current session as most recent)
   const SESSION_HISTORY_COUNT = 8;
   const historyLookbackMs = 90 * 24 * 60 * 60 * 1000;
   const historyStart = new Date(Date.now() - historyLookbackMs);
@@ -495,7 +495,6 @@ export async function getReadinessPanelData(
     .select('player_id, session_id, state, computed_at')
     .in('player_id', playerIds)
     .eq('club_id', clubId)
-    .neq('session_id', sessionId)
     .gte('computed_at', historyStart.toISOString())
     .order('computed_at', { ascending: false });
 
