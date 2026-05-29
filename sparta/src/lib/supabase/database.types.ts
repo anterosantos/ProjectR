@@ -1033,6 +1033,57 @@ export type Database = {
           },
         ]
       }
+      match_events: {
+        Row: {
+          id: string
+          club_id: string
+          session_id: string
+          player_id: string | null
+          action: string
+          zone: string
+          occurred_at: string
+          captured_at: string
+          captured_by: string | null
+          captured_via: string
+          is_deleted: boolean
+          deleted_at: string | null
+          deleted_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          club_id: string
+          session_id: string
+          player_id?: string | null
+          action: string
+          zone: string
+          occurred_at: string
+          captured_at?: string
+          captured_by?: string | null
+          captured_via: string
+          is_deleted?: boolean
+          deleted_at?: string | null
+          deleted_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          club_id?: string
+          session_id?: string
+          player_id?: string | null
+          action?: string
+          zone?: string
+          occurred_at?: string
+          captured_at?: string
+          captured_by?: string | null
+          captured_via?: string
+          is_deleted?: boolean
+          deleted_at?: string | null
+          deleted_by?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
