@@ -75,7 +75,7 @@ export function LineupToggle({
         <div className="flex items-end gap-2">
           <button
             type="button"
-            onClick={() => onChange("starter")}
+            onClick={() => onChange("starter", shirtNum ?? player.jersey_num ?? null)}
             disabled={disabled}
             aria-pressed={selected === "starter"}
             className={cn(
