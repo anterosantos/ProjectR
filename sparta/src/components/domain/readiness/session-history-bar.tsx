@@ -20,23 +20,18 @@ export function SessionHistoryBar({ history, className }: SessionHistoryBarProps
 
   return (
     <div
-      className={cn("flex items-end gap-0.5 h-6", className)}
+      className={cn("flex items-end justify-between h-5", className)}
       aria-hidden="true"
     >
       {slots.map((entry, i) => (
-        entry ? (
-          <div
-            key={i}
-            className={cn("flex-1 rounded-sm transition-all", srpeColor(entry.srpeValue))}
-            style={{ height: `${Math.max(20, (entry.srpeValue / 10) * 100)}%` }}
-          />
-        ) : (
-          <div
-            key={i}
-            className="flex-1 rounded-sm bg-muted"
-            style={{ height: "20%" }}
-          />
-        )
+        <div
+          key={i}
+          className={cn(
+            "w-[9%] rounded-[2px]",
+            entry ? srpeColor(entry.srpeValue) : "bg-muted/50"
+          )}
+          style={{ height: entry ? `${Math.max(15, (entry.srpeValue / 10) * 100)}%` : "12%" }}
+        />
       ))}
     </div>
   );
