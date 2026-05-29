@@ -97,6 +97,10 @@ export default async function PlayerDetailPage({
   const metricsResult = await getPlayerMetrics(player.id);
   const metrics = metricsResult.ok ? metricsResult.data : [];
 
+  // Last recorded values for each metric (searched independently — each is optional per entry)
+  const lastWeight = [...metrics].reverse().find((m) => m.weight_kg != null)?.weight_kg ?? null;
+  const lastHeight = [...metrics].reverse().find((m) => m.height_cm != null)?.height_cm ?? null;
+
   const isMinor = player.age_group === "u14" || player.age_group === "u15";
   const consent = isMinor ? await getConsentByPlayerId(player.id) : null;
   if (!metricsResult.ok) {
@@ -243,7 +247,7 @@ export default async function PlayerDetailPage({
         <section className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold">Métricas físicas</h2>
-            <AddMetricSheet playerId={player.id} />
+            <AddMetricSheet playerId={player.id} lastWeight={lastWeight} lastHeight={lastHeight} />
           </div>
           <PlayerMetricsChart metrics={metrics} />
         </section>

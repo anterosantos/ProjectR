@@ -28,10 +28,12 @@ type MetricFormValues = z.infer<typeof MetricFormSchema>;
 
 interface AddMetricSheetProps {
   playerId: string;
+  lastWeight?: number | null;
+  lastHeight?: number | null;
   onSuccess?: () => void;
 }
 
-export function AddMetricSheet({ playerId, onSuccess }: AddMetricSheetProps) {
+export function AddMetricSheet({ playerId, lastWeight, lastHeight, onSuccess }: AddMetricSheetProps) {
   const [open, setOpen] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const isMounted = useRef(true);
@@ -48,6 +50,8 @@ export function AddMetricSheet({ playerId, onSuccess }: AddMetricSheetProps) {
     resolver: zodResolver(MetricFormSchema),
     defaultValues: {
       player_id: playerId,
+      weight_kg: lastWeight ?? undefined,
+      height_cm: lastHeight ?? undefined,
       recorded_at: defaultRecordedAt,
     },
   });
@@ -71,6 +75,8 @@ export function AddMetricSheet({ playerId, onSuccess }: AddMetricSheetProps) {
       setShowSuccess(true);
       form.reset({
         player_id: playerId,
+        weight_kg: data.weight_kg,
+        height_cm: data.height_cm,
         recorded_at: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
       });
       onSuccess?.();
