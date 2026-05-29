@@ -244,18 +244,17 @@ export async function getLineupForSession(
   if (!profile?.club_id)
     return err({ code: "forbidden", message: "Perfil não encontrado" });
 
-  // Fetch lineups with player details — only starters, scoped to club via session join
+  // Fetch lineups with player details — only starters.
+  // Club isolation is enforced by page.tsx (verifies session.club_id before render) + RLS.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const matchLineupTable = (supabase.from as any)("match_lineups");
   const selectResult = await matchLineupTable
     .select(
       `*,
-       players(name, jersey_number, position, age_group, processing_restricted),
-       sessions!inner(club_id)`
+       players(name, jersey_number, position, age_group, processing_restricted)`
     )
     .eq("session_id", sessionId)
-    .eq("role", "starter")
-    .eq("sessions.club_id", profile.club_id);
+    .eq("role", "starter");
   const { data: lineupData, error } = selectResult as {
     data: Array<{
       id: string;
