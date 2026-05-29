@@ -128,9 +128,12 @@ export default async function SessionDetailPage({
           </div>
         </dl>
 
-        {isCoach && (
-          <SessionDetailActions sessionId={session.id} isScheduled={isScheduled} />
-        )}
+        <SessionDetailActions
+          sessionId={session.id}
+          sessionType={session.type as "training" | "match" | "friendly"}
+          isScheduled={isScheduled}
+          isCoach={isCoach}
+        />
       </div>
     </main>
   );

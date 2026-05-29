@@ -108,11 +108,11 @@ export function ClientConvocacaoEditor({
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="sticky top-12 bg-card border-b border-gray-200 px-4 py-3 sm:px-6 z-40">
+      <div className="sticky top-12 bg-card border-b border-border px-4 py-3 sm:px-6 z-40">
         <p
           aria-live="polite"
           aria-atomic="true"
-          className="text-sm font-medium text-gray-900"
+          className="text-sm font-medium text-foreground"
         >
           {starterCount} / 11 titulares · {benchCount} suplentes
         </p>
@@ -120,8 +120,8 @@ export function ClientConvocacaoEditor({
 
       <div className="flex-1">
         {Object.entries(playersByPosition).map(([position, positionPlayers]) => (
-          <section key={position} className="border-b border-gray-200">
-            <h2 className="sticky top-24 z-30 bg-gray-50 border-b border-gray-200 px-4 py-2 sm:px-6 text-sm font-semibold text-gray-700 uppercase tracking-wider">
+          <section key={position} className="border-b border-border">
+            <h2 className="sticky top-24 z-30 bg-muted border-b border-border px-4 py-2 sm:px-6 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
               {position}
             </h2>
             <div>
@@ -155,7 +155,7 @@ export function ClientConvocacaoEditor({
       </div>
 
       {!readOnly && (
-        <div className="border-t border-gray-200 bg-white px-4 py-4 sm:px-6 flex gap-3">
+        <div className="border-t border-border bg-background px-4 py-4 sm:px-6 flex gap-3">
           <Button
             variant="primary"
             onClick={handleSubmit}
@@ -176,11 +176,11 @@ export function ClientConvocacaoEditor({
       )}
 
       {readOnly && (
-        <div className="border-t border-gray-200 bg-gray-50 px-4 py-4 sm:px-6">
-          <p className="text-sm text-gray-600 font-medium">
+        <div className="border-t border-border bg-muted px-4 py-4 sm:px-6">
+          <p className="text-sm text-foreground font-medium">
             Convocatória fechada após apito final
           </p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Para registar substituições, consulte Epic 6 (futuro)
           </p>
         </div>

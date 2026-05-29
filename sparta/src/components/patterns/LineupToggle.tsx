@@ -29,24 +29,24 @@ export function LineupToggle({
     player.positions?.find((p) => p.is_primary)?.position || "—";
 
   return (
-    <div className="border-b border-gray-200 px-4 py-3 sm:px-6">
+    <div className="border-b border-border px-4 py-3 sm:px-6">
       <div className="flex items-center gap-3 mb-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-900">
+            <span className="text-sm font-medium text-foreground">
               {player.jersey_num}
             </span>
-            <span className="text-sm font-medium text-gray-900 truncate">
+            <span className="text-sm font-medium text-foreground truncate">
               {player.full_name}
             </span>
             {!parentalConsentConfirmed && (
-              <span className="inline-flex items-center gap-1 text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
+              <span className="inline-flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 px-2 py-1 rounded">
                 <AlertCircle className="h-3 w-3" />
                 Aguarda
               </span>
             )}
           </div>
-          <p className="text-xs text-gray-500 mt-1">{primaryPosition}</p>
+          <p className="text-xs text-muted-foreground mt-1">{primaryPosition}</p>
         </div>
       </div>
 
@@ -61,10 +61,10 @@ export function LineupToggle({
           disabled={disabled}
           aria-pressed={selected === null}
           className={cn(
-            "inline-flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-3 rounded-lg border font-medium text-sm transition-colors",
+            "inline-flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-3 rounded-lg border font-medium text-sm",
             selected === null
-              ? "border-gray-300 bg-gray-100 text-gray-900"
-              : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50",
+              ? "border-border bg-muted text-foreground"
+              : "border-border bg-background text-muted-foreground hover:bg-muted/50",
             disabled && "opacity-50 cursor-not-allowed"
           )}
         >
@@ -79,10 +79,10 @@ export function LineupToggle({
             disabled={disabled}
             aria-pressed={selected === "starter"}
             className={cn(
-              "inline-flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-3 rounded-lg border font-medium text-sm transition-colors",
+              "inline-flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-3 rounded-lg border font-medium text-sm",
               selected === "starter"
                 ? "border-primary bg-primary text-primary-foreground"
-                : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50",
+                : "border-border bg-background text-muted-foreground hover:bg-muted/50",
               disabled && "opacity-50 cursor-not-allowed"
             )}
           >
@@ -96,9 +96,11 @@ export function LineupToggle({
               max="99"
               placeholder="Nº"
               value={shirtNum ?? ""}
-              onChange={(e) => onChange("starter", e.target.value ? parseInt(e.target.value, 10) : null)}
+              onChange={(e) =>
+                onChange("starter", e.target.value ? parseInt(e.target.value, 10) : null)
+              }
               disabled={disabled}
-              className="min-h-[44px] min-w-[60px] px-2 rounded-lg border border-gray-200 text-sm font-medium text-center"
+              className="min-h-[44px] min-w-[60px] px-2 rounded-lg border border-border bg-background text-foreground text-sm font-medium text-center"
               aria-label={`Número de camisola para ${player.full_name}`}
             />
           )}
@@ -110,10 +112,10 @@ export function LineupToggle({
           disabled={disabled}
           aria-pressed={selected === "bench"}
           className={cn(
-            "inline-flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-3 rounded-lg border font-medium text-sm transition-colors",
+            "inline-flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-3 rounded-lg border font-medium text-sm",
             selected === "bench"
               ? "border-primary bg-primary text-primary-foreground"
-              : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50",
+              : "border-border bg-background text-muted-foreground hover:bg-muted/50",
             disabled && "opacity-50 cursor-not-allowed"
           )}
         >
