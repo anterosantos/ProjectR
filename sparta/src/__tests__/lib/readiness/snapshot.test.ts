@@ -6,123 +6,123 @@ import {
   type FatigueDimensions,
 } from '@/lib/readiness/snapshot';
 
-describe('classifyReadinessState', () => {
-  it('returns neutral when dataSufficient=false, regardless of other inputs', () => {
-    const input: ClassifyReadinessInput = {
-      acwrState: 'alert',
-      recentFatigueAvg: 1.0,
-      attendanceRate: 0.2,
-      dataSufficient: false,
-    };
-    expect(classifyReadinessState(input)).toBe('neutral');
+// Helper: base input with enough fatigue responses and ACWR data
+function base(overrides: Partial<ClassifyReadinessInput> = {}): ClassifyReadinessInput {
+  return {
+    acwrState: 'ready',
+    recentFatigueAvg: 3.5,
+    attendanceRate: null,
+    acwrSufficient: true,
+    fatigueResponseCount: 4,
+    ...overrides,
+  };
+}
+
+describe('classifyReadinessState — data sufficiency', () => {
+  it('returns neutral when fatigueResponseCount = 0', () => {
+    expect(classifyReadinessState(base({ fatigueResponseCount: 0 }))).toBe('neutral');
   });
 
-  it('returns alert when acwrState is alert', () => {
-    const input: ClassifyReadinessInput = {
+  it('returns neutral when fatigueResponseCount = 1', () => {
+    expect(classifyReadinessState(base({ fatigueResponseCount: 1, acwrState: 'alert', recentFatigueAvg: 1.0 }))).toBe('neutral');
+  });
+
+  it('returns non-neutral once fatigueResponseCount >= 2, regardless of acwrSufficient', () => {
+    // 2 responses, no ACWR history → still gets a state from fatigue avg
+    expect(classifyReadinessState(base({
+      fatigueResponseCount: 2,
+      acwrSufficient: false,
+      recentFatigueAvg: 3.5,
+    }))).toBe('ready');
+  });
+
+  it('ignores ACWR alert when acwrSufficient=false', () => {
+    // ACWR says alert but history is insufficient → only fatigue avg counts
+    expect(classifyReadinessState(base({
+      fatigueResponseCount: 2,
+      acwrSufficient: false,
       acwrState: 'alert',
       recentFatigueAvg: 3.5,
-      attendanceRate: null,
-      dataSufficient: true,
-    };
-    expect(classifyReadinessState(input)).toBe('alert');
+    }))).toBe('ready');
+  });
+
+  it('ignores ACWR caution when acwrSufficient=false', () => {
+    expect(classifyReadinessState(base({
+      fatigueResponseCount: 3,
+      acwrSufficient: false,
+      acwrState: 'caution',
+      recentFatigueAvg: 3.5,
+    }))).toBe('ready');
+  });
+
+  it('returns alert from fatigue avg when acwrSufficient=false but fatigueResponseCount >= 2', () => {
+    expect(classifyReadinessState(base({
+      fatigueResponseCount: 2,
+      acwrSufficient: false,
+      acwrState: 'neutral',
+      recentFatigueAvg: 1.5,
+    }))).toBe('alert');
+  });
+
+  it('returns caution from fatigue avg when acwrSufficient=false but fatigueResponseCount >= 2', () => {
+    expect(classifyReadinessState(base({
+      fatigueResponseCount: 2,
+      acwrSufficient: false,
+      acwrState: 'neutral',
+      recentFatigueAvg: 2.5,
+    }))).toBe('caution');
+  });
+});
+
+describe('classifyReadinessState — ACWR signals (acwrSufficient=true)', () => {
+  it('returns alert when acwrState is alert', () => {
+    expect(classifyReadinessState(base({ acwrState: 'alert', recentFatigueAvg: 3.5 }))).toBe('alert');
   });
 
   it('returns alert when recentFatigueAvg <= 2.0', () => {
-    const input: ClassifyReadinessInput = {
-      acwrState: 'ready',
-      recentFatigueAvg: 2.0,
-      attendanceRate: null,
-      dataSufficient: true,
-    };
-    expect(classifyReadinessState(input)).toBe('alert');
+    expect(classifyReadinessState(base({ acwrState: 'ready', recentFatigueAvg: 2.0 }))).toBe('alert');
   });
 
   it('returns alert when attendanceRate < 0.5', () => {
-    const input: ClassifyReadinessInput = {
-      acwrState: 'ready',
-      recentFatigueAvg: 3.5,
-      attendanceRate: 0.4,
-      dataSufficient: true,
-    };
-    expect(classifyReadinessState(input)).toBe('alert');
+    expect(classifyReadinessState(base({ acwrState: 'ready', recentFatigueAvg: 3.5, attendanceRate: 0.4 }))).toBe('alert');
   });
 
   it('ignores null attendanceRate', () => {
-    const input: ClassifyReadinessInput = {
-      acwrState: 'ready',
-      recentFatigueAvg: 3.5,
-      attendanceRate: null,
-      dataSufficient: true,
-    };
-    expect(classifyReadinessState(input)).toBe('ready');
+    expect(classifyReadinessState(base({ acwrState: 'ready', recentFatigueAvg: 3.5, attendanceRate: null }))).toBe('ready');
   });
 
   it('returns caution when acwrState is caution', () => {
-    const input: ClassifyReadinessInput = {
-      acwrState: 'caution',
-      recentFatigueAvg: 3.5,
-      attendanceRate: null,
-      dataSufficient: true,
-    };
-    expect(classifyReadinessState(input)).toBe('caution');
+    expect(classifyReadinessState(base({ acwrState: 'caution', recentFatigueAvg: 3.5 }))).toBe('caution');
   });
 
   it('returns caution when recentFatigueAvg is 2.1-2.8', () => {
-    const input: ClassifyReadinessInput = {
-      acwrState: 'ready',
-      recentFatigueAvg: 2.5,
-      attendanceRate: null,
-      dataSufficient: true,
-    };
-    expect(classifyReadinessState(input)).toBe('caution');
+    expect(classifyReadinessState(base({ acwrState: 'ready', recentFatigueAvg: 2.5 }))).toBe('caution');
   });
 
   it('returns caution when attendanceRate 0.5-0.7', () => {
-    const input: ClassifyReadinessInput = {
-      acwrState: 'ready',
-      recentFatigueAvg: 3.5,
-      attendanceRate: 0.6,
-      dataSufficient: true,
-    };
-    expect(classifyReadinessState(input)).toBe('caution');
+    expect(classifyReadinessState(base({ acwrState: 'ready', recentFatigueAvg: 3.5, attendanceRate: 0.6 }))).toBe('caution');
   });
 
   it('returns ready when all conditions are met', () => {
-    const input: ClassifyReadinessInput = {
-      acwrState: 'ready',
-      recentFatigueAvg: 3.5,
-      attendanceRate: null,
-      dataSufficient: true,
-    };
-    expect(classifyReadinessState(input)).toBe('ready');
+    expect(classifyReadinessState(base({ acwrState: 'ready', recentFatigueAvg: 3.5, attendanceRate: null }))).toBe('ready');
   });
 
   it('returns ready when acwrState is ready with high fatigue', () => {
-    const input: ClassifyReadinessInput = {
-      acwrState: 'ready',
-      recentFatigueAvg: 4.5,
-      attendanceRate: 0.9,
-      dataSufficient: true,
-    };
-    expect(classifyReadinessState(input)).toBe('ready');
+    expect(classifyReadinessState(base({ acwrState: 'ready', recentFatigueAvg: 4.5, attendanceRate: 0.9 }))).toBe('ready');
   });
 
   it('prioritizes alert over caution over ready', () => {
-    const alertInput: ClassifyReadinessInput = {
+    expect(classifyReadinessState(base({
       acwrState: 'alert',
-      recentFatigueAvg: 2.5, // would be caution alone
-      attendanceRate: 0.6, // would be caution alone
-      dataSufficient: true,
-    };
-    expect(classifyReadinessState(alertInput)).toBe('alert');
+      recentFatigueAvg: 2.5,
+      attendanceRate: 0.6,
+    }))).toBe('alert');
 
-    const cautionInput: ClassifyReadinessInput = {
+    expect(classifyReadinessState(base({
       acwrState: 'caution',
-      recentFatigueAvg: 3.5, // > 2.8
-      attendanceRate: 0.8, // > 0.7
-      dataSufficient: true,
-    };
-    expect(classifyReadinessState(cautionInput)).toBe('caution');
+      recentFatigueAvg: 3.5,
+      attendanceRate: 0.8,
+    }))).toBe('caution');
   });
 });
 

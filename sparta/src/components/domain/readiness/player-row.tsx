@@ -41,7 +41,7 @@ function InsufficientDataIndicator({ id }: { id: string }) {
         role="tooltip"
         className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 w-52 rounded-lg border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
       >
-        Em construção. Precisa de 4 semanas de dados.
+        Sem dados suficientes. O jogador precisa de pelo menos 2 questionários submetidos.
       </span>
     </span>
   );

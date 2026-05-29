@@ -17,28 +17,28 @@ export interface ClassifyReadinessInput {
   acwrState: AcwrState;
   recentFatigueAvg: number | null;
   attendanceRate: number | null;
-  dataSufficient: boolean;
+  /** True when session_metrics covers ≥4 distinct ISO weeks — required for ACWR signals */
+  acwrSufficient: boolean;
+  /** Number of recent fatigue questionnaire responses — ≥2 required for a non-neutral state */
+  fatigueResponseCount: number;
 }
 
 export function classifyReadinessState(
   input: ClassifyReadinessInput
 ): ReadinessState {
-  const {
-    acwrState,
-    recentFatigueAvg,
-    attendanceRate,
-    dataSufficient,
-  } = input;
+  const { acwrState, recentFatigueAvg, attendanceRate, acwrSufficient, fatigueResponseCount } = input;
 
-  if (!dataSufficient) return 'neutral';
+  // Require at least 2 fatigue responses — below this the semáforo stays neutral
+  if (fatigueResponseCount < 2) return 'neutral';
 
-  if (acwrState === 'alert') return 'alert';
+  // ACWR-based signals only when 4-week load history exists
+  if (acwrSufficient && acwrState === 'alert') return 'alert';
 
   // Patch 8: Guard against NaN/Infinity in threshold comparisons
   if (recentFatigueAvg !== null && !isNaN(recentFatigueAvg) && isFinite(recentFatigueAvg) && recentFatigueAvg <= 2.0) return 'alert';
   if (attendanceRate !== null && !isNaN(attendanceRate) && isFinite(attendanceRate) && attendanceRate < 0.5) return 'alert';
 
-  if (acwrState === 'caution') return 'caution';
+  if (acwrSufficient && acwrState === 'caution') return 'caution';
   if (recentFatigueAvg !== null && !isNaN(recentFatigueAvg) && isFinite(recentFatigueAvg) && recentFatigueAvg <= 2.8) return 'caution';
   if (attendanceRate !== null && !isNaN(attendanceRate) && isFinite(attendanceRate) && attendanceRate < 0.7) return 'caution';
 
@@ -200,11 +200,14 @@ export async function refreshSnapshotForSession(
 
       const recentFatigueAvg = computeRecentFatigueAvg(responses ?? []);
 
+      const fatigueResponseCount = (responses ?? []).length;
+
       const state = classifyReadinessState({
         acwrState: acwr.state,
         recentFatigueAvg,
         attendanceRate: null,
-        dataSufficient: acwr.dataSufficient,
+        acwrSufficient: acwr.dataSufficient,
+        fatigueResponseCount,
       });
 
       // Patch 4: Null coalescing for acwr.ratio
@@ -231,7 +234,7 @@ export async function refreshSnapshotForSession(
               ? Number(recentFatigueAvg.toFixed(2))
               : null,
           attendance_rate: null,
-          data_sufficient: acwr.dataSufficient,
+          data_sufficient: fatigueResponseCount >= 2,
           derived_age_group: acwr.ageGroup,
           computed_at: asOf.toISOString(),
         }
