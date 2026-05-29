@@ -72,16 +72,18 @@ So that the Painel reads in ≤2 seconds for 40 players (NFR1) without re-runnin
 
 **Then** exporta:
 - `ReadinessState = 'ready' | 'caution' | 'alert' | 'neutral'`
-- `ClassifyReadinessInput { acwrState: AcwrState; recentFatigueAvg: number | null; attendanceRate: number | null; dataSufficient: boolean }`
+- `ClassifyReadinessInput { acwrState: AcwrState; recentFatigueAvg: number | null; attendanceRate: number | null; acwrSufficient: boolean; fatigueResponseCount: number }`
 - `FatigueDimensions { dim_energy: number; dim_focus: number; dim_sleep: number; dim_soreness: number; dim_mood: number }`
 - `classifyReadinessState(input: ClassifyReadinessInput): ReadinessState` — função pura, determinística
 - `computeRecentFatigueAvg(responses: FatigueDimensions[]): number | null` — média das 5 dimensões; null se array vazio
 
 **And** `classifyReadinessState` implementa:
-- `'neutral'` se `dataSufficient = false`
-- `'alert'` se `acwrState === 'alert'` OU `recentFatigueAvg !== null && recentFatigueAvg <= 2.0` OU `attendanceRate !== null && attendanceRate < 0.5`
-- `'caution'` se `acwrState === 'caution'` OU `recentFatigueAvg !== null && recentFatigueAvg <= 2.8` OU `attendanceRate !== null && attendanceRate < 0.7`
+- `'neutral'` se `fatigueResponseCount < 2` (menos de 2 questionários nos últimos 7 dias)
+- `'alert'` se `acwrSufficient && acwrState === 'alert'` OU `recentFatigueAvg !== null && recentFatigueAvg <= 2.0` OU `attendanceRate !== null && attendanceRate < 0.5`
+- `'caution'` se `acwrSufficient && acwrState === 'caution'` OU `recentFatigueAvg !== null && recentFatigueAvg <= 2.8` OU `attendanceRate !== null && attendanceRate < 0.7`
 - `'ready'` em todos os outros casos
+
+> ⚠️ **Alteração pós-implementação (2026-05-29):** O campo `dataSufficient: boolean` foi substituído por dois campos independentes: `acwrSufficient: boolean` (≥4 semanas ISO de `session_metrics`) e `fatigueResponseCount: number` (questionários recentes). Os sinais ACWR são condicionados a `acwrSufficient = true`. Ver ADR-003 em `_bmad-output/planning-artifacts/architecture.md`.
 
 **And** `attendanceRate = null` é **silenciosamente ignorado** (Epic 6 não implementado nesta story)
 
@@ -100,7 +102,7 @@ So that the Painel reads in ≤2 seconds for 40 players (NFR1) without re-runnin
    - Chama `computeAcwr(serviceRole, { playerId, asOf: new Date() })` (Story 5.2)
    - Fetch `fatigue_responses` do jogador nos últimos 7 dias (ambas as fases pre e post)
    - Chama `computeRecentFatigueAvg(responses)` (AC #2)
-   - Chama `classifyReadinessState({ acwrState, recentFatigueAvg, attendanceRate: null, dataSufficient })`
+   - Chama `classifyReadinessState({ acwrState, recentFatigueAvg, attendanceRate: null, acwrSufficient: acwr.dataSufficient, fatigueResponseCount: responses.length })`
    - Upsert em `readiness_snapshots` via serviceRole
 
 **And** upsert usa `onConflict: 'player_id,session_id'` com `ignoreDuplicates: false` (idempotente)
@@ -953,4 +955,11 @@ claude-haiku-4-5-20251001
 - ✅ Fire-and-forget refresh trigger added to fatigue.ts
 - ✅ ReadinessSnapshot type interface added to types/supabase.ts
 - ✅ 26 new unit/integration tests created; all 1379 existing tests passing (0 regressions)
+
+### 2026-05-29 (Post-implementation fixes)
+- ✅ **ClassifyReadinessInput redesigned** — `dataSufficient: boolean` substituído por `acwrSufficient: boolean` + `fatigueResponseCount: number`. Estado `neutral` activado quando `fatigueResponseCount < 2` (não quando ACWR sem 4 semanas). Ver ADR-003.
+- ✅ **Sinais ACWR condicionados** — `acwrState === 'alert/caution'` só afecta o estado quando `acwrSufficient = true`. Com menos de 4 semanas de `session_metrics`, o estado é calculado apenas pela média de fadiga.
+- ✅ **`data_sufficient` na DB** — passa a reflectir `fatigueResponseCount >= 2` (não `acwr.dataSufficient`). Controla o ícone `?` no UI.
+- ✅ **Refresh explícito obrigatório** — `refreshUpcomingReadiness(sessionId)` adicionado ao page load de `/prontidao` e ao botão ↻ (`handleManualRefresh`). Anteriormente o botão apenas re-lia snapshots stale. Ver ADR-004.
+- ✅ 24 testes actualizados para nova interface; todos a passar
 - ✅ All ACs #1–#8 verified; Story marked for code-review

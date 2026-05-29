@@ -686,6 +686,21 @@ claude-haiku-4-5-20251001
 - [x] [Review][Patch] **P-23 — Logging inconsistente em `snapshot.ts` — `console.error` vs `logger.error`** — `refreshSnapshotForSession` usa `logger.error` para invalid UUID mas `console.error` para session_not_found e player_refresh_failed. Standardizar para `logger.error` em todo o ficheiro. [`sparta/src/lib/readiness/snapshot.ts:122,194`]
 - [x] [Review][Patch] **P-24 — `getPositionKey`: "centrocampista central" classificado como DEF** — `p.includes("central")` na branch DEF dispara antes de `p.includes("centrocampista")` na branch MED. Mover a verificação `includes("central")` para depois das verificações de MED, ou adicionar `p.includes("centrocampista")` como primeira verificação em MED. [`sparta/src/components/domain/readiness/readiness-panel-list.tsx:26`]
 
+### 2026-05-29 (Post-implementation fix — getPositionKey schema abbreviations)
+
+- ✅ **Abreviaturas do schema DB** — `getPositionKey()` não reconhecia as abreviaturas usadas na tabela `positions` (`GR`, `DD`, `DC`, `DE`, `LIB`, `MDC`, `MC`, `MO`, `MD`, `ME`, `EXD`, `EXE`, `SC`, `PL`). Todos os jogadores apareciam no grupo "Médio" (fallback).
+- ✅ **Fix** — adicionado bloco de exact-match para as 14 abreviaturas antes do matching por texto. Ordem: `GR` → DEF abreviaturas → MED abreviaturas → AVA abreviaturas → matching por texto-livre → fallback `MED`.
+- ✅ 18 novos testes de regressão para cada abreviatura adicionados em `src/__tests__/app/(staff)/prontidao.test.tsx`
+
+**Mapa de abreviaturas → grupo:**
+
+| Abreviatura | Grupo |
+|---|---|
+| `GR` | Guarda-Redes |
+| `DD`, `DC`, `DE`, `LIB` | Defesa |
+| `MDC`, `MC`, `MO`, `MD`, `ME` | Médio |
+| `EXD`, `EXE`, `SC`, `PL` | Avançado |
+
 ### Deferred
 
 - [x] [Review][Defer] **D-1 — Calls DB em série N×2 em `refreshSnapshotForSession`** [`sparta/src/lib/readiness/snapshot.ts:144`] — deferred, operação background fire-and-forget; otimizar com `Promise.all` quando Story 5.7 (realtime updates) for implementada

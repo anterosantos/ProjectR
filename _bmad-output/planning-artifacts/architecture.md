@@ -1813,3 +1813,116 @@ supabase projects create sparta --region eu-west-1
 # 6. First feature: Login + Painel de Prontidão (defining experience)
 # Sprint 2 do roadmap UX Step 11
 ```
+
+---
+
+## Architectural Decision Records (ADRs)
+
+_Registos de decisões de arquitectura descobertas durante a implementação. Cada ADR documenta o contexto, a decisão tomada, e os trade-offs aceites — para que decisões futuras não repitam os mesmos erros nem revertam escolhas deliberadas._
+
+---
+
+### ADR-001 — Service Role para Server Actions chamadas de Client Components
+
+**Data:** 2026-05-29
+**Estado:** Aceite
+
+**Contexto:**
+Quando uma Next.js Server Action é invocada de um Client Component (via `useEffect`, `useCallback`, ou event handlers async), o JWT do utilizador autenticado pode não propagar corretamente através de RLS policies que usem `EXISTS (SELECT FROM profiles WHERE id = auth.uid()...)`. O problema manifesta-se silenciosamente: a query retorna array vazio em vez de erro, dando a falsa impressão de "sem dados".
+
+O padrão foi descoberto ao investigar por que `getPlayerDrillDownData` e as Server Actions de `data_decisions` retornavam dados vazios apesar de existirem rows válidos no DB.
+
+**Decisão:**
+Server Actions que são chamadas de Client Components — e que acedem a dados de saúde ou dados por clube — usam `getServiceRoleClient()` para as queries ao DB, após verificação application-level via `requireStaffRole()`.
+
+**Implementação obrigatória:**
+1. `requireStaffRole()` — verifica autenticação + papel (coach/analyst) + club_id
+2. `getServiceRoleClient()` — query sem RLS
+3. Filtros explícitos `club_id` + identificador do recurso em todos os queries
+
+**Trade-offs aceites:**
+- A segurança passa a ser responsabilidade do código da aplicação, não do DB. Uma omissão de `requireStaffRole()` expõe dados sem protecção de RLS.
+- O service role key nunca deve ser exposto ao cliente — apenas Server Actions.
+
+**Ficheiros canónicos:** `sparta/src/lib/actions/readiness.ts` (`getPlayerDrillDownData`), `sparta/src/lib/actions/decisions-server.ts`
+
+---
+
+### ADR-002 — Padrão RLS EXISTS/profiles (nunca auth.club_id() ou JWT claims)
+
+**Data:** 2026-05-29
+**Estado:** Aceite — **Regra obrigatória para todas as migrations futuras**
+
+**Contexto:**
+O Supabase suporta funções custom no JWT via Auth Hooks (ex: `auth.club_id()`, `auth.jwt() -> 'user_role'`). Estas funções estão configuradas apenas no projecto de produção. O Supabase local usado em CI **não tem o hook configurado** — qualquer migration que use estas funções passa em produção e falha em CI com `function auth.club_id() does not exist`.
+
+A migration `000260_data_decisions.sql` foi inicialmente criada com `auth.club_id()` e JWT claims, causando falhas de CI.
+
+**Decisão:**
+Todas as RLS policies usam exclusivamente o padrão `EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN (...) AND club_id = table.club_id)`. Sem excepções.
+
+```sql
+-- Padrão canónico para todas as policies de staff
+EXISTS (
+  SELECT 1 FROM profiles
+  WHERE id = auth.uid()
+    AND role IN ('coach', 'analyst')
+    AND club_id = tabela.club_id
+)
+```
+
+**Trade-offs aceites:**
+- Policies ligeiramente mais verbosas (um join adicional).
+- Performance: o índice `profiles(id)` (primary key) torna o EXISTS eficiente.
+- Ganho: compatibilidade determinística entre CI, local dev e produção.
+
+**Ficheiros de referência:** `sparta/supabase/migrations/000200_fatigue_responses.sql`, `000250_readiness_snapshots.sql` (correcto), `000260_data_decisions.sql` (corrigido)
+
+---
+
+### ADR-003 — Threshold de Suficiência de Dados para o Semáforo de Prontidão
+
+**Data:** 2026-05-29
+**Estado:** Aceite
+
+**Contexto:**
+O design original de `classifyReadinessState` usava `dataSufficient: boolean` como único portão: `dataSufficient = distinctWeeks.size >= 4` (4 semanas ISO distintas de `session_metrics`). Na prática, todos os jogadores de um clube novo ficavam com estado `neutral` durante o primeiro mês de uso — tornando o painel inútil na fase de onboarding.
+
+**Decisão:**
+Separar os dois conceitos de suficiência de dados em dois sinais independentes:
+
+| Campo | Significado | Threshold | Efeito |
+|---|---|---|---|
+| `fatigueResponseCount` | Questionários submetidos nos últimos 7 dias | `>= 2` | Activa o semáforo (estado ≠ neutral) |
+| `acwrSufficient` | Semanas ISO de session_metrics | `>= 4` | Activa sinais ACWR (alert/caution por carga) |
+
+O `ClassifyReadinessInput` passou de `{ dataSufficient: boolean }` para `{ acwrSufficient: boolean; fatigueResponseCount: number }`.
+
+**Trade-offs aceites:**
+- Um clube com apenas 2 respostas recentes obtém um estado baseado apenas na média de fadiga (`recentFatigueAvg`), sem componente ACWR. Este estado é "menos preciso" mas **útil** vs. completamente neutro.
+- A precisão do semáforo aumenta progressivamente à medida que os dados de carga se acumulam (ACWR activo após 4 semanas).
+- O campo `data_sufficient` na tabela `readiness_snapshots` passa a reflectir `fatigueResponseCount >= 2` — controla o ícone `?` no UI.
+
+**Ficheiros:** `sparta/src/lib/readiness/snapshot.ts` (`classifyReadinessState`, `refreshSnapshotForSession`)
+
+---
+
+### ADR-004 — Refresh Explícito de Snapshots de Prontidão
+
+**Data:** 2026-05-29
+**Estado:** Aceite
+
+**Contexto:**
+`getReadinessPanelData()` lê snapshots existentes do DB — não os recalcula. O botão ↻ no painel e o carregamento da página chamavam apenas `getReadinessPanelData()`, obtendo sempre dados stale. `refreshUpcomingReadiness()` (que recalcula via `refreshSnapshotForSession()`) não era chamado de nenhum ponto da UI.
+
+**Decisão:**
+Dois pontos de entrada obrigatórios para `refreshUpcomingReadiness(sessionId)`:
+1. **Page server load** — `prontidao/page.tsx` chama `refreshUpcomingReadiness(sessionId)` antes de `getReadinessPanelData(sessionId)`
+2. **Botão ↻** — `handleManualRefresh` em `readiness-panel.tsx` chama `refreshUpcomingReadiness(sessionId)` antes de actualizar o estado
+
+**Trade-offs aceites:**
+- O carregamento da página demora ligeiramente mais (recalculo para N jogadores antes de renderizar).
+- Para squads grandes (>30 jogadores) pode ser perceptível. Optimização futura: `Suspense` + streaming enquanto o recalculo corre em background.
+- Ganho: dados sempre frescos sem depender de eventos Realtime ou acções manuais do utilizador.
+
+**Ficheiros:** `sparta/src/app/(staff)/prontidao/page.tsx`, `sparta/src/components/domain/readiness/readiness-panel.tsx`

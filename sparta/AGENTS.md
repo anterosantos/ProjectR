@@ -149,3 +149,128 @@ cp .env.example .env.local
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — Supabase publishable key (renamed from `ANON_KEY` in 2025+)
 
 Public variables (prefixed `NEXT_PUBLIC_`) are exposed to the browser; never put secrets there.
+
+---
+
+## Architectural Patterns & Implementation Rules
+
+Padrões estabelecidos durante o desenvolvimento — violações causam bugs silenciosos ou falhas de CI.
+
+### 1. Service Role para Server Actions chamadas de Client Components
+
+**Regra:** Server Actions invocadas de `useEffect`, `useCallback`, ou qualquer hook de ciclo de vida de client components DEVEM usar `getServiceRoleClient()` para queries a dados, NÃO `createServerClient()`.
+
+**Porquê:** O JWT do utilizador não propaga corretamente através de RLS policies com `EXISTS (SELECT FROM profiles...)` quando o contexto assíncrono é iniciado pelo lado do cliente. O service role contorna este problema.
+
+**Requisito obrigatório:** Antes de qualquer `getServiceRoleClient()`, chamar `requireStaffRole()` para verificação de autenticação e papel a nível da aplicação. Nunca service role sem este guard.
+
+**Filtros explícitos:** Como o service role bypassa RLS, todos os queries DEVEM incluir filtros explícitos `club_id` + identificador do recurso para garantir isolamento multi-tenant.
+
+```typescript
+// ✅ Correcto
+export async function getPlayerData(playerId: string) {
+  const authResult = await requireStaffRole();
+  if (!authResult.ok) return authResult;
+  const { clubId } = authResult.data;
+
+  const serviceRole = getServiceRoleClient();
+  const { data } = await serviceRole
+    .from('fatigue_responses')
+    .select('...')
+    .eq('player_id', playerId)
+    .eq('club_id', clubId); // isolamento explícito
+}
+
+// ❌ Errado — JWT pode não propagar via useEffect
+const supabase = await createServerClient();
+const { data } = await supabase.from('fatigue_responses')...
+```
+
+Ver `sparta/src/lib/actions/readiness.ts` (`getPlayerDrillDownData`) e `sparta/src/lib/actions/decisions-server.ts` para exemplos canónicos.
+
+---
+
+### 2. Ficheiros "use server" — apenas funções async
+
+**Regra:** Ficheiros com `"use server"` no topo APENAS podem exportar funções async. Qualquer export não-async (schemas Zod, constantes, tipos, objectos) causa **build error em produção**.
+
+**Solução:** Extrair schemas e tipos para `src/lib/schemas/` ou `src/lib/types/`.
+
+```typescript
+// ❌ Causa build error
+"use server";
+export const MySchema = z.object({ ... }); // objecto, não função async
+
+// ✅ Correcto
+// src/lib/schemas/my-schema.ts (sem "use server")
+export const MySchema = z.object({ ... });
+
+// src/lib/actions/my-action.ts
+"use server";
+import { MySchema } from "@/lib/schemas/my-schema";
+export async function myAction() { ... }
+```
+
+---
+
+### 3. RLS Policies — padrão EXISTS/profiles (nunca auth.club_id())
+
+**Regra:** Todas as RLS policies devem usar o padrão `EXISTS (SELECT 1 FROM profiles ...)`. Nunca usar `auth.club_id()`, `auth.jwt()`, ou claims JWT directamente.
+
+**Porquê:** `auth.club_id()` é uma função de JWT hook configurada apenas em produção. O Supabase local (usado em CI) não tem o hook configurado — qualquer migration que use esta função passa em produção mas **falha em CI**. Este é o pior tipo de regressão.
+
+```sql
+-- ✅ Correcto — funciona em CI e produção
+CREATE POLICY "staff read" ON my_table
+  FOR SELECT TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = auth.uid()
+        AND role IN ('coach', 'analyst')
+        AND club_id = my_table.club_id
+    )
+  );
+
+-- ❌ Falha em CI — auth.club_id() não existe em Supabase local
+CREATE POLICY "staff read" ON my_table
+  FOR SELECT TO authenticated
+  USING (club_id = auth.club_id() AND ...);
+```
+
+---
+
+### 4. Caminho de Migrations
+
+**Regra:** Todas as migrations DEVEM estar em `sparta/supabase/migrations/`. O directório raiz `supabase/migrations/` (fora de `sparta/`) **não é monitorizado pelo CI**.
+
+**Convenção de naming:** `000NNN_descricao_em_snake_case.sql` — NNN é sequencial com três dígitos (ex: `000260_data_decisions.sql`).
+
+**Função UUID:** Usar sempre `uuidv7()` (definida em migration `000010`). Nunca `uuid_generate_v7()` (não existe no schema do projecto).
+
+```sql
+-- ✅ Correcto
+id uuid PRIMARY KEY DEFAULT uuidv7()
+
+-- ❌ Falha em CI e produção
+id uuid PRIMARY KEY DEFAULT uuid_generate_v7()
+```
+
+---
+
+### 5. Readiness Snapshots — Refresh Explícito Obrigatório
+
+**Regra:** `getReadinessPanelData()` lê snapshots existentes do DB — não recalcula. Para obter dados frescos, chamar `refreshUpcomingReadiness(sessionId)` ANTES de `getReadinessPanelData()`.
+
+**Contextos onde o refresh deve ocorrer:**
+- Carregamento da página `/prontidao` (server component)
+- Botão ↻ no painel (client component `handleManualRefresh`)
+
+```typescript
+// ✅ Correcto — recalcula depois lê
+await refreshUpcomingReadiness(sessionId);
+const result = await getReadinessPanelData(sessionId);
+
+// ❌ Errado — lê snapshots potencialmente stale
+const result = await getReadinessPanelData(sessionId);
+```

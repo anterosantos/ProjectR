@@ -881,4 +881,11 @@ SPARTA/ (git root)
 - [x] Invalid timestamp crash em chart [player-metrics-chart.tsx] — **Fixed**: error handling em mapping
 - [x] Chart empty state logic [player-metrics-chart.tsx] — **Fixed**: `!= null` para ambos null e undefined
 - [x] Silent error handling em page [page.tsx] — **Fixed**: console.error para debugging
+
+### 2026-05-29 (Post-implementation UX improvement — Nova Leitura pre-fill)
+
+- ✅ **Pre-fill do formulário "Nova leitura"** — `AddMetricSheet` aceita props `lastWeight?: number | null` e `lastHeight?: number | null`. O formulário abre com os últimos valores registados em vez de campos vazios.
+- ✅ **Pesquisa independente por campo** — como peso e altura são opcionais por leitura (pode registar só peso, ou só altura), o último valor de cada campo é buscado independentemente com `[...metrics].reverse().find(m => m.weight_kg != null)`.
+- ✅ **Reset pós-save consistente** — após guardar com sucesso, o formulário faz reset para os valores acabados de submeter (não para vazio, não para os valores históricos iniciais). A próxima abertura do modal mostra o valor mais recente.
+- ✅ **Valores passados pela página** — `plantel/[id]/page.tsx` extrai `lastWeight` e `lastHeight` de `metrics` e passa-os ao `AddMetricSheet`.
 - [x] Network failure timing [add-metric-sheet.tsx] — **Fixed**: isMounted guard

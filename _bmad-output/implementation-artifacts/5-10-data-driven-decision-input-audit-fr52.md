@@ -30,7 +30,7 @@ so that the "wow moment" KPI is auditable and we can validate the product's impa
 **When** aplicada
 
 **Then** tabela `data_decisions` existe com colunas:
-- `id uuid PRIMARY KEY DEFAULT uuid_generate_v7()`
+- `id uuid PRIMARY KEY DEFAULT uuidv7()` _(corrigido de `uuid_generate_v7()` — ver Change Log 2026-05-29)_
 - `club_id uuid NOT NULL REFERENCES clubs(id) ON DELETE CASCADE`
 - `player_id uuid REFERENCES players(id) ON DELETE CASCADE` (cascade garante eliminação GDPR automática)
 - `session_id uuid REFERENCES sessions(id) ON DELETE SET NULL` (nullable — decisão pode não ter sessão associada)
@@ -671,6 +671,16 @@ claude-sonnet-4-6
 - ✅ Opção A implementada: getDataDrivenDecisions retorna { decisions, currentUserId } — componente auto-suficiente
 - ✅ 15 novos testes ✅; 1544/1544 testes ✅; lint 0 erros; typecheck 0 erros (ficheiros novos)
 - ✅ Status → review
+
+### 2026-05-29 (Post-implementation fixes)
+
+- ✅ **Migration path corrigido** — `000260_data_decisions.sql` estava em `SPARTA/supabase/migrations/` (root, não monitorizado pelo CI). Movido para `SPARTA/sparta/supabase/migrations/`.
+- ✅ **`uuidv7()` corrigido** — `DEFAULT uuid_generate_v7()` substituído por `DEFAULT uuidv7()` (função definida em migration 000010; `uuid_generate_v7` não existe no schema do projecto).
+- ✅ **RLS policies corrigidas** — políticas usavam `auth.club_id()` e `auth.jwt() -> 'user_role'` (só disponíveis em produção). Substituídas pelo padrão `EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN (...) AND club_id = ...)` compatível com CI local. Ver ADR-002.
+- ✅ **Service role em todos os Server Actions** — `saveDataDrivenDecision`, `getDataDrivenDecisions`, `updateDataDrivenDecision`, `getDecisionKpiData` passaram a usar `getServiceRoleClient()`. JWT do utilizador não propaga via EXISTS/profiles quando chamado de `useEffect`. Ver ADR-001.
+- ✅ **`getDataDrivenDecisions` filtra por `club_id`** — necessário porque service role bypassa RLS; sem este filtro retornaria decisões de outros clubes.
+- ✅ **`KpisValidacaoPage` convertida para async Server Component** — estava como client component com `useEffect` para fetch, o que causava falhas de CI (10 testes).
+- ✅ **`TelemetryPayloadSchema` extraído** — movido de `telemetry.ts` ("use server") para `lib/schemas/telemetry.ts`; ficheiros "use server" não podem exportar objectos não-async.
 
 ### 2026-05-27 (Story Created)
 - ✅ Story 5.10 analisada: FR52, UX-DR25, AR22, AR31 mapeados
