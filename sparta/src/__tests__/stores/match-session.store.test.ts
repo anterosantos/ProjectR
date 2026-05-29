@@ -31,6 +31,7 @@ describe("useMatchSession", () => {
     useMatchSession.setState({
       selectedPlayer: null,
       selectedAction: null,
+      lastActionPolarity: null,
     });
   });
 
@@ -111,5 +112,34 @@ describe("useMatchSession", () => {
     // Change player doesn't affect action
     useMatchSession.getState().setSelectedPlayer(mockPlayer2);
     expect(useMatchSession.getState().selectedAction).toBe("ball_loss");
+  });
+
+  it("clearAction limpa selectedAction mas mantém selectedPlayer", () => {
+    useMatchSession.getState().setSelectedPlayer(mockPlayer);
+    useMatchSession.getState().setSelectedAction("ball_loss");
+    useMatchSession.getState().clearAction("negative");
+
+    expect(useMatchSession.getState().selectedPlayer).toEqual(mockPlayer);
+    expect(useMatchSession.getState().selectedAction).toBeNull();
+    expect(useMatchSession.getState().lastActionPolarity).toBe("negative");
+  });
+
+  it("clearAction sem polarity mantém lastActionPolarity anterior", () => {
+    useMatchSession.getState().clearAction("positive");
+    useMatchSession.getState().setSelectedAction("ball_recovery");
+    useMatchSession.getState().clearAction();
+
+    expect(useMatchSession.getState().lastActionPolarity).toBe("positive");
+  });
+
+  it("clearSelection limpa tudo incluindo lastActionPolarity", () => {
+    useMatchSession.getState().setSelectedPlayer(mockPlayer);
+    useMatchSession.getState().setSelectedAction("ball_loss");
+    useMatchSession.getState().clearAction("negative");
+    useMatchSession.getState().clearSelection();
+
+    expect(useMatchSession.getState().selectedPlayer).toBeNull();
+    expect(useMatchSession.getState().selectedAction).toBeNull();
+    expect(useMatchSession.getState().lastActionPolarity).toBeNull();
   });
 });

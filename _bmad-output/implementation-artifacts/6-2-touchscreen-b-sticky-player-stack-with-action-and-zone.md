@@ -1,6 +1,6 @@
 # Story 6.2: Touchscreen B — Sticky Player + Stack with Action and Zone
 
-**Status:** review
+**Status:** done
 
 **Story ID:** 6.2
 **Epic:** Epic 6 — Recolha de Performance — Touchscreen 3-ecrãs (jornada da Ana)
@@ -306,6 +306,34 @@ So that consecutive events of the same player register in ~2 taps each at a sust
   - [x] Verificar `aria-describedby` em tooltips (processing_restricted)
   - [x] Tamanho dos botões ≥60×60px
   - [x] Sem animações (`duration-0` em transitions)
+
+### Review Findings
+
+- [ ] [Review][Patch] [MÉDIO] Header signal color dinâmico (AC#2-b) — Adicionar `lastActionPolarity: "positive" | "negative" | null` ao Zustand store; definir após `clearAction()` com sucesso; aplicar `bg-emerald-50` (positive) ou `bg-red-50` (negative) no sticky header [match-session.ts, match-event-capture.tsx]
+
+- [ ] [Review][Patch] [CRÍTICO] Double-submit via `startTransition(async)`: adicionar guard `if (isPending) return` no início de `handleZoneSelect` [zone-selector-sheet.tsx:26]
+- [ ] [Review][Patch] [CRÍTICO] Overlay dismiss durante submit em-curso: desabilitar clique no overlay quando `isPending === true` [zone-selector-sheet.tsx:56]
+- [ ] [Review][Patch] [CRÍTICO] Sem `AbortController` em `useEffect` de player-grid: dados stale de sessão anterior podem sobrescrever grid [player-grid.tsx:11]
+- [ ] [Review][Patch] [ALTO] `clearSelection()` limpa `selectedPlayer` após submit com sucesso — viola AC#6: criar `clearAction()` no store e usar no ZoneSelectorSheet [match-session.ts:33, zone-selector-sheet.tsx:49]
+- [ ] [Review][Patch] [ALTO] `getLineupForSession` sem filtro `role === "starter"` — bench/convocados aparecem na grid [lineups.ts:254]
+- [ ] [Review][Patch] [ALTO] `getLineupForSession` sem guard `club_id` — defesa em profundidade contra leitura cross-club [lineups.ts:254]
+- [ ] [Review][Patch] [ALTO] "Tentar novamente" limpa erro mas não re-submete — utilizador fica sem saber que o evento não foi gravado [zone-selector-sheet.tsx:97]
+- [ ] [Review][Patch] [ALTO] Offline outbox não integrado (AC#8): sem Dexie enqueue em falha, import `PendingBadge` errado (ui vs domain), sem botão "Forçar sincronização" [zone-selector-sheet.tsx, match-event-capture.tsx:58]
+- [ ] [Review][Patch] [ALTO] Testes em falta: PlayerGrid, ActionList, ZoneSelectorSheet, submitMatchEvent payload [__tests__/components/domain/match-event-capture/]
+- [ ] [Review][Patch] [MÉDIO] `aria-describedby="restricted-tooltip-match-capture"` aponta para elemento inexistente — adicionar elemento tooltip com `id` e texto "Tratamento limitado — este jogador não pode ser analisado" [player-button.tsx:28]
+- [ ] [Review][Patch] [MÉDIO] `ZoneSelectorSheet` sem `role="dialog"`, `aria-modal`, nem focus trap — teclado navega conteúdo atrás do modal [zone-selector-sheet.tsx:57]
+- [ ] [Review][Patch] [MÉDIO] `PlayerButton` mostra apenas jersey+posição (1ª palavra) — AC#3-b exige nome + número + posição + age_group visíveis [player-button.tsx:44]
+- [ ] [Review][Patch] [MÉDIO] SVG meio-campo ausente — AC#5-a exige SVG verde com linhas defensiva/meio/ataque [zone-selector-sheet.tsx:82]
+- [ ] [Review][Patch] [MÉDIO] `transition-colors duration-0` emite regra CSS de transição — remover `transition-colors`, manter apenas `duration-0` (ou usar `transition-none`) [action-button.tsx:66, zone-cell.tsx:37]
+- [ ] [Review][Patch] [MÉDIO] Corpo com `p-4` viola full-bleed — AC#1-a exige layout sem padding [match-event-capture.tsx:63]
+- [ ] [Review][Patch] [BAIXO] Dois clientes Supabase no mesmo request (page.tsx + requireStaffRole) — risco de dessincronização em token rotation [page.tsx:22]
+- [ ] [Review][Patch] [BAIXO] `requireStaffRole` duplicado em `auth.ts` e `events.ts` — consolidar para uma fonte única
+- [ ] [Review][Patch] [BAIXO] Import `ChevronDown` não utilizado em `player-button.tsx` [player-button.tsx:4]
+- [ ] [Review][Patch] [BAIXO] `selectedAction` importado mas não usado em `match-event-capture.tsx` — causa re-renders desnecessários [match-event-capture.tsx:11]
+- [ ] [Review][Patch] [BAIXO] Fallback `processing_restricted ?? false` em lineups.ts pode silenciosamente permitir acesso a jogador restrito se campo for null na BD [lineups.ts:107]
+
+- [x] [Review][Defer] Aviso "X de 11 jogadores" enganoso sem filtro starter [player-grid.tsx:68] — deferred, depende do patch getLineupForSession
+- [x] [Review][Defer] Bordas usam cores Tailwind brutas (emerald-500/red-500) em vez de tokens CSS signal/ready+signal/alert — deferred, pre-existing pattern
 
 ---
 

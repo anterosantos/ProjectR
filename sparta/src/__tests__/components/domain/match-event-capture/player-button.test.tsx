@@ -19,7 +19,9 @@ describe("<PlayerButton>", () => {
   it("renders player information", () => {
     render(<PlayerButton player={mockPlayer} />);
     expect(screen.getByText("7")).toBeInTheDocument();
-    expect(screen.getByText("Ponta")).toBeInTheDocument();
+    expect(screen.getByText("João")).toBeInTheDocument();
+    expect(screen.getByText("Ponta de Lança")).toBeInTheDocument();
+    expect(screen.getByText("Senior")).toBeInTheDocument();
   });
 
   it("calls onClick when clicked", () => {

@@ -4,12 +4,13 @@ import { RefreshCw } from "lucide-react";
 import {
   useMatchSession,
   useSelectedPlayer,
-  useSelectedAction,
+  useLastActionPolarity,
 } from "@/lib/stores/match-session";
 import { PlayerGrid } from "./player-grid";
 import { ActionList } from "./action-list";
 import { ZoneSelectorSheet } from "./zone-selector-sheet";
-import { PendingBadge } from "@/components/ui/pending-badge";
+import { PendingBadge } from "@/components/domain/pending-badge";
+import { useOutboxDrain } from "@/hooks/useOutboxDrain";
 import { cn } from "@/lib/utils";
 
 interface MatchEventCaptureProps {
@@ -18,8 +19,16 @@ interface MatchEventCaptureProps {
 
 export function MatchEventCapture({ sessionId }: MatchEventCaptureProps) {
   const selectedPlayer = useSelectedPlayer();
-  const selectedAction = useSelectedAction();
+  const lastPolarity = useLastActionPolarity();
   const { clearSelection } = useMatchSession();
+  const { pendingCount, isDraining, drain } = useOutboxDrain();
+
+  const headerBg =
+    selectedPlayer && lastPolarity === "negative"
+      ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+      : selectedPlayer
+        ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800"
+        : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800";
 
   return (
     <div className="flex flex-col w-full h-screen bg-slate-50 dark:bg-slate-950">
@@ -27,14 +36,12 @@ export function MatchEventCapture({ sessionId }: MatchEventCaptureProps) {
       <div
         className={cn(
           "sticky top-0 z-20 border-b px-4 py-3 flex items-center justify-between gap-3 min-h-[60px]",
-          selectedPlayer
-            ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800"
-            : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+          headerBg
         )}
       >
         {selectedPlayer ? (
           <>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <div className="text-sm font-semibold truncate">
                 {selectedPlayer.name} • nº {selectedPlayer.jersey_number}
               </div>
@@ -55,18 +62,20 @@ export function MatchEventCapture({ sessionId }: MatchEventCaptureProps) {
             Selecione um jogador
           </div>
         )}
-        <PendingBadge />
+        <PendingBadge
+          count={pendingCount}
+          isDraining={isDraining}
+          onSyncClick={drain}
+        />
       </div>
 
-      {/* Body */}
-      <div className="flex-1 overflow-auto">
-        <div className="p-4">
-          {!selectedPlayer ? (
-            <PlayerGrid sessionId={sessionId} />
-          ) : (
-            <ActionList />
-          )}
-        </div>
+      {/* Body — full-bleed, no extra padding */}
+      <div className="flex-1 overflow-auto p-4">
+        {!selectedPlayer ? (
+          <PlayerGrid sessionId={sessionId} />
+        ) : (
+          <ActionList />
+        )}
       </div>
 
       {/* Zone Selector Modal */}

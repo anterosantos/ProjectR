@@ -1,6 +1,5 @@
 "use server";
 
-import { createServerClient } from "@/lib/supabase/server";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { auditedRead } from "@/lib/data/audited";
 import { ok, err } from "@/lib/types";
@@ -9,46 +8,7 @@ import {
   MatchEventInputSchema,
   type MatchEventInput,
 } from "@/lib/schemas/match-events";
-
-// ── Auth guard ─────────────────────────────────────────────────────────────────
-
-async function requireStaffRole(): Promise<
-  Result<{ userId: string; clubId: string; role: string }, AppError>
-> {
-  const supabase = await createServerClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return err({ code: "unauthorized", message: "Autenticação necessária." });
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("role, club_id")
-    .eq("id", user.id)
-    .single();
-
-  if (profileError || !profile) {
-    return err({ code: "unauthorized", message: "Perfil não encontrado." });
-  }
-
-  if (profile.role !== "coach" && profile.role !== "analyst") {
-    return err({ code: "forbidden", message: "Acesso restrito a staff." });
-  }
-
-  if (!profile.club_id) {
-    return err({ code: "forbidden", message: "Clube não atribuído." });
-  }
-
-  return ok({
-    userId: user.id,
-    clubId: profile.club_id,
-    role: profile.role as string,
-  });
-}
+import { requireStaffRole } from "@/lib/actions/auth";
 
 // ── Server Actions ─────────────────────────────────────────────────────────────
 

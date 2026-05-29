@@ -5,7 +5,6 @@ import { PlayerButton } from "./player-button";
 import { useMatchSession } from "@/lib/stores/match-session";
 import { getLineupForSession } from "@/lib/actions/lineups";
 import type { MatchLineupRow } from "@/lib/stores/match-session";
-import type { MatchLineupWithPlayerData } from "@/lib/actions/lineups";
 
 interface PlayerGridProps {
   sessionId: string;
@@ -18,35 +17,44 @@ export function PlayerGrid({ sessionId }: PlayerGridProps) {
   const setSelectedPlayer = useMatchSession((s) => s.setSelectedPlayer);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     async function loadPlayers() {
       try {
         setLoading(true);
         const result = await getLineupForSession(sessionId);
+        if (controller.signal.aborted) return;
         if (!result.ok) {
-          setError(result.error.message);
+          setError("Erro ao carregar convocatória.");
           return;
         }
-        // Transform the data to match MatchLineupRow type
-        const transformedPlayers: MatchLineupRow[] = result.data.map((lineup) => ({
-          id: lineup.id,
-          session_id: lineup.session_id,
-          player_id: lineup.player_id,
-          name: lineup.name,
-          jersey_number: lineup.jersey_number,
-          position: lineup.position,
-          age_group: lineup.age_group,
-          processing_restricted: lineup.processing_restricted,
-          role: lineup.role,
-        }));
+        const transformedPlayers: MatchLineupRow[] = result.data.map(
+          (lineup) => ({
+            id: lineup.id,
+            session_id: lineup.session_id,
+            player_id: lineup.player_id,
+            name: lineup.name,
+            jersey_number: lineup.jersey_number,
+            position: lineup.position,
+            age_group: lineup.age_group,
+            processing_restricted: lineup.processing_restricted,
+            role: lineup.role,
+          })
+        );
         setPlayers(transformedPlayers);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load players");
+      } catch {
+        if (!controller.signal.aborted) {
+          setError("Erro ao carregar convocatória.");
+        }
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     }
 
     loadPlayers();
+    return () => controller.abort();
   }, [sessionId]);
 
   if (loading) {
@@ -68,21 +76,18 @@ export function PlayerGrid({ sessionId }: PlayerGridProps) {
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">Selecione um jogador</h2>
-      <div className="grid grid-cols-4 gap-4">
+      <div id="restricted-tooltip-match-capture" className="sr-only">
+        Tratamento limitado — este jogador não pode ser analisado
+      </div>
+      <div className="grid grid-cols-4 gap-3">
         {players.map((player) => (
           <PlayerButton
             key={player.id}
             player={player}
             onClick={() => setSelectedPlayer(player)}
-            disabled={player.processing_restricted}
           />
         ))}
       </div>
-      {players.length < 11 && (
-        <div className="text-sm text-slate-500">
-          {players.length} de 11 jogadores carregados
-        </div>
-      )}
     </div>
   );
 }

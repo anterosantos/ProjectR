@@ -9,6 +9,7 @@ type MatchZone = (typeof MATCH_ZONES)[number];
 interface ZoneCellProps {
   zone: MatchZone;
   onClick?: (zone: MatchZone) => void;
+  disabled?: boolean;
 }
 
 const ZONES_MAP: Record<MatchZone, string> = {
@@ -24,17 +25,21 @@ const ZONES_MAP: Record<MatchZone, string> = {
 };
 
 export const ZoneCell = forwardRef<HTMLButtonElement, ZoneCellProps>(
-  ({ zone, onClick }, ref) => {
+  ({ zone, onClick, disabled }, ref) => {
     const label = ZONES_MAP[zone] ?? zone;
 
     return (
       <button
         ref={ref}
-        onClick={() => onClick?.(zone)}
+        onClick={() => !disabled && onClick?.(zone)}
+        disabled={disabled}
         role="gridcell"
         aria-label={label}
         className={cn(
-          "w-full h-20 min-h-20 rounded-lg border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center bg-slate-50 dark:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer transition-colors duration-0"
+          "w-full h-20 min-h-20 rounded-lg border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center bg-slate-50 dark:bg-slate-800",
+          disabled
+            ? "opacity-50 cursor-not-allowed"
+            : "cursor-pointer hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"
         )}
       >
         <span className="text-sm font-medium text-center px-2">{label}</span>
