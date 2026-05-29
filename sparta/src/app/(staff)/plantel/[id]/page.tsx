@@ -15,6 +15,8 @@ import { MarkInactiveSheet } from "@/components/ui/mark-inactive-sheet";
 import { getPlayer } from "@/lib/actions/players";
 import { getPlayerMetrics } from "@/lib/actions/metrics";
 import { getConsentByPlayerId } from "@/lib/actions/consent";
+import { getPlayerDossierData } from "@/lib/actions/readiness";
+import { PlayerDossier } from "@/components/domain/readiness/player-dossier";
 
 const ArchivePlayerDialog = dynamicImport(() =>
   import("./archive-player-dialog").then(m => ({ default: m.ArchivePlayerDialog }))
@@ -67,7 +69,7 @@ export default async function PlayerDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ created?: string; updated?: string; reativado?: string; invited?: string; resent?: string }>;
+  searchParams: Promise<{ created?: string; updated?: string; reativado?: string; invited?: string; resent?: string; tab?: string }>;
 }) {
   let id: string;
   let created: string | undefined;
@@ -75,6 +77,7 @@ export default async function PlayerDetailPage({
   let reativado: string | undefined;
   let invited: string | undefined;
   let resent: string | undefined;
+  let tab: "resumo" | "dossier";
 
   try {
     const resolvedParams = await params;
@@ -85,6 +88,7 @@ export default async function PlayerDetailPage({
     reativado = resolvedSearchParams.reativado;
     invited = resolvedSearchParams.invited;
     resent = resolvedSearchParams.resent;
+    tab = resolvedSearchParams.tab === "dossier" ? "dossier" : "resumo";
   } catch {
     notFound();
   }
@@ -96,6 +100,9 @@ export default async function PlayerDetailPage({
 
   const metricsResult = await getPlayerMetrics(player.id);
   const metrics = metricsResult.ok ? metricsResult.data : [];
+
+  // Dossier data — only fetched when tab=dossier
+  const dossierResult = tab === "dossier" ? await getPlayerDossierData(player.id) : null;
 
   // Last recorded values for each metric (searched independently — each is optional per entry)
   const lastWeight = [...metrics].reverse().find((m) => m.weight_kg != null)?.weight_kg ?? null;
@@ -142,6 +149,30 @@ export default async function PlayerDetailPage({
       </div>
 
       <div className="space-y-6">
+        {/* Tab toggle */}
+        <div className="flex gap-1 rounded-lg bg-muted p-1 w-fit">
+          <Link
+            href={`/plantel/${player.id}`}
+            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              tab === "resumo"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Resumo
+          </Link>
+          <Link
+            href={`/plantel/${player.id}?tab=dossier`}
+            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              tab === "dossier"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Dossier
+          </Link>
+        </div>
+
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-4">
@@ -226,6 +257,20 @@ export default async function PlayerDetailPage({
             </div>
           )}
         </dl>
+
+        {/* ── DOSSIER TAB CONTENT ─────────────────────────────────────── */}
+        {tab === "dossier" && dossierResult?.ok && (
+          <PlayerDossier data={dossierResult.data} />
+        )}
+        {tab === "dossier" && dossierResult && !dossierResult.ok && (
+          <p className="text-sm text-muted-foreground">
+            Erro ao carregar dossier: {dossierResult.error.message}
+          </p>
+        )}
+
+        {/* ── RESUMO TAB CONTENT ──────────────────────────────────────── */}
+        {tab === "resumo" && (
+        <>
 
         {/* Actions */}
         <div className="flex gap-3">
@@ -318,6 +363,9 @@ export default async function PlayerDetailPage({
             <InvitePlayerSheet playerId={player.id} ageGroup={player.age_group} />
           )}
         </section>
+
+        </> /* end tab === "resumo" */
+        )}
       </div>
     </div>
   );

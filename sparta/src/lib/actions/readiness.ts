@@ -723,3 +723,121 @@ export async function getPlayerDrillDownData(
     attendanceDenominator,
   });
 }
+
+// ─── Dossier ──────────────────────────────────────────────────────────────────
+
+export interface FatigueTrendPoint {
+  submittedAt: string;
+  avg: number; // average of 5 dimensions (1–5)
+}
+
+export interface LatestQuestionnaire {
+  dim_energy: number;
+  dim_focus: number;
+  dim_sleep: number;
+  dim_soreness: number;
+  dim_mood: number;
+  srpe_value: number | null;
+  submittedAt: string;
+  phase: string;
+}
+
+export interface PlayerDossierData {
+  acwrRatio: number | null;
+  acwrState: 'ready' | 'caution' | 'alert' | 'neutral';
+  acwrBandLo: number;
+  acwrBandHi: number;
+  acuteLoad: number;
+  chronicLoad: number;
+  dataSufficient: boolean;
+  fatigueTrend: FatigueTrendPoint[]; // last ≤14 responses, oldest→newest
+  latestQuestionnaire: LatestQuestionnaire | null;
+}
+
+/**
+ * getPlayerDossierData — Returns ACWR + fatigue trend + latest questionnaire for the dossier tab.
+ *
+ * AUTHORIZATION: Staff only (coach/analyst). Players cannot access this (FR26).
+ */
+export async function getPlayerDossierData(
+  playerId: string
+): Promise<Result<PlayerDossierData, AppError>> {
+  const authResult = await requireStaffRole();
+  if (!authResult.ok) return authResult;
+
+  if (!playerId?.trim()) {
+    return err({ code: 'not_found', message: 'Recurso não encontrado' });
+  }
+
+  const { userId, clubId } = authResult.data;
+  const serviceRole = getServiceRoleClient();
+  const asOf = new Date();
+
+  // 1. ACWR computation (uses service role — same pattern as snapshot refresh)
+  const { computeAcwr } = await import('@/lib/readiness/acwr');
+  const acwr = await computeAcwr(serviceRole, { playerId, asOf });
+
+  // 2. Fatigue responses — last 28 days, for trend + latest questionnaire
+  const since28 = new Date(asOf.getTime() - 28 * 24 * 60 * 60 * 1000);
+
+  let fatigueRows: FatigueResponse[] = [];
+  try {
+    fatigueRows = await auditedRead<FatigueResponse[]>(
+      {
+        targetKind: 'fatigue_responses',
+        targetId: playerId,
+        action: 'readiness.dossier',
+        actorId: userId,
+        clubId,
+      },
+      async () => {
+        // eslint-disable-next-line custom/no-direct-health-data-read -- inside auditedRead() callback; audit logging handled by wrapper
+        const { data, error } = await serviceRole
+          .from('fatigue_responses')
+          .select('id, player_id, session_id, phase, dim_energy, dim_focus, dim_sleep, dim_soreness, dim_mood, srpe_value, submitted_at, submitted_via')
+          .eq('player_id', playerId)
+          .eq('club_id', clubId)
+          .gte('submitted_at', since28.toISOString())
+          .order('submitted_at', { ascending: true });
+        if (error) throw error;
+        return (data ?? []) as FatigueResponse[];
+      }
+    );
+  } catch (e) {
+    return err({ code: 'db_error', message: 'Erro ao carregar dados de fadiga' });
+  }
+
+  // 3. Fatigue trend — last 14 responses
+  const trendRows = fatigueRows.slice(-14);
+  const fatigueTrend: FatigueTrendPoint[] = trendRows.map((r) => ({
+    submittedAt: r.submitted_at,
+    avg: (r.dim_energy + r.dim_focus + r.dim_sleep + r.dim_soreness + r.dim_mood) / 5,
+  }));
+
+  // 4. Latest questionnaire — most recent response
+  const latestRow = fatigueRows.at(-1) ?? null;
+  const latestQuestionnaire: LatestQuestionnaire | null = latestRow
+    ? {
+        dim_energy: latestRow.dim_energy,
+        dim_focus: latestRow.dim_focus,
+        dim_sleep: latestRow.dim_sleep,
+        dim_soreness: latestRow.dim_soreness,
+        dim_mood: latestRow.dim_mood,
+        srpe_value: latestRow.srpe_value,
+        submittedAt: latestRow.submitted_at,
+        phase: latestRow.phase,
+      }
+    : null;
+
+  return ok({
+    acwrRatio: acwr.ratio,
+    acwrState: acwr.state,
+    acwrBandLo: acwr.threshold.lo,
+    acwrBandHi: acwr.threshold.hi,
+    acuteLoad: acwr.acute,
+    chronicLoad: acwr.chronic,
+    dataSufficient: acwr.dataSufficient,
+    fatigueTrend,
+    latestQuestionnaire,
+  });
+}
