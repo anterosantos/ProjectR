@@ -118,23 +118,23 @@ export default async function HistoricoPage() {
               aria-label="Respostas de fadiga por sessão"
             >
               <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th scope="col" className="py-3 pr-4 text-left font-medium text-gray-700">
+                <tr className="border-b border-border bg-muted/50">
+                  <th scope="col" className="py-3 pr-4 text-left font-medium text-foreground">
                     Data
                   </th>
-                  <th scope="col" className="py-3 pr-4 text-left font-medium text-gray-700">
+                  <th scope="col" className="py-3 pr-4 text-left font-medium text-foreground">
                     Fase
                   </th>
                   {copy.dimensions.map((dim) => (
                     <th
                       key={dim.key}
                       scope="col"
-                      className="py-3 pr-4 text-left font-medium text-gray-700"
+                      className="py-3 pr-4 text-left font-medium text-foreground"
                     >
                       {dim.label}
                     </th>
                   ))}
-                  <th scope="col" className="py-3 text-left font-medium text-gray-700">
+                  <th scope="col" className="py-3 text-left font-medium text-foreground">
                     sRPE
                   </th>
                 </tr>
@@ -143,21 +143,21 @@ export default async function HistoricoPage() {
                 {rows.map((row) => (
                   <tr
                     key={row.id}
-                    className="border-b border-gray-100 last:border-0 hover:bg-gray-50"
+                    className="border-b border-border/50 last:border-0 hover:bg-muted/30"
                   >
-                    <td className="py-3 pr-4 text-gray-900 whitespace-nowrap">
+                    <td className="py-3 pr-4 text-foreground whitespace-nowrap">
                       {formatSubmittedAt(row.submitted_at)}
                     </td>
-                    <td className="py-3 pr-4 text-gray-600">
+                    <td className="py-3 pr-4 text-muted-foreground">
                       {phaseLabel(row.phase)}
                     </td>
                     {/* Dimension cells driven by copy.dimensions — stays in sync with headers (P3) */}
                     {copy.dimensions.map((dim) => (
-                      <td key={dim.key} className="py-3 pr-4 tabular-nums text-gray-900">
+                      <td key={dim.key} className="py-3 pr-4 tabular-nums text-foreground">
                         {row[dim.key]}
                       </td>
                     ))}
-                    <td className="py-3 tabular-nums text-gray-500">
+                    <td className="py-3 tabular-nums text-muted-foreground">
                       {row.phase === "post" && row.srpe_value != null
                         ? row.srpe_value
                         : "—"}
