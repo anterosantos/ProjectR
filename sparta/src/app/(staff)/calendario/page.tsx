@@ -14,12 +14,14 @@ import { CalendarMonthView } from "@/components/ui/calendar-month-view";
 import {
   format,
   startOfWeek,
-
   startOfDay,
   endOfDay,
   addDays,
   startOfMonth,
   endOfMonth,
+  addMonths,
+  subMonths,
+  parseISO,
 } from "date-fns";
 import { pt } from "date-fns/locale";
 import type { Session } from "@/lib/schemas/sessions";
@@ -29,11 +31,22 @@ export const metadata = { title: "Calendário" };
 export default async function CalendarioPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ cumulativo?: string; vista?: string }>;
+  searchParams?: Promise<{ cumulativo?: string; vista?: string; mes?: string }>;
 }) {
   const params = await searchParams;
   const isCumulative = params?.cumulativo === "true";
   const vista = params?.vista === "mes" ? "mes" : "semana";
+
+  // Parse target month from ?mes=YYYY-MM; default to current month
+  const today = new Date();
+  const targetMonth = (() => {
+    const raw = params?.mes;
+    if (raw && /^\d{4}-\d{2}$/.test(raw)) {
+      const parsed = parseISO(`${raw}-01`);
+      if (!isNaN(parsed.getTime())) return startOfMonth(parsed);
+    }
+    return startOfMonth(today);
+  })();
 
   const supabase = await createServerClient();
   const {
@@ -76,7 +89,6 @@ export default async function CalendarioPage({
   }
 
   const isCoach = profile.role === "coach";
-  const today = new Date();
 
   // Week data for DayChipStrip
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
@@ -103,15 +115,20 @@ export default async function CalendarioPage({
         new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
     );
 
-  // Month data for MonthGrid
-  const monthStart = startOfMonth(today);
-  const monthEnd = endOfMonth(today);
+  // Month data for MonthGrid — based on targetMonth (from ?mes= param or today)
+  const monthStart = targetMonth;
+  const monthEnd = endOfMonth(targetMonth);
   const monthSessions = sessions.filter((s) => {
     const d = new Date(s.scheduled_at);
     return d >= monthStart && d <= monthEnd;
   });
 
-  const monthLabel = format(today, "MMMM yyyy", { locale: pt });
+  const monthLabel = format(targetMonth, "MMMM yyyy", { locale: pt });
+
+  // Navigation hrefs for prev/next month
+  const baseQuery = isCumulative ? "&cumulativo=true" : "";
+  const prevMonthHref = `?vista=mes${baseQuery}&mes=${format(subMonths(targetMonth, 1), "yyyy-MM")}`;
+  const nextMonthHref = `?vista=mes${baseQuery}&mes=${format(addMonths(targetMonth, 1), "yyyy-MM")}`;
 
   return (
     <main id="main-content">
@@ -148,11 +165,13 @@ export default async function CalendarioPage({
           />
         ) : (
           <div className="space-y-2">
-            <p className="text-xs font-mono uppercase text-ink-3 capitalize">{monthLabel}</p>
             <CalendarMonthView
               monthSessions={monthSessions}
               next7Sessions={next7Sessions}
               month={monthStart.toISOString()}
+              monthLabel={monthLabel}
+              prevMonthHref={prevMonthHref}
+              nextMonthHref={nextMonthHref}
             />
           </div>
         )}
