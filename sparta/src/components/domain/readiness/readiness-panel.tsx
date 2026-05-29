@@ -17,7 +17,7 @@ import { ReadinessPanelList } from "@/components/domain/readiness/readiness-pane
 import { ReadinessPanelFormation } from "@/components/domain/readiness/readiness-panel-formation";
 import { createClient } from "@/lib/supabase/client";
 import { isInPreSessionWindow } from "@/lib/readiness/realtime-window";
-import { getReadinessPanelData } from "@/lib/actions/readiness";
+import { getReadinessPanelData, refreshUpcomingReadiness } from "@/lib/actions/readiness";
 import type { PlayerReadinessData } from "@/types/supabase";
 
 const SESSION_STORAGE_KEY = "readiness-panel-view";
@@ -147,6 +147,8 @@ export function ReadinessPanel({
     refreshInProgressRef.current = true;
     setIsRefreshing(true);
     try {
+      // Recalculate snapshots first, then read the updated data
+      await refreshUpcomingReadiness(sessionId);
       const result = await getReadinessPanelData(sessionId);
       if (result.ok) {
         setPlayers(result.data.players);

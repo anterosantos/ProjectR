@@ -10,6 +10,7 @@ import { ReadinessPanelEmptyState } from "@/components/domain/readiness/readines
 import {
   getUpcomingSession,
   getReadinessPanelData,
+  refreshUpcomingReadiness,
 } from "@/lib/actions/readiness";
 
 export const metadata = {
@@ -39,6 +40,9 @@ export default async function ProntidaoPage() {
   }
 
   const { sessionId, scheduledAt } = sessionResult.data;
+
+  // Recalculate snapshots on every page load so data stays fresh
+  await refreshUpcomingReadiness(sessionId);
 
   // Fetch enriched player readiness data
   const panelResult = await getReadinessPanelData(sessionId);
