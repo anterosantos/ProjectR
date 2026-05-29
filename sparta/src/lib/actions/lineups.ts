@@ -227,23 +227,51 @@ export interface MatchLineupData {
   updated_at: string;
 }
 
-// Fetch existing lineups for a session (for loading in the UI)
+export interface MatchLineupWithPlayerData extends MatchLineupData {
+  name: string;
+  jersey_number: number;
+  position: string;
+  age_group: string;
+  processing_restricted: boolean;
+}
+
+// Fetch existing lineups for a session with player details (for loading in the UI)
 export async function getLineupForSession(
   sessionId: string
-): Promise<Result<MatchLineupData[], AppError>> {
+): Promise<Result<MatchLineupWithPlayerData[], AppError>> {
   const { supabase, user, profile } = await getAuthContext();
   if (!user) return err({ code: "unauthorized", message: "Não autenticado" });
   if (!profile?.club_id)
     return err({ code: "forbidden", message: "Perfil não encontrado" });
 
-  // Verify session belongs to user's club via RLS
+  // Fetch lineups with player details
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const matchLineupTable = (supabase.from as any)("match_lineups");
   const selectResult = await matchLineupTable
-    .select("*")
+    .select(
+      `*,
+       players(name, jersey_number, position, age_group, processing_restricted)`
+    )
     .eq("session_id", sessionId);
-  const { data: lineups, error } = selectResult as {
-    data: MatchLineupData[] | null;
+  const { data: lineupData, error } = selectResult as {
+    data: Array<{
+      id: string;
+      session_id: string;
+      player_id: string;
+      role: string;
+      shirt_num: number | null;
+      started_minute: number;
+      ended_minute: number | null;
+      created_at: string;
+      updated_at: string;
+      players: {
+        name: string;
+        jersey_number: number;
+        position: string;
+        age_group: string;
+        processing_restricted: boolean;
+      } | null;
+    }> | null;
     error: { message: string } | null;
   };
 
@@ -251,5 +279,29 @@ export async function getLineupForSession(
     return err({ code: "unknown", message: error.message });
   }
 
-  return ok((lineups ?? []) as unknown as MatchLineupData[]);
+  if (!lineupData) {
+    return ok([]);
+  }
+
+  // Transform data to flatten player info
+  const lineups: MatchLineupWithPlayerData[] = lineupData
+    .filter((l) => l.players !== null)
+    .map((l) => ({
+      id: l.id,
+      session_id: l.session_id,
+      player_id: l.player_id,
+      role: l.role as "starter" | "bench" | "convocado_only",
+      shirt_num: l.shirt_num,
+      started_minute: l.started_minute,
+      ended_minute: l.ended_minute,
+      created_at: l.created_at,
+      updated_at: l.updated_at,
+      name: l.players?.name ?? "",
+      jersey_number: l.players?.jersey_number ?? 0,
+      position: l.players?.position ?? "",
+      age_group: l.players?.age_group ?? "",
+      processing_restricted: l.players?.processing_restricted ?? false,
+    }));
+
+  return ok(lineups);
 }

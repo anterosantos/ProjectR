@@ -1,6 +1,8 @@
 "use server";
 
 import { createServerClient } from "@/lib/supabase/server";
+import { ok, err } from "@/lib/types";
+import type { Result, AppError } from "@/lib/types";
 
 /**
  * Server Action: Get current user and their role from profile
@@ -44,4 +46,46 @@ export async function getCurrentUserRole() {
     console.error("[Auth] Error in getCurrentUserRole:", err);
     return { user: null, role: null, error: "Server error" };
   }
+}
+
+/**
+ * Server Action: Require staff role (coach or analyst) for protected routes
+ * Returns user info and club ID if authorized
+ */
+export async function requireStaffRole(): Promise<
+  Result<{ userId: string; clubId: string; role: string }, AppError>
+> {
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return err({ code: "unauthorized", message: "Autenticação necessária." });
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role, club_id")
+    .eq("id", user.id)
+    .single();
+
+  if (profileError || !profile) {
+    return err({ code: "unauthorized", message: "Perfil não encontrado." });
+  }
+
+  if (profile.role !== "coach" && profile.role !== "analyst") {
+    return err({ code: "forbidden", message: "Acesso restrito a staff." });
+  }
+
+  if (!profile.club_id) {
+    return err({ code: "forbidden", message: "Clube não atribuído." });
+  }
+
+  return ok({
+    userId: user.id,
+    clubId: profile.club_id,
+    role: profile.role as string,
+  });
 }
