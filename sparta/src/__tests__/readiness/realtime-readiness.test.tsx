@@ -137,6 +137,7 @@ describe("Ciclo de vida Realtime (AC #1)", () => {
     render(
       <ReadinessPanel
         players={[]}
+        history={{}}
         sessionId={SESSION_UUID}
         scheduledAt={FUTURE_IN_WINDOW}
       />
@@ -148,6 +149,7 @@ describe("Ciclo de vida Realtime (AC #1)", () => {
     render(
       <ReadinessPanel
         players={[]}
+        history={{}}
         sessionId={SESSION_UUID}
         scheduledAt={FUTURE_OUT_WINDOW}
       />
@@ -160,6 +162,7 @@ describe("Ciclo de vida Realtime (AC #1)", () => {
     const { unmount } = render(
       <ReadinessPanel
         players={[]}
+        history={{}}
         sessionId={SESSION_UUID}
         scheduledAt={FUTURE_IN_WINDOW}
       />
@@ -181,12 +184,13 @@ describe("Evento Realtime — atualização de players e flash (AC #2)", () => {
     const updatedPlayers = [makeSnapshot({ player_id: "p-1", state: "caution" })];
     vi.mocked(getReadinessPanelData).mockResolvedValue({
       ok: true,
-      data: { players: updatedPlayers },
+      data: { players: updatedPlayers, history: {} },
     });
 
     render(
       <ReadinessPanel
         players={[makeSnapshot({ player_id: "p-1", state: "ready" })]}
+        history={{}}
         sessionId={SESSION_UUID}
         scheduledAt={FUTURE_IN_WINDOW}
       />
@@ -211,12 +215,13 @@ describe("Evento Realtime — atualização de players e flash (AC #2)", () => {
     const updatedPlayers = [makeSnapshot({ player_id: "p-2", state: "alert" })];
     vi.mocked(getReadinessPanelData).mockResolvedValue({
       ok: true,
-      data: { players: updatedPlayers },
+      data: { players: updatedPlayers, history: {} },
     });
 
     render(
       <ReadinessPanel
         players={[makeSnapshot({ player_id: "p-2", state: "ready" })]}
+        history={{}}
         sessionId={SESSION_UUID}
         scheduledAt={FUTURE_IN_WINDOW}
       />
@@ -256,6 +261,7 @@ describe("Botão Atualizar (AC #3)", () => {
     render(
       <ReadinessPanel
         players={[]}
+        history={{}}
         sessionId={SESSION_UUID}
         scheduledAt={FUTURE_OUT_WINDOW}
       />
@@ -269,6 +275,7 @@ describe("Botão Atualizar (AC #3)", () => {
     render(
       <ReadinessPanel
         players={[]}
+        history={{}}
         sessionId={SESSION_UUID}
         scheduledAt={FUTURE_IN_WINDOW}
       />
@@ -283,12 +290,13 @@ describe("Botão Atualizar (AC #3)", () => {
     const newPlayers = [makeSnapshot({ player_id: "p-x", state: "alert" })];
     vi.mocked(getReadinessPanelData).mockResolvedValue({
       ok: true,
-      data: { players: newPlayers },
+      data: { players: newPlayers, history: {} },
     });
 
     render(
       <ReadinessPanel
         players={[]}
+        history={{}}
         sessionId={SESSION_UUID}
         scheduledAt={FUTURE_OUT_WINDOW}
       />

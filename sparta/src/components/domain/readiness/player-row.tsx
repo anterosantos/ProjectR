@@ -85,6 +85,7 @@ export function PlayerRow({
       )}
       aria-label={ariaLabel}
       data-player-id={player_id}
+      data-flashed={flashed ? "true" : undefined}
       onClick={() => onSelect?.(snapshot)}
     >
       <div className="bg-card rounded-xl shadow-sm border border-border/50 p-4 hover:shadow-md transition-shadow">

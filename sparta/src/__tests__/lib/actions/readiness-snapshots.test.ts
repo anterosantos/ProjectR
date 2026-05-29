@@ -444,6 +444,8 @@ describe('getReadinessPanelData (Story 5.4)', () => {
           eq: vi.fn().mockReturnThis(),
           in: vi.fn().mockReturnThis(),
           is: vi.fn().mockReturnThis(),
+          gte: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
           then: (resolve: (v: unknown) => void) => resolve({ data: [], error: null }),
         };
       }),
