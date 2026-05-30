@@ -22,6 +22,7 @@ interface PlayerRow {
   is_archived: boolean;
   is_active: boolean;
   positions: Array<{ position: string; is_primary: boolean }> | null;
+  parental_consents: Array<{ status: string }> | null;
 }
 
 export default async function ConvocatoriaPage({
@@ -87,7 +88,7 @@ export default async function ConvocatoriaPage({
     }
   )
     .select(
-      "id, full_name, jersey_num, is_archived, is_active, positions(position, is_primary)"
+      "id, full_name, jersey_num, is_archived, is_active, positions(position, is_primary), parental_consents(status)"
     )
     .eq("club_id", profile.club_id)
     .eq("is_archived", false)
@@ -111,7 +112,8 @@ export default async function ConvocatoriaPage({
         full_name: p.full_name,
         jersey_num: p.jersey_num || 0,
         positions: p.positions || [],
-        parental_consent_status: undefined,
+        // Sem registo de consentimento = jogador adulto = sem aviso necessário
+        parental_consent_status: p.parental_consents?.[0]?.status ?? "confirmed",
       };
     })
     .filter(Boolean) as PlayerForLineup[];
