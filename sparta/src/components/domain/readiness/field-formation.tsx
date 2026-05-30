@@ -90,11 +90,47 @@ export function FieldFormation({ starters, onSelectPlayer, flashedIds }: FieldFo
           aria-label="Campo de futebol — formação 4-3-3"
           className="absolute inset-0 w-full h-full"
         >
+          {/* Fundo verde */}
           <rect width="300" height="400" fill="#2d6a2d" rx="4" />
-          <line x1="10" y1="200" x2="290" y2="200" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" />
-          <circle cx="150" cy="200" r="40" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" fill="none" />
-          <rect x="60" y="10" width="180" height="80" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" fill="none" />
-          <rect x="60" y="310" width="180" height="80" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" fill="none" />
+
+          {/* Limite exterior do campo */}
+          <rect x="15" y="10" width="270" height="380" stroke="white" strokeWidth="2" fill="none" strokeOpacity="0.9" />
+
+          {/* Linha de meio-campo */}
+          <line x1="15" y1="200" x2="285" y2="200" stroke="white" strokeWidth="1.5" strokeOpacity="0.9" />
+
+          {/* Círculo central (r≈33px ≙ 9.15m) */}
+          <circle cx="150" cy="200" r="33" stroke="white" strokeWidth="1.5" fill="none" strokeOpacity="0.9" />
+          {/* Ponto central */}
+          <circle cx="150" cy="200" r="2" fill="white" fillOpacity="0.9" />
+
+          {/* Área de penálti superior (16.5m ≈ 60px, 40.32m ≈ 161px) */}
+          <rect x="70" y="10" width="160" height="60" stroke="white" strokeWidth="1.5" fill="none" strokeOpacity="0.9" />
+          {/* Área de baliza superior (5.5m ≈ 20px, 18.32m ≈ 73px) */}
+          <rect x="114" y="10" width="72" height="20" stroke="white" strokeWidth="1.5" fill="none" strokeOpacity="0.9" />
+          {/* Baliza superior (7.32m ≈ 29px) */}
+          <rect x="136" y="1" width="28" height="9" stroke="white" strokeWidth="1.5" fill="rgba(0,0,0,0.25)" strokeOpacity="0.9" />
+          {/* Ponto de penálti superior (11m ≈ 40px) */}
+          <circle cx="150" cy="50" r="2" fill="white" fillOpacity="0.9" />
+          {/* Arco de penálti superior */}
+          <path d="M 121 70 A 33 33 0 0 1 179 70" stroke="white" strokeWidth="1.5" fill="none" strokeOpacity="0.9" />
+
+          {/* Área de penálti inferior */}
+          <rect x="70" y="330" width="160" height="60" stroke="white" strokeWidth="1.5" fill="none" strokeOpacity="0.9" />
+          {/* Área de baliza inferior */}
+          <rect x="114" y="370" width="72" height="20" stroke="white" strokeWidth="1.5" fill="none" strokeOpacity="0.9" />
+          {/* Baliza inferior */}
+          <rect x="136" y="390" width="28" height="9" stroke="white" strokeWidth="1.5" fill="rgba(0,0,0,0.25)" strokeOpacity="0.9" />
+          {/* Ponto de penálti inferior */}
+          <circle cx="150" cy="350" r="2" fill="white" fillOpacity="0.9" />
+          {/* Arco de penálti inferior */}
+          <path d="M 121 330 A 33 33 0 0 0 179 330" stroke="white" strokeWidth="1.5" fill="none" strokeOpacity="0.9" />
+
+          {/* Arcos de canto */}
+          <path d="M 23 10 A 8 8 0 0 1 15 18" stroke="white" strokeWidth="1.5" fill="none" strokeOpacity="0.9" />
+          <path d="M 277 10 A 8 8 0 0 0 285 18" stroke="white" strokeWidth="1.5" fill="none" strokeOpacity="0.9" />
+          <path d="M 15 382 A 8 8 0 0 0 23 390" stroke="white" strokeWidth="1.5" fill="none" strokeOpacity="0.9" />
+          <path d="M 285 382 A 8 8 0 0 1 277 390" stroke="white" strokeWidth="1.5" fill="none" strokeOpacity="0.9" />
         </svg>
 
         {FORMATION_ROWS.map(({ key, topPct }) => {
