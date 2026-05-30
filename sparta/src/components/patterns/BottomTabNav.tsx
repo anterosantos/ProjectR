@@ -60,7 +60,7 @@ export function BottomTabNav({ role }: BottomTabNavProps) {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white lg:hidden"
+      className="fixed bottom-0 left-0 right-0 border-t border-border bg-card lg:hidden"
       aria-label="Navegação principal"
     >
       <div className="flex justify-around">
@@ -72,17 +72,17 @@ export function BottomTabNav({ role }: BottomTabNavProps) {
             <Link
               key={tab.href}
               href={tab.href}
-              className="flex flex-col items-center justify-center flex-1 py-3 px-2 min-h-[60px] transition-colors hover:bg-gray-50"
+              className="flex flex-col items-center justify-center flex-1 py-3 px-2 min-h-[60px] hover:bg-muted"
               aria-current={isActive ? "page" : undefined}
             >
               <Icon
                 className={`h-6 w-6 mb-1 ${
-                  isActive ? "text-gray-900" : "text-gray-600"
+                  isActive ? "text-foreground" : "text-muted-foreground"
                 }`}
               />
               <span
                 className={`text-2xs text-center ${
-                  isActive ? "text-gray-900 font-semibold" : "text-gray-600"
+                  isActive ? "text-foreground font-semibold" : "text-muted-foreground"
                 }`}
               >
                 {tab.label}

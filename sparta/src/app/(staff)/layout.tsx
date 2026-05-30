@@ -43,10 +43,10 @@ export default async function StaffLayout({
   }
 
   return (
-    <div className="flex min-h-screen flex-col lg:flex-row">
+    <div className="flex min-h-screen">
       <StaffSidebar role={staffRole} />
-      <div className="flex flex-1 flex-col">
-        <StickyHeader title="Painel" meta="Sáb 16:00" />
+      {/* lg:pl-64 offsets the fixed sidebar */}
+      <div className="flex flex-1 flex-col lg:pl-64">
         <main id="main-content" className="flex-1 pb-[60px] lg:pb-0">{children}</main>
         <BottomTabNav role={staffRole} />
       </div>
