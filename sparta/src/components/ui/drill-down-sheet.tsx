@@ -53,7 +53,7 @@ export const DrillDownSheet = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         ref={contentRef}
-        className="w-full rounded-t-2xl border-0 border-t bg-background p-6 sm:rounded-lg data-[state=open]:slide-in-from-bottom-96 data-[state=open]:duration-200"
+        className="w-full max-h-[85vh] overflow-y-auto rounded-t-2xl border-0 border-t bg-background p-6 sm:rounded-lg data-[state=open]:slide-in-from-bottom-96 data-[state=open]:duration-200"
       >
         {children}
       </DialogContent>
