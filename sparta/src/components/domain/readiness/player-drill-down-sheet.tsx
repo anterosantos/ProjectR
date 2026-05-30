@@ -270,7 +270,7 @@ export function PlayerDrillDownSheet({
                         <XAxis dataKey="date" tick={{ fontSize: 9, fill: "var(--muted-foreground)" }} tickLine={false} />
                         <YAxis domain={[0, 11]} ticks={[1, 5, 10]} tick={{ fontSize: 9, fill: "var(--muted-foreground)" }} tickLine={false} width={18} />
                         <Tooltip content={<CustomTooltip />} />
-                        <Line type="monotone" dataKey="srpe_value" name="sRPE" stroke="#6B7280" strokeWidth={2} dot={{ r: 2, fill: "#6B7280" }} connectNulls={false} isAnimationActive={false} />
+                        <Line type="monotone" dataKey="srpe_value" name="sRPE" stroke="#6B7280" strokeWidth={2} dot={{ r: 2, fill: "#6B7280" }} connectNulls={true} isAnimationActive={false} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -289,7 +289,7 @@ export function PlayerDrillDownSheet({
                         <XAxis dataKey="date" tick={{ fontSize: 9, fill: "var(--muted-foreground)" }} tickLine={false} />
                         <YAxis domain={[0.5, 5.5]} ticks={[1, 3, 5]} tick={{ fontSize: 9, fill: "var(--muted-foreground)" }} tickLine={false} width={18} />
                         <Tooltip content={<CustomTooltip />} />
-                        <Line type="monotone" dataKey={dim.key} name={dim.label} stroke={dim.color} strokeWidth={2} dot={{ r: 2, fill: dim.color }} connectNulls={false} isAnimationActive={false} />
+                        <Line type="monotone" dataKey={dim.key} name={dim.label} stroke={dim.color} strokeWidth={2} dot={{ r: 2, fill: dim.color }} connectNulls={true} isAnimationActive={false} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>

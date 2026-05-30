@@ -197,7 +197,7 @@ export function FatigueChart({
               <XAxis dataKey="date" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} />
               <YAxis domain={[0, 11]} ticks={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]} tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} width={20} />
               <Tooltip content={<CustomTooltip />} />
-              <Line type="monotone" dataKey="srpe_value" name="sRPE" stroke="#6B7280" strokeWidth={2} dot={{ r: 3, fill: "#6B7280" }} connectNulls={false} isAnimationActive={!prefersReducedMotion} />
+              <Line type="monotone" dataKey="srpe_value" name="sRPE" stroke="#6B7280" strokeWidth={2} dot={{ r: 3, fill: "#6B7280" }} connectNulls={true} isAnimationActive={!prefersReducedMotion} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -216,7 +216,7 @@ export function FatigueChart({
               <XAxis dataKey="date" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} />
               <YAxis domain={[0.5, 5.5]} ticks={[1, 2, 3, 4, 5]} tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} width={20} />
               <Tooltip content={<CustomTooltip />} />
-              <Line type="monotone" dataKey={dim.key} name={dim.label} stroke={dim.color} strokeWidth={2} dot={{ r: 3, fill: dim.color }} connectNulls={false} isAnimationActive={!prefersReducedMotion} />
+              <Line type="monotone" dataKey={dim.key} name={dim.label} stroke={dim.color} strokeWidth={2} dot={{ r: 3, fill: dim.color }} connectNulls={true} isAnimationActive={!prefersReducedMotion} />
             </LineChart>
           </ResponsiveContainer>
         </div>
