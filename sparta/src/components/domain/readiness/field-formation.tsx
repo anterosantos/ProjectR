@@ -29,10 +29,10 @@ function isValidState(state: unknown): state is keyof typeof STATE_COLORS {
 
 // 4-3-3 position layout: top% and left% per slot in each line
 const FORMATION_ROWS: { key: 'AVA' | 'MED' | 'DEF' | 'GR'; topPct: number }[] = [
-  { key: 'AVA', topPct: 8  },
-  { key: 'MED', topPct: 33 },
-  { key: 'DEF', topPct: 60 },
-  { key: 'GR',  topPct: 84 },
+  { key: 'AVA', topPct: 20 },
+  { key: 'MED', topPct: 37 },
+  { key: 'DEF', topPct: 55 },
+  { key: 'GR',  topPct: 72 },
 ];
 
 function distributePositions(count: number): number[] {

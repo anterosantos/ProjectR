@@ -44,7 +44,7 @@ export function getPositionKey(position: string | null): PositionKey {
   if (p.includes("guarda")) return "GR";
   if (p.includes("meio") || p === "med" || p.includes("centrocampista")) return "MED";
   if (p.includes("defesa") || p === "def" || p.includes("lateral") || p.includes("central")) return "DEF";
-  if (p.includes("avançado") || p === "ava" || p.includes("ponta") || p.includes("extremo")) return "AVA";
+  if (p.includes("avançado") || p === "ava" || p.includes("ponta") || p.includes("extremo") || p.includes("ala")) return "AVA";
 
   return "MED"; // fallback
 }
