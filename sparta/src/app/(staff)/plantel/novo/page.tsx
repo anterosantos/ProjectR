@@ -67,7 +67,7 @@ export default function NovoJogadorPage() {
   }
 
   return (
-    <div className="px-4 py-6 sm:px-6 max-w-lg">
+    <div className="px-4 py-6 sm:px-6 max-w-2xl mx-auto">
       <div className="mb-6 flex items-center gap-3">
         <Button asChild variant="ghost" size="sm">
           <Link href="/plantel">

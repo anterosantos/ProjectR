@@ -42,7 +42,7 @@ export default async function PlayerFadigaPage({
   const { responses, sessions, playerName, playerId } = result.data;
 
   return (
-    <div className="px-4 py-6 sm:px-6 max-w-lg">
+    <div className="px-4 py-6 sm:px-6 max-w-3xl mx-auto">
       {/* Back navigation */}
       <div className="mb-6 flex items-center gap-3">
         <Button asChild variant="ghost" size="sm">

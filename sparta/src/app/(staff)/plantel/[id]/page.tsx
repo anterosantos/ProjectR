@@ -132,7 +132,7 @@ export default async function PlayerDetailPage({
     .sort((a, b) => a.sort_order - b.sort_order);
 
   return (
-    <div className="px-4 py-6 sm:px-6 max-w-lg">
+    <div className="px-4 py-6 sm:px-6 max-w-3xl mx-auto">
       {showCreated && <CalmConfirmation message="Jogador adicionado" />}
       {showUpdated && <CalmConfirmation message="Jogador actualizado" />}
       {showReativado && <CalmConfirmation message="Jogador reactivado" />}
