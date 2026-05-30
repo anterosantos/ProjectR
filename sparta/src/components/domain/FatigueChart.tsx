@@ -181,64 +181,71 @@ export function FatigueChart({
   }
 
   return (
-    <div
-      role="img"
-      aria-label={`Gráfico de fadiga dos últimos 28 dias com 5 dimensões — ${playerName}`}
-      className="w-full"
-    >
-      <ResponsiveContainer width="100%" height={260}>
-        <LineChart
-          data={chartData}
-          margin={{ top: 8, right: 16, bottom: 0, left: -16 }}
+    <div className="w-full space-y-6">
+      {visibleDimensions.map((dim) => (
+        <div
+          key={dim.key}
+          role="img"
+          aria-label={`Gráfico de ${dim.label} — ${playerName}`}
         >
-          <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-          <XAxis
-            dataKey="date"
-            tick={{ fontSize: 11, className: "fill-muted-foreground" }}
-            tickLine={false}
-          />
-          <YAxis
-            domain={[0.5, 5.5]}
-            ticks={[1, 2, 3, 4, 5]}
-            tick={{ fontSize: 11, className: "fill-muted-foreground" }}
-            tickLine={false}
-            width={24}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Legend
-            wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
-            iconType="plainline"
-          />
-
-          {visibleDimensions.map((dim) => (
-            <Line
-              key={dim.key}
-              type="monotone"
-              dataKey={dim.key}
-              name={dim.label}
-              stroke={dim.color}
-              strokeWidth={2}
-              dot={false}
-              connectNulls={false}
-              // Disable animation for prefers-reduced-motion (NFR41, AC #3)
-              isAnimationActive={!prefersReducedMotion}
+          {/* Dimension title with color indicator */}
+          <div className="mb-2 flex items-center gap-2">
+            <span
+              className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0"
+              style={{ backgroundColor: dim.color }}
+              aria-hidden="true"
             />
-          ))}
+            <span className="text-sm font-medium text-foreground">
+              {dim.label}
+            </span>
+          </div>
 
-          {/* sRPE markers as ReferenceDots at y=1 band, positioned by chart index to avoid overlaps */}
-          {srpePoints.map((point) => (
-            <ReferenceDot
-              key={`srpe-${point.chartIndex}`}
-              x={point.chartIndex}
-              y={1}
-              r={4}
-              fill="#6B7280"
-              stroke="none"
-              label={undefined}
-            />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
+          <ResponsiveContainer width="100%" height={140}>
+            <LineChart
+              data={chartData}
+              margin={{ top: 4, right: 16, bottom: 0, left: -16 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+                tickLine={false}
+              />
+              <YAxis
+                domain={[0.5, 5.5]}
+                ticks={[1, 2, 3, 4, 5]}
+                tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+                tickLine={false}
+                width={20}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Line
+                type="monotone"
+                dataKey={dim.key}
+                name={dim.label}
+                stroke={dim.color}
+                strokeWidth={2}
+                dot={{ r: 3, fill: dim.color }}
+                connectNulls={false}
+                isAnimationActive={!prefersReducedMotion}
+              />
+              {/* sRPE markers only on last dimension */}
+              {dim.key === visibleDimensions[visibleDimensions.length - 1]?.key &&
+                srpePoints.map((point) => (
+                  <ReferenceDot
+                    key={`srpe-${point.chartIndex}`}
+                    x={point.chartIndex}
+                    y={1}
+                    r={4}
+                    fill="#6B7280"
+                    stroke="none"
+                    label={undefined}
+                  />
+                ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      ))}
 
       {/* Reduced-motion: disable chart animations via CSS */}
       <style>{`
