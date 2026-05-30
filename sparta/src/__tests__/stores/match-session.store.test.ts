@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { useMatchSession } from "@/lib/stores/match-session";
-import type { MatchLineupRow } from "@/lib/stores/match-session";
+import type { MatchLineupRow, RecentEventEntry } from "@/lib/stores/match-session";
 
 const mockPlayer: MatchLineupRow = {
   id: "01920a4b-c8d3-7000-9c4e-000000000001",
@@ -26,12 +26,21 @@ const mockPlayer2: MatchLineupRow = {
   role: "starter",
 };
 
+const mockEntry: RecentEventEntry = {
+  id: "01920a4b-c8d3-7000-9c4e-000000000001",
+  action: "ball_loss",
+  zone: "mid_center",
+  jersey_number: 10,
+  occurred_at: "2026-05-30T15:00:00.000Z",
+};
+
 describe("useMatchSession", () => {
   beforeEach(() => {
     useMatchSession.setState({
       selectedPlayer: null,
       selectedAction: null,
       lastActionPolarity: null,
+      recentEvents: [],
     });
   });
 
@@ -141,5 +150,56 @@ describe("useMatchSession", () => {
     expect(useMatchSession.getState().selectedPlayer).toBeNull();
     expect(useMatchSession.getState().selectedAction).toBeNull();
     expect(useMatchSession.getState().lastActionPolarity).toBeNull();
+  });
+});
+
+describe("recentEvents", () => {
+  beforeEach(() => {
+    useMatchSession.setState({ recentEvents: [] });
+  });
+
+  it("addRecentEvent prepend + trim a 6", () => {
+    for (let i = 0; i < 7; i++) {
+      useMatchSession.getState().addRecentEvent({ ...mockEntry, id: `id-${i}` });
+    }
+    expect(useMatchSession.getState().recentEvents).toHaveLength(6);
+    expect(useMatchSession.getState().recentEvents[0]?.id).toBe("id-6");
+  });
+
+  it("addRecentEvent coloca mais recente em posição 0", () => {
+    useMatchSession.getState().addRecentEvent({ ...mockEntry, id: "first" });
+    useMatchSession.getState().addRecentEvent({ ...mockEntry, id: "second" });
+    expect(useMatchSession.getState().recentEvents[0]?.id).toBe("second");
+    expect(useMatchSession.getState().recentEvents[1]?.id).toBe("first");
+  });
+
+  it("removeRecentEvent filtra por id", () => {
+    useMatchSession.getState().addRecentEvent(mockEntry);
+    useMatchSession.getState().removeRecentEvent(mockEntry.id);
+    expect(useMatchSession.getState().recentEvents).toHaveLength(0);
+  });
+
+  it("removeRecentEvent não afeta outros eventos", () => {
+    useMatchSession.getState().addRecentEvent({ ...mockEntry, id: "keep" });
+    useMatchSession.getState().addRecentEvent({ ...mockEntry, id: "remove" });
+    useMatchSession.getState().removeRecentEvent("remove");
+    expect(useMatchSession.getState().recentEvents).toHaveLength(1);
+    expect(useMatchSession.getState().recentEvents[0]?.id).toBe("keep");
+  });
+
+  it("setRecentEvents substitui todos e trim a 6", () => {
+    const entries = Array.from({ length: 8 }, (_, i) => ({
+      ...mockEntry,
+      id: `id-${i}`,
+    }));
+    useMatchSession.getState().setRecentEvents(entries);
+    expect(useMatchSession.getState().recentEvents).toHaveLength(6);
+    expect(useMatchSession.getState().recentEvents[0]?.id).toBe("id-0");
+  });
+
+  it("clearRecentEvents limpa tudo", () => {
+    useMatchSession.getState().addRecentEvent(mockEntry);
+    useMatchSession.getState().clearRecentEvents();
+    expect(useMatchSession.getState().recentEvents).toHaveLength(0);
   });
 });

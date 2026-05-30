@@ -7,6 +7,7 @@ import {
   useMatchSession,
   useSelectedPlayer,
   useSelectedAction,
+  type RecentEventEntry,
 } from "@/lib/stores/match-session";
 import { submitMatchEvent } from "@/lib/actions/events";
 import { newId } from "@/lib/uuid";
@@ -26,10 +27,39 @@ interface ZoneSelectorSheetProps {
   sessionId: string;
 }
 
+// TODO Story 6.6+: extract helper to DRY the RecentEventEntry construction (called 3x)
+function createRecentEventEntry(
+  payload: ReturnType<typeof newId> extends never
+    ? never
+    : {
+        id: string;
+        action: string;
+        zone: (typeof MATCH_ZONES)[number];
+        player_id: string;
+        session_id: string;
+        occurred_at: string;
+        captured_via: "online" | "offline-drain";
+      },
+  selectedAction: string,
+  zone: (typeof MATCH_ZONES)[number],
+  selectedPlayer: {
+    jersey_number: number;
+  }
+): RecentEventEntry {
+  return {
+    id: payload.id,
+    action: selectedAction as any,
+    zone,
+    jersey_number: selectedPlayer.jersey_number,
+    occurred_at: payload.occurred_at,
+  };
+}
+
 export function ZoneSelectorSheet({ sessionId }: ZoneSelectorSheetProps) {
   const selectedPlayer = useSelectedPlayer();
   const selectedAction = useSelectedAction();
   const { clearAction, clearSelection } = useMatchSession();
+  const addRecentEvent = useMatchSession((s) => s.addRecentEvent);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -65,6 +95,17 @@ export function ZoneSelectorSheet({ sessionId }: ZoneSelectorSheetProps) {
     try {
       if (!isOnline) {
         await enqueueMutation("match-event.submit", payload);
+        if (!selectedPlayer || !selectedAction) {
+          console.error("Cannot add recent event: missing player or action");
+          return;
+        }
+        const recentEntry = createRecentEventEntry(
+          payload,
+          selectedAction,
+          zone,
+          selectedPlayer
+        );
+        addRecentEvent(recentEntry);
         const polarity = POSITIVE_ACTIONS.has(selectedAction)
           ? "positive"
           : "negative";
@@ -79,12 +120,34 @@ export function ZoneSelectorSheet({ sessionId }: ZoneSelectorSheetProps) {
           ...payload,
           captured_via: "offline-drain",
         });
+        if (!selectedPlayer || !selectedAction) {
+          console.error("Cannot add recent event: missing player or action");
+          return;
+        }
+        const recentEntry = createRecentEventEntry(
+          payload,
+          selectedAction,
+          zone,
+          selectedPlayer
+        );
+        addRecentEvent(recentEntry);
         setError(
           "Erro ao registar — evento guardado para sincronização posterior."
         );
         return;
       }
 
+      if (!selectedPlayer || !selectedAction) {
+        console.error("Cannot add recent event: missing player or action");
+        return;
+      }
+      const recentEntry = createRecentEventEntry(
+        payload,
+        selectedAction,
+        zone,
+        selectedPlayer
+      );
+      addRecentEvent(recentEntry);
       const polarity = POSITIVE_ACTIONS.has(selectedAction)
         ? "positive"
         : "negative";

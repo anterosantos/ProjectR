@@ -9,6 +9,7 @@ import {
 import { PlayerGrid } from "./player-grid";
 import { ActionList } from "./action-list";
 import { ZoneSelectorSheet } from "./zone-selector-sheet";
+import { RecentEventsRing } from "./recent-events-ring";
 import { PendingBadge } from "@/components/domain/pending-badge";
 import { useOutboxDrain } from "@/hooks/useOutboxDrain";
 import { cn } from "@/lib/utils";
@@ -77,6 +78,9 @@ export function MatchEventCapture({ sessionId }: MatchEventCaptureProps) {
           <ActionList />
         )}
       </div>
+
+      {/* Recent Events Footer */}
+      <RecentEventsRing sessionId={sessionId} />
 
       {/* Zone Selector Modal */}
       <ZoneSelectorSheet sessionId={sessionId} />

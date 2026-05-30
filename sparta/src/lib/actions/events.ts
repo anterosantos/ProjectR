@@ -7,8 +7,10 @@ import type { Result, AppError } from "@/lib/types";
 import {
   MatchEventInputSchema,
   type MatchEventInput,
+  MATCH_ZONES,
 } from "@/lib/schemas/match-events";
 import { requireStaffRole } from "@/lib/actions/auth";
+import type { RecentEventEntry, MatchAction } from "@/lib/stores/match-session";
 
 // ── Server Actions ─────────────────────────────────────────────────────────────
 
@@ -185,4 +187,81 @@ export async function deleteMatchEvent(
   }
 
   return ok(undefined);
+}
+
+/**
+ * getRecentMatchEvents — Últimos N eventos de uma sessão para o ring de auditoria.
+ *
+ * Two-step query: match_events + match_lineups para jersey numbers.
+ * Apenas eventos não apagados (is_deleted = false).
+ */
+export async function getRecentMatchEvents(
+  sessionId: string,
+  limit = 6
+): Promise<Result<RecentEventEntry[], AppError>> {
+  const authResult = await requireStaffRole();
+  if (!authResult.ok) return authResult;
+  const { clubId, userId } = authResult.data;
+
+  if (!userId) {
+    return err({ code: "unauthorized", message: "User ID is invalid." });
+  }
+
+  const serviceRole = getServiceRoleClient();
+
+  // Step 1: últimos N eventos da sessão (via auditedRead para FR50 compliance)
+  const { data: events, error: eventsError } = await auditedRead(
+    { targetKind: "session_metrics", targetId: sessionId, action: "recent_events.fetch", actorId: userId, clubId },
+    async () =>
+      // eslint-disable-next-line custom/no-direct-health-data-read -- inside auditedRead() callback; audit logging handled by wrapper
+      serviceRole
+        .from("match_events")
+        .select("id, action, zone, occurred_at, player_id")
+        .eq("session_id", sessionId)
+        .eq("club_id", clubId)
+        .eq("is_deleted", false)
+        .order("occurred_at", { ascending: false })
+        .limit(limit)
+  );
+
+  if (eventsError) {
+    return err({ code: "unknown", message: eventsError.message });
+  }
+  if (!events || events.length === 0) return ok([]);
+
+  // Step 2: jersey numbers de match_lineups (sem tipos TS — usar cast as any)
+  const playerIds = [...new Set(events.map((e) => e.player_id))];
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: lineupRows } = await (serviceRole.from as any)("match_lineups")
+    .select("player_id, shirt_num, players(jersey_num)")
+    .eq("session_id", sessionId)
+    .in("player_id", playerIds);
+
+  type LineupRow = {
+    player_id: string;
+    shirt_num: number | null;
+    players: { jersey_num: number } | null;
+  };
+
+  const jerseyMap = new Map<string, number>();
+  if (!lineupRows) {
+    // Se query lineups falhou silenciosamente, fallback 0 é aceitável
+    // Mas log de aviso para debugging
+    const sid = sessionId ?? "unknown";
+    console.warn(`[getRecentMatchEvents] No lineups found for session ${sid}`);
+  }
+  for (const l of (lineupRows ?? []) as LineupRow[]) {
+    jerseyMap.set(l.player_id, l.shirt_num ?? l.players?.jersey_num ?? 0);
+  }
+
+  const result: RecentEventEntry[] = events.map((e) => ({
+    id: e.id,
+    action: e.action as MatchAction,
+    zone: e.zone as (typeof MATCH_ZONES)[number],
+    jersey_number: e.player_id ? jerseyMap.get(e.player_id) ?? 0 : 0,
+    occurred_at: e.occurred_at,
+  }));
+
+  return ok(result);
 }

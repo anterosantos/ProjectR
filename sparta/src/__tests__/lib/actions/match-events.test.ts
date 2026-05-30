@@ -14,7 +14,7 @@ vi.mock("@/lib/data/audited", () => ({
 
 import { createServerClient } from "@/lib/supabase/server";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
-import { submitMatchEvent, deleteMatchEvent } from "@/lib/actions/events";
+import { submitMatchEvent, deleteMatchEvent, getRecentMatchEvents } from "@/lib/actions/events";
 import { MATCH_ACTIONS, MATCH_ZONES } from "@/lib/schemas/match-events";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -447,5 +447,131 @@ describe("deleteMatchEvent", () => {
     const result = await deleteMatchEvent(EVENT_UUID);
 
     expect(result.ok).toBe(true);
+  });
+});
+
+// ─── getRecentMatchEvents ──────────────────────────────────────────────────────
+
+function buildServiceRoleForRecentEvents(opts: {
+  eventsData?: object[] | null;
+  eventsError?: object | null;
+  lineupData?: object[] | null;
+} = {}) {
+  const {
+    eventsData = [
+      {
+        id: EVENT_UUID,
+        action: "ball_loss",
+        zone: "mid_center",
+        occurred_at: "2026-05-30T15:00:00Z",
+        player_id: PLAYER_UUID,
+      },
+    ],
+    eventsError = null,
+    lineupData = [
+      { player_id: PLAYER_UUID, shirt_num: 10, players: { jersey_num: 7 } },
+    ],
+  } = opts;
+
+  const orderChain: Record<string, unknown> = {};
+  orderChain["limit"] = vi.fn().mockResolvedValue({ data: eventsData, error: eventsError });
+  orderChain["order"] = vi.fn().mockReturnValue(orderChain);
+  orderChain["eq"] = vi.fn().mockReturnValue(orderChain);
+  orderChain["select"] = vi.fn().mockReturnValue(orderChain);
+
+  const lineupChain: Record<string, unknown> = {};
+  lineupChain["in"] = vi.fn().mockResolvedValue({ data: lineupData });
+  lineupChain["eq"] = vi.fn().mockReturnValue(lineupChain);
+  lineupChain["select"] = vi.fn().mockReturnValue(lineupChain);
+
+  return {
+    from: vi.fn().mockImplementation((table: string) => {
+      if (table === "match_events") return orderChain;
+      if (table === "match_lineups") return lineupChain;
+      return {};
+    }),
+  };
+}
+
+describe("getRecentMatchEvents", () => {
+  beforeEach(() => {
+    mockCreateServerClient.mockClear();
+    mockGetServiceRoleClient.mockClear();
+  });
+
+  it("retorna array vazio quando não há eventos", async () => {
+    mockCreateServerClient.mockResolvedValue(buildServerClient());
+    mockGetServiceRoleClient.mockReturnValue(
+      buildServiceRoleForRecentEvents({ eventsData: [] })
+    );
+
+    const result = await getRecentMatchEvents(SESSION_UUID);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data).toHaveLength(0);
+    }
+  });
+
+  it("retorna eventos com jersey_number da lineup", async () => {
+    mockCreateServerClient.mockResolvedValue(buildServerClient());
+    mockGetServiceRoleClient.mockReturnValue(buildServiceRoleForRecentEvents());
+
+    const result = await getRecentMatchEvents(SESSION_UUID);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0]?.jersey_number).toBe(10);
+      expect(result.data[0]?.action).toBe("ball_loss");
+      expect(result.data[0]?.zone).toBe("mid_center");
+    }
+  });
+
+  it("usa shirt_num da lineup se disponível, senão jersey_num do player", async () => {
+    mockCreateServerClient.mockResolvedValue(buildServerClient());
+    mockGetServiceRoleClient.mockReturnValue(
+      buildServiceRoleForRecentEvents({
+        lineupData: [
+          { player_id: PLAYER_UUID, shirt_num: null, players: { jersey_num: 9 } },
+        ],
+      })
+    );
+
+    const result = await getRecentMatchEvents(SESSION_UUID);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data[0]?.jersey_number).toBe(9);
+    }
+  });
+
+  it("retorna erro se query de eventos falha", async () => {
+    mockCreateServerClient.mockResolvedValue(buildServerClient());
+    mockGetServiceRoleClient.mockReturnValue(
+      buildServiceRoleForRecentEvents({
+        eventsData: null,
+        eventsError: { message: "DB error" },
+      })
+    );
+
+    const result = await getRecentMatchEvents(SESSION_UUID);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("unknown");
+    }
+  });
+
+  it("retorna unauthorized se não autenticado", async () => {
+    mockCreateServerClient.mockResolvedValue(buildServerClient({ noUser: true }));
+    mockGetServiceRoleClient.mockReturnValue(buildServiceRoleForRecentEvents());
+
+    const result = await getRecentMatchEvents(SESSION_UUID);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("unauthorized");
+    }
   });
 });
