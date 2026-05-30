@@ -3,6 +3,8 @@
 import { useMemo, useEffect, useState } from "react";
 import {
   LineChart,
+  BarChart,
+  Bar,
   Line,
   XAxis,
   YAxis,
@@ -10,7 +12,6 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  ReferenceDot,
 } from "recharts";
 import { format, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -181,87 +182,70 @@ export function FatigueChart({
   }
 
   return (
-    <div className="w-full space-y-6">
-      {visibleDimensions.map((dim) => (
-        <div
-          key={dim.key}
-          role="img"
-          aria-label={`Gráfico de ${dim.label} — ${playerName}`}
-        >
-          {/* Dimension title with color indicator */}
-          <div className="mb-2 flex items-center gap-2">
-            <span
-              className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0"
-              style={{ backgroundColor: dim.color }}
-              aria-hidden="true"
-            />
-            <span className="text-sm font-medium text-foreground">
-              {dim.label}
-            </span>
-          </div>
+    <div className="w-full space-y-8">
 
+      {/* ── 1. sRPE — primeiro gráfico (escala 1-10) ── */}
+      {srpePoints.length > 0 && (
+        <div role="img" aria-label={`Gráfico sRPE — ${playerName}`}>
+          <div className="mb-2 flex items-center gap-2">
+            <span className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0 bg-slate-500" aria-hidden="true" />
+            <span className="text-sm font-medium text-foreground">sRPE pós-sessão</span>
+          </div>
           <ResponsiveContainer width="100%" height={140}>
-            <LineChart
-              data={chartData}
-              margin={{ top: 4, right: 16, bottom: 0, left: -16 }}
-            >
+            <LineChart data={chartData} margin={{ top: 4, right: 16, bottom: 0, left: -16 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
-                tickLine={false}
-              />
-              <YAxis
-                domain={[0.5, 5.5]}
-                ticks={[1, 2, 3, 4, 5]}
-                tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
-                tickLine={false}
-                width={20}
-              />
+              <XAxis dataKey="date" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} />
+              <YAxis domain={[0, 11]} ticks={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]} tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} width={20} />
               <Tooltip content={<CustomTooltip />} />
-              <Line
-                type="monotone"
-                dataKey={dim.key}
-                name={dim.label}
-                stroke={dim.color}
-                strokeWidth={2}
-                dot={{ r: 3, fill: dim.color }}
-                connectNulls={false}
-                isAnimationActive={!prefersReducedMotion}
-              />
-              {/* sRPE markers only on last dimension */}
-              {dim.key === visibleDimensions[visibleDimensions.length - 1]?.key &&
-                srpePoints.map((point) => (
-                  <ReferenceDot
-                    key={`srpe-${point.chartIndex}`}
-                    x={point.chartIndex}
-                    y={1}
-                    r={4}
-                    fill="#6B7280"
-                    stroke="none"
-                    label={undefined}
-                  />
-                ))}
+              <Line type="monotone" dataKey="srpe_value" name="sRPE" stroke="#6B7280" strokeWidth={2} dot={{ r: 3, fill: "#6B7280" }} connectNulls={false} isAnimationActive={!prefersReducedMotion} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* ── 2. Um gráfico por dimensão (escala 1-5) ── */}
+      {visibleDimensions.map((dim) => (
+        <div key={dim.key} role="img" aria-label={`Gráfico de ${dim.label} — ${playerName}`}>
+          <div className="mb-2 flex items-center gap-2">
+            <span className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: dim.color }} aria-hidden="true" />
+            <span className="text-sm font-medium text-foreground">{dim.label}</span>
+          </div>
+          <ResponsiveContainer width="100%" height={140}>
+            <LineChart data={chartData} margin={{ top: 4, right: 16, bottom: 0, left: -16 }}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+              <XAxis dataKey="date" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} />
+              <YAxis domain={[0.5, 5.5]} ticks={[1, 2, 3, 4, 5]} tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} width={20} />
+              <Tooltip content={<CustomTooltip />} />
+              <Line type="monotone" dataKey={dim.key} name={dim.label} stroke={dim.color} strokeWidth={2} dot={{ r: 3, fill: dim.color }} connectNulls={false} isAnimationActive={!prefersReducedMotion} />
             </LineChart>
           </ResponsiveContainer>
         </div>
       ))}
 
-      {/* Reduced-motion: disable chart animations via CSS */}
+      {/* ── 3. Barras acumuladas por dimensão ── */}
+      <div role="img" aria-label={`Gráfico de barras acumuladas — ${playerName}`}>
+        <div className="mb-2">
+          <span className="text-sm font-medium text-foreground">Acumulado por sessão</span>
+        </div>
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={chartData} margin={{ top: 4, right: 16, bottom: 0, left: -16 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+            <XAxis dataKey="date" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} />
+            <YAxis tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} width={20} />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} iconType="square" />
+            {visibleDimensions.map((dim) => (
+              <Bar key={dim.key} dataKey={dim.key} name={dim.label} stackId="a" fill={dim.color} isAnimationActive={!prefersReducedMotion} />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
       <style>{`
         @media (prefers-reduced-motion: reduce) {
-          .recharts-line-curve {
-            animation: none !important;
-            transition: none !important;
-          }
+          .recharts-line-curve { animation: none !important; transition: none !important; }
         }
       `}</style>
-
-      {srpePoints.length > 0 && (
-        <p className="mt-1 text-xs text-muted-foreground" aria-label="Legenda sRPE">
-          ● Marcador sRPE pós-sessão (escala 1–10)
-        </p>
-      )}
     </div>
   );
 }
