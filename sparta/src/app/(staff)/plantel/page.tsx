@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 import { SemaforoBadge } from "@/components/ui/semaforo-badge";
 import { PlayerPhoto } from "@/components/ui/player-photo";
 import { getPlayers } from "@/lib/actions/players";
+import { getUpcomingSession, getClubReadinessSnapshots } from "@/lib/actions/readiness";
 import { AGE_GROUPS } from "@/lib/schemas/players";
 import { PlantelEmptyState } from "./plantel-empty-state";
 import { PendingConsentsBanner } from "./pending-consents-banner";
+import type { ReadinessSnapshot } from "@/types/supabase";
+type ReadinessState = ReadinessSnapshot["state"];
 
 export const metadata = {
   title: "Plantel",
@@ -29,7 +32,21 @@ export default async function PlantelPage({
   const { view } = await searchParams;
   const showInactive = view === "inativos";
 
-  const result = await getPlayers(showInactive ? { showInactive: true } : undefined);
+  const [result, sessionResult] = await Promise.all([
+    getPlayers(showInactive ? { showInactive: true } : undefined),
+    showInactive ? Promise.resolve(null) : getUpcomingSession(),
+  ]);
+
+  // Build player_id → readiness state map from upcoming session snapshots
+  const readinessMap = new Map<string, ReadinessState>();
+  if (sessionResult?.ok && sessionResult.data) {
+    const snapshotsResult = await getClubReadinessSnapshots(sessionResult.data.sessionId);
+    if (snapshotsResult.ok) {
+      for (const s of snapshotsResult.data.snapshots) {
+        readinessMap.set(s.player_id, s.state as ReadinessState);
+      }
+    }
+  }
 
   if (!result.ok) {
     return (
@@ -121,7 +138,7 @@ export default async function PlantelPage({
                               Inactivo
                             </span>
                           ) : (
-                            <SemaforoBadge state="neutral" size="sm" />
+                            <SemaforoBadge state={readinessMap.get(player.id) ?? "neutral"} size="sm" />
                           )}
                         </Link>
                       </li>
