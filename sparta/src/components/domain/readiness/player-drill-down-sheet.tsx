@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import {
   LineChart,
+  BarChart,
+  Bar,
   Line,
   XAxis,
   YAxis,
@@ -172,16 +174,22 @@ export function PlayerDrillDownSheet({
       ? `${formatAcwr(snapshot.acwr)} · banda ${formatAcwr(snapshot.acwr_band_lo)}–${formatAcwr(snapshot.acwr_band_hi)}`
       : null;
 
-  // Build chart data points from fatigue responses
+  // Build chart data points from fatigue responses (oldest → newest)
   const chartData =
-    data?.fatigueResponses.map((r) => ({
-      date: formatDate(r.submitted_at),
-      dim_energy: r.dim_energy,
-      dim_focus: r.dim_focus,
-      dim_sleep: r.dim_sleep,
-      dim_soreness: r.dim_soreness,
-      dim_mood: r.dim_mood,
-    })) ?? [];
+    data?.fatigueResponses
+      .slice()
+      .sort((a, b) => new Date(a.submitted_at).getTime() - new Date(b.submitted_at).getTime())
+      .map((r) => ({
+        date: formatDate(r.submitted_at),
+        dim_energy: r.dim_energy,
+        dim_focus: r.dim_focus,
+        dim_sleep: r.dim_sleep,
+        dim_soreness: r.dim_soreness,
+        dim_mood: r.dim_mood,
+        srpe_value: r.srpe_value,
+      })) ?? [];
+
+  const hasSrpe = chartData.some((d) => d.srpe_value !== null);
 
   return (
     <DrillDownSheet
@@ -248,45 +256,63 @@ export function PlayerDrillDownSheet({
             )}
 
             {status === "loaded" && chartData.length > 0 && (
-              <div
-                role="img"
-                aria-label={`Série temporal de fadiga de ${playerName}, últimos 28 dias`}
-              >
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart
-                    data={chartData}
-                    margin={{ top: 4, right: 8, bottom: 0, left: -16 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis
-                      dataKey="date"
-                      tick={{ fontSize: 11 }}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      domain={[1, 5]}
-                      ticks={[1, 2, 3, 4, 5]}
-                      tick={{ fontSize: 11 }}
-                      tickLine={false}
-                      width={24}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} iconType="plainline" />
-                    {DIMENSIONS.map((dim) => (
-                      <Line
-                        key={dim.key}
-                        type="monotone"
-                        dataKey={dim.key}
-                        name={dim.label}
-                        stroke={dim.color}
-                        strokeWidth={2}
-                        dot={false}
-                        connectNulls={false}
-                        isAnimationActive={false}
-                      />
-                    ))}
-                  </LineChart>
-                </ResponsiveContainer>
+              <div className="space-y-5">
+                {/* sRPE — primeiro */}
+                {hasSrpe && (
+                  <div role="img" aria-label="sRPE pós-sessão">
+                    <div className="mb-1 flex items-center gap-2">
+                      <span className="inline-block h-2 w-2 rounded-full bg-slate-500 flex-shrink-0" aria-hidden="true" />
+                      <span className="text-xs font-medium text-foreground">sRPE pós-sessão</span>
+                    </div>
+                    <ResponsiveContainer width="100%" height={110}>
+                      <LineChart data={chartData} margin={{ top: 4, right: 8, bottom: 0, left: -16 }}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                        <XAxis dataKey="date" tick={{ fontSize: 9, fill: "var(--muted-foreground)" }} tickLine={false} />
+                        <YAxis domain={[0, 11]} ticks={[1, 5, 10]} tick={{ fontSize: 9, fill: "var(--muted-foreground)" }} tickLine={false} width={18} />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Line type="monotone" dataKey="srpe_value" name="sRPE" stroke="#6B7280" strokeWidth={2} dot={{ r: 2, fill: "#6B7280" }} connectNulls={false} isAnimationActive={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+                {/* Um gráfico por dimensão */}
+                {DIMENSIONS.map((dim) => (
+                  <div key={dim.key} role="img" aria-label={dim.label}>
+                    <div className="mb-1 flex items-center gap-2">
+                      <span className="inline-block h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: dim.color }} aria-hidden="true" />
+                      <span className="text-xs font-medium text-foreground">{dim.label}</span>
+                    </div>
+                    <ResponsiveContainer width="100%" height={110}>
+                      <LineChart data={chartData} margin={{ top: 4, right: 8, bottom: 0, left: -16 }}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                        <XAxis dataKey="date" tick={{ fontSize: 9, fill: "var(--muted-foreground)" }} tickLine={false} />
+                        <YAxis domain={[0.5, 5.5]} ticks={[1, 3, 5]} tick={{ fontSize: 9, fill: "var(--muted-foreground)" }} tickLine={false} width={18} />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Line type="monotone" dataKey={dim.key} name={dim.label} stroke={dim.color} strokeWidth={2} dot={{ r: 2, fill: dim.color }} connectNulls={false} isAnimationActive={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                ))}
+
+                {/* Barras acumuladas */}
+                <div role="img" aria-label="Acumulado por sessão">
+                  <div className="mb-1">
+                    <span className="text-xs font-medium text-foreground">Acumulado por sessão</span>
+                  </div>
+                  <ResponsiveContainer width="100%" height={140}>
+                    <BarChart data={chartData} margin={{ top: 4, right: 8, bottom: 0, left: -16 }}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                      <XAxis dataKey="date" tick={{ fontSize: 9, fill: "var(--muted-foreground)" }} tickLine={false} />
+                      <YAxis tick={{ fontSize: 9, fill: "var(--muted-foreground)" }} tickLine={false} width={18} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend wrapperStyle={{ fontSize: 10, paddingTop: 6 }} iconType="square" />
+                      {DIMENSIONS.map((dim) => (
+                        <Bar key={dim.key} dataKey={dim.key} name={dim.label} stackId="a" fill={dim.color} isAnimationActive={false} />
+                      ))}
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             )}
 
