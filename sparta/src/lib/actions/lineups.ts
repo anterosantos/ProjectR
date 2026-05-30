@@ -251,7 +251,7 @@ export async function getLineupForSession(
   const selectResult = await matchLineupTable
     .select(
       `*,
-       players(name, jersey_number, position, age_group, processing_restricted)`
+       players(name, jersey_num, position, age_group, processing_restricted)`
     )
     .eq("session_id", sessionId)
     .eq("role", "starter");
@@ -268,7 +268,7 @@ export async function getLineupForSession(
       updated_at: string;
       players: {
         name: string;
-        jersey_number: number;
+        jersey_num: number;
         position: string;
         age_group: string;
         processing_restricted: boolean;
@@ -299,7 +299,7 @@ export async function getLineupForSession(
       created_at: l.created_at,
       updated_at: l.updated_at,
       name: l.players?.name ?? "",
-      jersey_number: l.players?.jersey_number ?? 0,
+      jersey_number: l.players?.jersey_num ?? 0,
       position: l.players?.position ?? "",
       age_group: l.players?.age_group ?? "",
       processing_restricted: l.players?.processing_restricted === true,
