@@ -113,7 +113,7 @@ export function FieldFormation({ starters, onSelectPlayer, flashedIds }: FieldFo
           {/* Ponto de penálti superior (11m ≈ 40px) */}
           <circle cx="150" cy="50" r="2" fill="white" fillOpacity="0.9" />
           {/* Arco de penálti superior — curva para fora da área (para o centro do campo) */}
-          <path d="M 124 70 A 33 33 0 0 1 176 70" stroke="white" strokeWidth="1.5" fill="none" strokeOpacity="0.9" />
+          <path d="M 124 70 A 33 33 0 0 0 176 70" stroke="white" strokeWidth="1.5" fill="none" strokeOpacity="0.9" />
 
           {/* Área de penálti inferior */}
           <rect x="70" y="330" width="160" height="60" stroke="white" strokeWidth="1.5" fill="none" strokeOpacity="0.9" />
@@ -124,7 +124,7 @@ export function FieldFormation({ starters, onSelectPlayer, flashedIds }: FieldFo
           {/* Ponto de penálti inferior */}
           <circle cx="150" cy="350" r="2" fill="white" fillOpacity="0.9" />
           {/* Arco de penálti inferior — curva para fora da área (para o centro do campo) */}
-          <path d="M 124 330 A 33 33 0 0 0 176 330" stroke="white" strokeWidth="1.5" fill="none" strokeOpacity="0.9" />
+          <path d="M 124 330 A 33 33 0 0 1 176 330" stroke="white" strokeWidth="1.5" fill="none" strokeOpacity="0.9" />
 
           {/* Arcos de canto */}
           <path d="M 23 10 A 8 8 0 0 1 15 18" stroke="white" strokeWidth="1.5" fill="none" strokeOpacity="0.9" />

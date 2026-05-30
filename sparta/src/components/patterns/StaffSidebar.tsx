@@ -43,7 +43,7 @@ export function StaffSidebar({ role }: StaffSidebarProps) {
   const navItems = NAV_CONFIG[role];
 
   const isActive = (href: string) => {
-    const segment = `/${pathname.split("/")[1] ?? ""}`;
+    const segment = pathname ? `/${pathname.split("/")[1] ?? ""}` : "";
     return segment === href;
   };
 

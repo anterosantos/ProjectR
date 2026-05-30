@@ -42,6 +42,6 @@ describe("StickyHeader", () => {
     const { container } = render(<StickyHeader title="Hoje" />);
 
     const header = container.querySelector("header");
-    expect(header).toHaveClass("border-b", "border-gray-200");
+    expect(header).toHaveClass("border-b", "border-border");
   });
 });
