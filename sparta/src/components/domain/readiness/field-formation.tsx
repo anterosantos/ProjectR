@@ -27,12 +27,12 @@ function isValidState(state: unknown): state is keyof typeof STATE_COLORS {
   return typeof state === 'string' && state in STATE_COLORS;
 }
 
-// 4-3-3 position layout: top% and left% per slot in each line
+// 4-3-3 position layout — rows shifted down so GR sits inside the penalty area
 const FORMATION_ROWS: { key: 'AVA' | 'MED' | 'DEF' | 'GR'; topPct: number }[] = [
-  { key: 'AVA', topPct: 20 },
-  { key: 'MED', topPct: 37 },
-  { key: 'DEF', topPct: 55 },
-  { key: 'GR',  topPct: 72 },
+  { key: 'AVA', topPct: 33 },
+  { key: 'MED', topPct: 50 },
+  { key: 'DEF', topPct: 67 },
+  { key: 'GR',  topPct: 84 },
 ];
 
 function distributePositions(count: number): number[] {
@@ -44,13 +44,30 @@ function distributePositions(count: number): number[] {
   return positions;
 }
 
-export function FieldFormation({ starters, onSelectPlayer, flashedIds }: FieldFormationProps) {
-  const byPosition: Record<'GR' | 'DEF' | 'MED' | 'AVA', PlayerReadinessData[]> = {
-    GR:  starters.filter(p => getPositionKey(p.primaryPosition) === 'GR'),
-    DEF: starters.filter(p => getPositionKey(p.primaryPosition) === 'DEF'),
-    MED: starters.filter(p => getPositionKey(p.primaryPosition) === 'MED'),
-    AVA: starters.filter(p => getPositionKey(p.primaryPosition) === 'AVA'),
+// Force strict 4-3-3 allocation regardless of how positions are stored in the DB.
+// Outfield players are sorted DEF → MED → AVA by position key, then the first 4
+// go to DEF, the next 3 to MED, and the remainder to AVA.
+function arrange433(starters: PlayerReadinessData[]): Record<'GR' | 'DEF' | 'MED' | 'AVA', PlayerReadinessData[]> {
+  const gk = starters.filter(p => getPositionKey(p.primaryPosition) === 'GR');
+  const outfield = starters.filter(p => getPositionKey(p.primaryPosition) !== 'GR');
+
+  const posOrder: Record<string, number> = { DEF: 0, MED: 1, AVA: 2 };
+  const sorted = [...outfield].sort((a, b) => {
+    const ka = getPositionKey(a.primaryPosition);
+    const kb = getPositionKey(b.primaryPosition);
+    return (posOrder[ka] ?? 1) - (posOrder[kb] ?? 1);
+  });
+
+  return {
+    GR:  gk,
+    DEF: sorted.slice(0, 4),
+    MED: sorted.slice(4, 7),
+    AVA: sorted.slice(7),
   };
+}
+
+export function FieldFormation({ starters, onSelectPlayer, flashedIds }: FieldFormationProps) {
+  const byPosition = arrange433(starters);
 
   return (
     <div className="w-full">
