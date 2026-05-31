@@ -48,6 +48,7 @@ function createRecentEventEntry(
 ): RecentEventEntry {
   return {
     id: payload.id,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     action: selectedAction as any,
     zone,
     jersey_number: selectedPlayer.jersey_number,
