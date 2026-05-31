@@ -38,7 +38,7 @@ export default async function MatchCapturePage({ params }: PageProps) {
   // Verify session exists and belongs to the club
   const { data: session, error: sessionError } = await supabase
     .from("sessions")
-    .select("id, club_id, type")
+    .select("id, club_id, type, scheduled_at, duration_min")
     .eq("id", sessionId)
     .eq("club_id", profile.club_id)
     .single();
@@ -49,7 +49,11 @@ export default async function MatchCapturePage({ params }: PageProps) {
 
   return (
     <div className="w-full h-screen">
-      <MatchEventCapture sessionId={sessionId} />
+      <MatchEventCapture
+        sessionId={sessionId}
+        scheduledAt={session.scheduled_at}
+        durationMin={session.duration_min ?? 90}
+      />
     </div>
   );
 }
