@@ -409,9 +409,8 @@ export async function processConsentDecision(
     .eq("id", consent.player_id)
     .maybeSingle();
 
-  if (!player?.profile_id) return;
-
-  const playerName = (player.full_name as string | null) ?? "o seu educando";
+  // player may not have registered yet — consent still proceeds
+  const playerName = (player?.full_name as string | null) ?? "o seu educando";
 
   if (action === "confirm") {
     await serviceRole
@@ -423,17 +422,22 @@ export async function processConsentDecision(
       })
       .eq("id", consent.id);
 
-    await serviceRole
-      .from("profiles")
-      .update({ consent_status: "granted" })
-      .eq("id", player.profile_id);
+    // profile_id only exists after the player accepts the invite and registers
+    // if already registered, update immediately; otherwise the invite flow reads
+    // parental_consents.status = 'confirmed' and sets consent_status on account creation
+    if (player?.profile_id) {
+      await serviceRole
+        .from("profiles")
+        .update({ consent_status: "granted" })
+        .eq("id", player.profile_id);
+    }
 
     await serviceRole.from("audit_logs").insert({
       club_id: consent.club_id,
       action: "consent.confirmed",
       target_kind: "player",
       target_id: consent.player_id,
-      payload: { consent_id: consent.id, confirmed_ip: ip },
+      payload: { consent_id: consent.id, confirmed_ip: ip, had_profile: !!player?.profile_id },
     });
 
     await sendConsentConfirmationEmail(consent.parent_email as string, playerName, token);
@@ -448,17 +452,19 @@ export async function processConsentDecision(
     })
     .eq("id", consent.id);
 
-  await serviceRole
-    .from("profiles")
-    .update({ consent_status: "revoked" })
-    .eq("id", player.profile_id);
+  if (player?.profile_id) {
+    await serviceRole
+      .from("profiles")
+      .update({ consent_status: "revoked" })
+      .eq("id", player.profile_id);
+  }
 
   await serviceRole.from("audit_logs").insert({
     club_id: consent.club_id,
     action: "consent.withdrawn",
     target_kind: "player",
     target_id: consent.player_id,
-    payload: { consent_id: consent.id },
+    payload: { consent_id: consent.id, had_profile: !!player?.profile_id },
   });
 }
 

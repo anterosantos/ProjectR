@@ -644,6 +644,15 @@ export async function invitePlayer(
     });
   }
 
+  // Check if parental consent was already confirmed before this invite
+  // (encarregado may confirm before staff sends the invite)
+  const { data: existingConsent } = await serviceRole
+    .from("parental_consents")
+    .select("status")
+    .eq("player_id", validated.data.playerId)
+    .eq("status", "confirmed")
+    .maybeSingle();
+
   // Criar perfil (ANTES da aceitação — garante que o Auth Hook injeta claims na primeira sessão)
   const { error: profileError } = await serviceRole
     .from("profiles")
@@ -652,6 +661,7 @@ export async function invitePlayer(
       club_id: staffProfile.club_id,
       role: "player",
       full_name: player.full_name,
+      ...(existingConsent ? { consent_status: "granted" } : {}),
     });
 
   if (profileError) {
