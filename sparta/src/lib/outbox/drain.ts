@@ -4,6 +4,7 @@ import { submitFatigueResponse } from '@/lib/actions/fatigue'
 import { MatchEventInputSchema } from '@/lib/schemas/match-events'
 import { submitMatchEvent } from '@/lib/actions/events'
 import { registerSubstitution } from '@/lib/actions/substitutions'
+import { upsertAttendance } from '@/lib/actions/attendance'
 
 interface SubstitutionDrainPayload {
   sessionId: string
@@ -207,6 +208,17 @@ try {
     const result = await submitFatigueResponse(fatiguePayload)
     if (!result.ok) {
       const error = new Error(result.error?.message ?? 'Falha ao submeter fadiga')
+      ;(error as Error & { code: string }).code = result.error?.code ?? 'unknown'
+      throw error
+    }
+  })
+
+  // Registar handler para attendance.upsert
+  // NOTE: Validation delegated to upsertAttendance action (follows fatigue.submit pattern)
+  registerHandler('attendance.upsert', async (payload: unknown) => {
+    const result = await upsertAttendance(payload)
+    if (!result.ok) {
+      const error = new Error(result.error?.message ?? 'Falha ao registar presença')
       ;(error as Error & { code: string }).code = result.error?.code ?? 'unknown'
       throw error
     }

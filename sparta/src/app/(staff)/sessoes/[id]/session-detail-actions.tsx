@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Users, Video } from "lucide-react";
+import { ClipboardList, Users, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CancelSessionDialog } from "@/components/dialogs/cancel-session-dialog";
 
@@ -34,6 +34,14 @@ export function SessionDetailActions({
             </Link>
           </Button>
         )}
+
+        {/* Presenças — staff (coach + analyst), todos os tipos de sessão */}
+        <Button asChild variant="ghost" className="w-full justify-start gap-2">
+          <Link href={`/sessoes/${sessionId}/presencas`}>
+            <ClipboardList className="h-4 w-4" />
+            Presenças
+          </Link>
+        </Button>
 
         {/* Convocatória — coach apenas */}
         {isMatchOrFriendly && isCoach && (

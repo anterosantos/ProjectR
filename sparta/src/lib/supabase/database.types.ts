@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendances: {
+        Row: {
+          id: string
+          club_id: string
+          session_id: string
+          player_id: string
+          status: string
+          note: string | null
+          recorded_by: string
+          recorded_at: string
+        }
+        Insert: {
+          id?: string
+          club_id: string
+          session_id: string
+          player_id: string
+          status: string
+          note?: string | null
+          recorded_by: string
+          recorded_at?: string
+        }
+        Update: {
+          id?: string
+          club_id?: string
+          session_id?: string
+          player_id?: string
+          status?: string
+          note?: string | null
+          recorded_by?: string
+          recorded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendances_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendances_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendances_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendances_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clubs: {
         Row: {
           country: string | null
