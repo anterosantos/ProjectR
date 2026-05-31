@@ -100,27 +100,46 @@ export async function initiateParentalConsent(
     payload: { consent_id: consent.id, parent_email: parentEmail },
   });
 
-  // after() keeps the serverless function alive until the fetch completes.
-  // Without it, Vercel terminates the function before the email is sent.
+  // Send email directly (not via Edge Function) to avoid timeout race condition
+  // after() keeps the serverless function alive until the fetch completes
   after(async () => {
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-parental-consent`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-          },
-          body: JSON.stringify({ consentId: consent.id }),
-        }
-      );
-      if (!res.ok) {
-        const errBody = await res.text();
-        console.error("[consent] send-parental-consent failed:", res.status, errBody);
+      const brevoApiKey = process.env.BREVO_API_KEY;
+      const brevoSenderEmail = process.env.BREVO_SENDER_EMAIL;
+      if (!brevoApiKey || !brevoSenderEmail) {
+        console.error("[consent] BREVO_API_KEY/BREVO_SENDER_EMAIL missing");
+        return;
+      }
+
+      const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://sparta-webapp.vercel.app";
+      const confirmUrl = `${siteUrl}/consentimento/${token}`;
+      const expiresAt = new Date(tokenExpiresAt).toLocaleDateString("pt-PT");
+
+      const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+          "api-key": brevoApiKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sender: { name: "SPARTA", email: brevoSenderEmail },
+          to: [{ email: parentEmail }],
+          subject: "Consentimento parental — SPARTA",
+          htmlContent: `<p>Olá,</p>
+<p>Para que o seu educando possa aceder à plataforma SPARTA, precisamos da sua autorização como encarregado de educação.</p>
+<p>O link é válido até ${expiresAt}.</p>
+<p><a href="${confirmUrl}" style="display:inline-block;background:#171717;color:#fff;padding:10px 20px;text-decoration:none;border-radius:4px;">Confirmar consentimento</a></p>
+<p>Se não reconhece este pedido, ignore este email.</p>`,
+          textContent: `Consentimento parental — SPARTA\n\nPara autorizar o acesso do seu educando, clique no link abaixo (válido até ${expiresAt}):\n\n${confirmUrl}\n\nSe não reconhece este pedido, ignore este email.`,
+        }),
+      });
+
+      if (!brevoRes.ok) {
+        const errBody = await brevoRes.text();
+        console.error("[initiateParentalConsent] Brevo failed:", brevoRes.status, errBody);
       }
     } catch (e) {
-      console.error("[consent] send-parental-consent fetch error:", e);
+      console.error("[initiateParentalConsent] Brevo fetch error:", e);
     }
   });
 
