@@ -20,6 +20,10 @@ vi.mock('@/lib/actions/auth', () => ({
   requireStaffRole: vi.fn(),
 }))
 
+vi.mock('@/lib/data/audited', () => ({
+  auditedRead: vi.fn().mockImplementation((_opts: unknown, fn: () => unknown) => fn()),
+}))
+
 import { createServerClient } from '@/lib/supabase/server'
 import { getServiceRoleClient } from '@/lib/supabase/service-role'
 import { requireStaffRole as mockRequireStaffRole } from '@/lib/actions/auth'

@@ -8,6 +8,7 @@ import { UpsertSessionSrpeInputSchema, type UpsertSessionSrpeInput, type PlayerS
 import { refreshSnapshotForSession } from '@/lib/readiness/snapshot'
 import { isSrpeInputValid } from '@/lib/readiness/srpe'
 import { logger } from '@/lib/logger'
+import { auditedRead } from '@/lib/data/audited'
 export async function getSessionSrpeData(
   sessionId: string
 ): Promise<Result<{ players: PlayerSrpeEntry[]; duration_min: number }, AppError>> {
@@ -15,7 +16,7 @@ export async function getSessionSrpeData(
     const authResult = await requireStaffRole()
     if (!authResult.ok) return authResult
 
-    const { clubId } = authResult.data
+    const { userId, clubId } = authResult.data
     const serviceRole = getServiceRoleClient()
 
     // Fetch session
@@ -50,20 +51,18 @@ export async function getSessionSrpeData(
         .select('player_id, status')
         .eq('session_id', sessionId)
         .eq('club_id', clubId),
-      // 3) Existing session_metrics (analyst-recorded sRPE)
-      serviceRole
-        .from('session_metrics')
-        .select('player_id, srpe_value')
-        .eq('session_id', sessionId)
-        .eq('club_id', clubId),
-      // 4) Player-submitted sRPE via fatigue_responses (post-session)
-      serviceRole
-        .from('fatigue_responses')
-        .select('player_id, srpe_value')
-        .eq('session_id', sessionId)
-        .eq('club_id', clubId)
-        .eq('phase', 'post')
-        .not('srpe_value', 'is', null),
+      // 3) Existing session_metrics (analyst-recorded sRPE) — auditedRead per FR50
+      auditedRead(
+        { targetKind: 'session_metrics', targetId: sessionId, action: 'srpe.data_read', actorId: userId, clubId },
+        // eslint-disable-next-line custom/no-direct-health-data-read
+        async () => serviceRole.from('session_metrics').select('player_id, srpe_value').eq('session_id', sessionId).eq('club_id', clubId)
+      ),
+      // 4) Player-submitted sRPE via fatigue_responses (post-session) — auditedRead per FR50
+      auditedRead(
+        { targetKind: 'fatigue_responses', targetId: sessionId, action: 'srpe.data_read', actorId: userId, clubId },
+        // eslint-disable-next-line custom/no-direct-health-data-read
+        async () => serviceRole.from('fatigue_responses').select('player_id, srpe_value').eq('session_id', sessionId).eq('club_id', clubId).eq('phase', 'post').not('srpe_value', 'is', null)
+      ),
     ])
 
     if (playersError || attendancesError || metricsError || fatigueError) {
