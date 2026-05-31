@@ -1,6 +1,6 @@
 # Story 6.8: Registo de Session-RPE por Jogador no Final da Sessão
 
-Status: ready-for-dev
+Status: done
 
 **Story ID:** 6.8
 **Epic:** Epic 6 — Recolha de Performance — Touchscreen 3-ecrãs (jornada da Ana)
@@ -120,9 +120,9 @@ Para que o modelo de carga esteja completo mesmo quando os jogadores não submet
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Schema `src/lib/schemas/session-srpe.ts`** (AC: #2, #4) — SEM "use server"
-  - [ ] Criar `sparta/src/lib/schemas/session-srpe.ts`
-  - [ ] Schema Zod `UpsertSessionSrpeInputSchema`:
+- [x] **Task 1: Schema `src/lib/schemas/session-srpe.ts`** (AC: #2, #4) — SEM "use server"
+  - [x] Criar `sparta/src/lib/schemas/session-srpe.ts`
+  - [x] Schema Zod `UpsertSessionSrpeInputSchema`:
     ```typescript
     import { z } from 'zod'
 
@@ -150,7 +150,7 @@ Para que o modelo de carga esteja completo mesmo quando os jogadores não submet
     ```
   - [ ] NÃO adicionar "use server" neste ficheiro — é schema puro
 
-- [ ] **Task 2: Server Actions `src/lib/actions/session-srpe.ts`** (AC: #1, #2, #3, #5)
+- [x] **Task 2: Server Actions `src/lib/actions/session-srpe.ts`** (AC: #1, #2, #3, #5)
   - [ ] Criar `sparta/src/lib/actions/session-srpe.ts` com `"use server"` no topo
   - [ ] Implementar `getSessionSrpeData(sessionId: string)`:
     - `requireStaffRole()` + `getServiceRoleClient()`
@@ -233,8 +233,8 @@ Para que o modelo de carga esteja completo mesmo quando os jogadores não submet
       ```
     - Retornar `ok(undefined)`
 
-- [ ] **Task 3: Registo do handler no outbox `drain.ts`** (AC: #4)
-  - [ ] Em `sparta/src/lib/outbox/drain.ts`, dentro do bloco `try { ... }` existente, adicionar após os handlers actuais:
+- [x] **Task 3: Registo do handler no outbox `drain.ts`** (AC: #4)
+  - [x] Em `sparta/src/lib/outbox/drain.ts`, dentro do bloco `try { ... }` existente, adicionar após os handlers actuais:
     ```typescript
     registerHandler('srpe.upsert', async (payload: unknown) => {
       const validated = UpsertSessionSrpeInputSchema.safeParse(payload)
@@ -257,8 +257,8 @@ Para que o modelo de carga esteja completo mesmo quando os jogadores não submet
     import { upsertSessionSrpe } from '@/lib/actions/session-srpe'
     ```
 
-- [ ] **Task 4: Página `/sessoes/[id]/srpe/page.tsx`** (AC: #1, #5)
-  - [ ] Server Component em `sparta/src/app/(staff)/sessoes/[id]/srpe/page.tsx`
+- [x] **Task 4: Página `/sessoes/[id]/srpe/page.tsx`** (AC: #1, #5)
+  - [x] Server Component em `sparta/src/app/(staff)/sessoes/[id]/srpe/page.tsx`
   - [ ] Auth: staff only (coach/analyst) — padrão idêntico a `presencas/page.tsx`:
     ```typescript
     const supabase = await createServerClient()
@@ -284,8 +284,8 @@ Para que o modelo de carga esteja completo mesmo quando os jogadores não submet
     <SrpePanel players={players} sessionId={sessionId} durationMin={duration_min} />
     ```
 
-- [ ] **Task 5: Client Component `srpe-panel.tsx`** (AC: #1, #2, #3, #4, #5)
-  - [ ] Client Component em `sparta/src/app/(staff)/sessoes/[id]/srpe/srpe-panel.tsx`
+- [x] **Task 5: Client Component `srpe-panel.tsx`** (AC: #1, #2, #3, #4, #5)
+  - [x] Client Component em `sparta/src/app/(staff)/sessoes/[id]/srpe/srpe-panel.tsx`
   - [ ] Props:
     ```typescript
     interface SrpePanelProps {
@@ -360,8 +360,8 @@ Para que o modelo de carga esteja completo mesmo quando os jogadores não submet
     ```
   - [ ] axe zero violations: `<ul>` semântico, cada row como `<li>`, sliders com `aria-label`
 
-- [ ] **Task 6: Actualizar `session-detail-actions.tsx`** (AC: #6)
-  - [ ] Em `sparta/src/app/(staff)/sessoes/[id]/session-detail-actions.tsx`, adicionar import:
+- [x] **Task 6: Actualizar `session-detail-actions.tsx`** (AC: #6)
+  - [x] Em `sparta/src/app/(staff)/sessoes/[id]/session-detail-actions.tsx`, adicionar import:
     ```typescript
     import { Gauge } from 'lucide-react'
     ```
@@ -377,8 +377,8 @@ Para que o modelo de carga esteja completo mesmo quando os jogadores não submet
   - [ ] Posicionar após o botão de Presenças (Story 6.7) — ambos são acções de registo pós-sessão
   - [ ] Verificar que `Gauge` existe em lucide-react (alternativas: `BarChart2`, `ActivitySquare`)
 
-- [ ] **Task 7: Testes** (AC: #7)
-  - [ ] `sparta/src/__tests__/lib/actions/session-srpe.test.ts` (CRIAR):
+- [x] **Task 7: Testes** (AC: #7)
+  - [x] `sparta/src/__tests__/lib/actions/session-srpe.test.ts` (CRIAR):
     ```typescript
     vi.mock('@/lib/supabase/service-role', () => ({ getServiceRoleClient: vi.fn() }))
     vi.mock('@/lib/actions/auth', () => ({ requireStaffRole: vi.fn().mockResolvedValue({ ok: true, data: { userId: 'user-uuid', clubId: 'club-uuid' } }) }))
@@ -682,6 +682,43 @@ O "Guardar sRPE" apenas persiste jogadores que têm um valor no Map. Jogadores s
 
 ### Debug Log References
 
-### Completion Notes List
+### Completion Notes
+
+- Schema puro `session-srpe.ts` (SEM "use server"): `UpsertSessionSrpeInputSchema`, `UpsertSessionSrpeInput`, `PlayerSrpeEntry` (AC #2, #4)
+- Server Actions `session-srpe.ts` com `"use server"`: `getSessionSrpeData()` (parallel Promise.all com 4 queries), `upsertSessionSrpe()` (upsert idempotente, audit fire-and-forget, readiness refresh fire-and-forget) (AC #1, #2, #3, #5)
+- Handler `srpe.upsert` registado em `drain.ts` com validação Zod e error handling (AC #4)
+- Página `/sessoes/[id]/srpe/page.tsx` Server Component com auth staff, verificação de sessão, Promise.all paralelo, renderiza SrpePanel (AC #1, #5)
+- `SrpePanel` Client Component: slider 1–10 por jogador, jogadores ausentes desactivados, pre-fill logic (analyst > player submitted), save online (Promise.all) / offline (enqueueMutation), agrupamento por posição GK/DEF/MID/FWD, EmptyState, PendingBadge, aria semântico (AC #1, #2, #3, #4, #5)
+- Botão "Registar sRPE" com Gauge adicionado em `session-detail-actions.tsx` para todos os tipos de sessão (AC #6)
+- 23 testes criados (11 actions + 12 componente): `upsertSessionSrpe` happy path + override + idempotência + não encontrado + não autorizado + validação, `getSessionSrpeData` happy path + fallback + não encontrado + lista vazia, `SrpePanel` renderização + pre-fill + absent + save online/offline + grouping
+- typecheck ✅ (SEM erros)
+- lint ✅ (SEM erros)
+- Implementação segue padrões AGENTS.md: service role, schema separado, RLS, fire-and-forget, noUncheckedIndexedAccess
+
+### Change Log
+
+- 2026-05-31: Story 6.8 implementada — schema session-srpe, Server Actions getSessionSrpeData+upsertSessionSrpe, drain handler srpe.upsert, página /sessoes/[id]/srpe + SrpePanel, botão Registar sRPE em session-detail-actions; 23 testes ✅; typecheck ✅; lint ✅
 
 ### File List
+
+- sparta/src/lib/schemas/session-srpe.ts (CRIADO)
+- sparta/src/lib/actions/session-srpe.ts (CRIADO)
+- sparta/src/lib/outbox/drain.ts (MODIFICADO: +srpe.upsert handler + imports)
+- sparta/src/app/(staff)/sessoes/[id]/srpe/page.tsx (CRIADO)
+- sparta/src/app/(staff)/sessoes/[id]/srpe/srpe-panel.tsx (CRIADO)
+- sparta/src/app/(staff)/sessoes/[id]/session-detail-actions.tsx (MODIFICADO: +botão Registar sRPE)
+- sparta/src/__tests__/lib/actions/session-srpe.test.ts (CRIADO)
+- sparta/src/__tests__/components/domain/srpe-panel.test.tsx (CRIADO)
+
+### Review Findings
+
+- [x] \[Review]\[Decision] Servidor deve verificar ausência do jogador em `upsertSessionSrpe`? — Resolvido: opção A aplicada — query a `attendances` adicionada ao server action (defesa em profundidade, AC#3)
+- [x] \[Review]\[Decision] "sRPE guardado" usa `<div role="status">` em vez do toast primitive — Descartado: attendance-panel.tsx (modelo canónico) usa o mesmo padrão; srpe-panel já está correcto
+- [x] \[Review]\[Patch] `upsertSessionSrpe` gera `id: uuidv4()` ignorando `validated.data.id` do cliente [session-srpe.ts:169] — Corrigido: usa `validated.data.id`; import uuid removido
+- [x] \[Review]\[Patch] `duration_min=0` quando `session.duration_min` é null — Corrigido: `session.duration_min ?? 90` em `getSessionSrpeData` [session-srpe.ts:112]
+- [x] \[Review]\[Patch] Drain tests não cobrem handler `srpe.upsert` — Corrigido: 3 testes adicionados a drain.test.ts (happy path, payload inválido, handler falha)
+- [x] \[Review]\[Patch] `SrpePanel` teste de `PendingBadge` ausente — Corrigido: teste adicionado a srpe-panel.test.tsx
+- [x] \[Review]\[Patch] Mensagem de erro Zod expõe estrutura interna do schema — Corrigido: mensagem genérica "Dados de entrada inválidos" [session-srpe.ts:124]
+- [x] \[Review]\[Defer] Fire-and-forget audit log pode perder-se se o processo terminar [session-srpe.ts:185-205] — deferred, pre-existing
+- [x] \[Review]\[Defer] Sem guarda de estado de sessão — sRPE pode ser registado para sessões futuras/canceladas — deferred, pre-existing
+- [x] \[Review]\[Defer] Handler `fatigue.submit` em drain usa cast unsafe sem validação Zod — padrão inconsistente pré-existente; fora do scope desta story — deferred, pre-existing

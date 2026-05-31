@@ -5,6 +5,8 @@ import { MatchEventInputSchema } from '@/lib/schemas/match-events'
 import { submitMatchEvent } from '@/lib/actions/events'
 import { registerSubstitution } from '@/lib/actions/substitutions'
 import { upsertAttendance } from '@/lib/actions/attendance'
+import { UpsertSessionSrpeInputSchema } from '@/lib/schemas/session-srpe'
+import { upsertSessionSrpe } from '@/lib/actions/session-srpe'
 
 interface SubstitutionDrainPayload {
   sessionId: string
@@ -219,6 +221,22 @@ try {
     const result = await upsertAttendance(payload)
     if (!result.ok) {
       const error = new Error(result.error?.message ?? 'Falha ao registar presença')
+      ;(error as Error & { code: string }).code = result.error?.code ?? 'unknown'
+      throw error
+    }
+  })
+
+  // Registar handler para srpe.upsert
+  registerHandler('srpe.upsert', async (payload: unknown) => {
+    const validated = UpsertSessionSrpeInputSchema.safeParse(payload)
+    if (!validated.success) {
+      const error = new Error(`Payload inválido: ${validated.error.message}`)
+      ;(error as Error & { code: string }).code = 'VALIDATION_ERROR'
+      throw error
+    }
+    const result = await upsertSessionSrpe(validated.data)
+    if (!result.ok) {
+      const error = new Error(result.error?.message ?? 'Falha ao registar sRPE')
       ;(error as Error & { code: string }).code = result.error?.code ?? 'unknown'
       throw error
     }

@@ -2,6 +2,12 @@
 
 Items deferred from code reviews — pre-existing issues, out-of-scope work, or items blocked by future stories.
 
+## Deferred from: code review of 6-8-session-rpe-entry-per-player-at-end-of-session (2026-05-31)
+
+- **Fire-and-forget audit log pode perder-se** [`session-srpe.ts:185-205`]: Se o processo terminar antes das micro-tasks de audit_log e readiness refresh completarem, ambos são silenciosamente perdidos. Padrão pré-existente em todo o projecto (fatigue.ts, attendance.ts); resolver quando durabilidade de audit logs for standardizada.
+- **Sem guarda de estado de sessão** [`session-srpe.ts`]: sRPE pode ser registado para sessões futuras ou canceladas (nenhuma query verifica session state). Decisão de design — spec não exige guarda; todos os jogadores activos são mostrados por design (AC#5 fallback). Reavaliar quando lógica de estado de sessão for formalizada.
+- **Handler `fatigue.submit` em drain usa cast unsafe** [`drain.ts`]: `const fatiguePayload = payload as FatigueResponseInput` sem validação Zod prévia, ao contrário de todos os outros handlers. Padrão inconsistente pré-existente; fora do scope da Story 6.8.
+
 ## Deferred from: code review of 5-8-analista-dashboard-individual-4-week-fatigue-trends-multi-player-overview (2026-05-28)
 
 - **Double `createServerClient()`** [`trends.ts:49, 100`]: `requireStaffRole()` e `getFatigueTrendsData()` criam dois clientes Supabase separados por request. Refactorizar para retornar o cliente de `requireStaffRole` ou passá-lo como argumento. Code smell sem impacto funcional em SSR com cookies imutáveis.
