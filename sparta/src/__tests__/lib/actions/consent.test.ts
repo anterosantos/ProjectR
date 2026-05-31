@@ -188,6 +188,12 @@ describe("initiateParentalConsent", () => {
   });
 
   it("happy path: dispara Brevo email via after() callback", async () => {
+    // CI doesn't have BREVO_* env vars — set them for this test
+    const originalBrevoKey = process.env.BREVO_API_KEY;
+    const originalBrevoSender = process.env.BREVO_SENDER_EMAIL;
+    process.env.BREVO_API_KEY = "test-brevo-key";
+    process.env.BREVO_SENDER_EMAIL = "sparta@test.com";
+
     const serviceRole = buildServiceRole();
     mockGetServiceRoleClient.mockReturnValue(serviceRole);
     mockBrevoFetch.mockResolvedValue(
@@ -201,6 +207,10 @@ describe("initiateParentalConsent", () => {
 
     // fire-and-forget: flushes microtask queue (mocked after() runs immediately)
     await new Promise((r) => setTimeout(r, 0));
+
+    // Restore env vars
+    process.env.BREVO_API_KEY = originalBrevoKey;
+    process.env.BREVO_SENDER_EMAIL = originalBrevoSender;
 
     // Verify Brevo was called with email to parent
     expect(mockBrevoFetch).toHaveBeenCalled();

@@ -7,12 +7,17 @@ vi.mock("recharts", () => ({
   LineChart: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="line-chart">{children}</div>
   ),
+  BarChart: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="bar-chart">{children}</div>
+  ),
+  Bar: () => null,
   Line: () => null,
   XAxis: () => null,
   YAxis: () => null,
   CartesianGrid: () => null,
   Tooltip: () => null,
   Legend: () => null,
+  Cell: () => null,
   ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
   ),
@@ -81,11 +86,11 @@ describe("FatigueChart", () => {
         sessions={SESSION_MAP}
       />
     );
-    expect(screen.getByTestId("responsive-container")).toBeInTheDocument();
-    expect(screen.getByRole("img")).toHaveAttribute(
-      "aria-label",
-      expect.stringContaining("Gráfico de fadiga dos últimos 28 dias")
-    );
+    // FatigueChart renders multiple charts (one per dimension + bar), so use getAllBy
+    expect(screen.getAllByTestId("responsive-container").length).toBeGreaterThan(0);
+    // Each dimension chart has aria-label "Gráfico de <dim> — <playerName>"
+    const charts = screen.getAllByRole("img");
+    expect(charts.some((c) => c.getAttribute("aria-label")?.includes("Gráfico de"))).toBe(true);
   });
 
   it("has role=img with descriptive aria-label (AC #8)", () => {
@@ -97,8 +102,8 @@ describe("FatigueChart", () => {
         sessions={SESSION_MAP}
       />
     );
-    const chart = screen.getByRole("img");
-    expect(chart).toHaveAttribute("aria-label", expect.stringContaining("Tomás Silva"));
+    const charts = screen.getAllByRole("img");
+    expect(charts.some((c) => c.getAttribute("aria-label")?.includes("Tomás Silva"))).toBe(true);
   });
 
   it("renders sRPE note when responses have srpe_value", () => {
@@ -140,7 +145,7 @@ describe("FatigueChart", () => {
         activePhase="pre"
       />
     );
-    expect(screen.getByTestId("responsive-container")).toBeInTheDocument();
+    expect(screen.getAllByTestId("responsive-container").length).toBeGreaterThan(0);
 
     // With activePhase="post": 1 response
     rerender(
@@ -152,7 +157,7 @@ describe("FatigueChart", () => {
         activePhase="post"
       />
     );
-    expect(screen.getByTestId("responsive-container")).toBeInTheDocument();
+    expect(screen.getAllByTestId("responsive-container").length).toBeGreaterThan(0);
   });
 
   it("shows empty state when phase filter removes all results", () => {
