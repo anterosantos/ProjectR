@@ -1,6 +1,6 @@
 # Story 6.7: Registo de Presenças em Sessões
 
-Status: review
+Status: done
 
 **Story ID:** 6.7
 **Epic:** Epic 6 — Recolha de Performance — Touchscreen 3-ecrãs (jornada da Ana)
