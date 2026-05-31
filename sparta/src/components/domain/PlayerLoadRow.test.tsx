@@ -43,13 +43,14 @@ describe("PlayerLoadRow", () => {
     expect(screen.getByText("senior")).toBeInTheDocument();
   });
 
-  it("não mostra badge quando carga está na média (0.5x < load < 1.5x)", () => {
+  it("mostra badge 'Carga normal' quando carga está na média (0.5x ≤ load ≤ 1.5x)", () => {
     const player = makePlayer();
     render(
       <table><tbody>
         <PlayerLoadRow player={player} seasonAvg={1500} load={1500} monthly={[]} sessions={12} />
       </tbody></table>
     );
+    expect(screen.getByText("Carga normal")).toBeInTheDocument();
     expect(screen.queryByText("Carga baixa")).not.toBeInTheDocument();
     expect(screen.queryByText("Carga alta")).not.toBeInTheDocument();
   });

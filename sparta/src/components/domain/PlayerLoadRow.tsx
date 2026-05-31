@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { MonthlyLoadBar } from "@/components/domain/MonthlyLoadBar";
 import type { PlayerLoadData } from "@/lib/actions/load";
 
@@ -13,9 +13,10 @@ interface PlayerLoadRowProps {
 }
 
 export function PlayerLoadRow({ player, seasonAvg, load, monthly, sessions }: PlayerLoadRowProps) {
-  // Badges only shown if: player has data (load + sessions > 0) and is within thresholds
-  const showLowBadge = load > 0 && sessions > 0 && seasonAvg > 0 && load < seasonAvg * 0.5;
-  const showHighBadge = load > 0 && sessions > 0 && seasonAvg > 0 && load > seasonAvg * 1.5;
+  const hasData = load > 0 && sessions > 0 && seasonAvg > 0;
+  const showLowBadge  = hasData && load < seasonAvg * 0.5;
+  const showHighBadge = hasData && load > seasonAvg * 1.5;
+  const showNormalBadge = hasData && !showLowBadge && !showHighBadge;
 
   return (
     <tr className="border-b last:border-0 hover:bg-muted/30">
@@ -39,13 +40,19 @@ export function PlayerLoadRow({ player, seasonAvg, load, monthly, sessions }: Pl
       </td>
       <td className="py-3 px-4">
         {showLowBadge && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+          <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
             <TrendingDown className="h-3 w-3" aria-hidden="true" />
             Carga baixa
           </span>
         )}
+        {showNormalBadge && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">
+            <Minus className="h-3 w-3" aria-hidden="true" />
+            Carga normal
+          </span>
+        )}
         {showHighBadge && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
             <TrendingUp className="h-3 w-3" aria-hidden="true" />
             Carga alta
           </span>
