@@ -14,8 +14,13 @@ vi.mock('@/lib/actions/session-srpe', () => ({
   upsertSessionSrpe: vi.fn().mockResolvedValue({ ok: true, data: undefined }),
 }))
 
+vi.mock('@/lib/actions/attendance', () => ({
+  upsertAttendance: vi.fn().mockResolvedValue({ ok: true, data: undefined }),
+}))
+
 import { db } from './db'
 import { upsertSessionSrpe } from '@/lib/actions/session-srpe'
+import { upsertAttendance } from '@/lib/actions/attendance'
 
 const VALID_SRPE_PAYLOAD = {
   id: '01920a4b-c8d3-7000-9c4e-000000000099',
@@ -28,6 +33,9 @@ const VALID_SRPE_PAYLOAD = {
 function mockOutboxWith(entries: unknown[]) {
   vi.mocked(db.outbox.where).mockReturnValue({
     equals: vi.fn().mockReturnValue({
+      filter: vi.fn().mockReturnValue({
+        toArray: vi.fn().mockResolvedValue(entries),
+      }),
       toArray: vi.fn().mockResolvedValue(entries),
     }),
   } as any)
@@ -77,6 +85,109 @@ describe('srpe.upsert drain handler', () => {
 
     expect(vi.mocked(upsertSessionSrpe)).toHaveBeenCalled()
     expect(result.failed).toBe(1)
+  })
+
+  it('filtrar por kind → só drena mutações do kind especificado', async () => {
+    mockOutboxWith([
+      { id: 'outbox-4', kind: 'srpe.upsert', payload: VALID_SRPE_PAYLOAD, retryCount: 0, status: 'pending' },
+    ])
+
+    const result = await drainPendingMutations('srpe.upsert')
+
+    expect(vi.mocked(upsertSessionSrpe)).toHaveBeenCalledWith(VALID_SRPE_PAYLOAD)
+    expect(result.drained).toBe(1)
+  })
+
+  it('sem handler registado + retryCount=0 → incrementa retryCount sem marcar como failed', async () => {
+    mockOutboxWith([
+      { id: 'outbox-5', kind: 'unknown.kind.xyz', payload: {}, retryCount: 0, status: 'pending' },
+    ])
+
+    const result = await drainPendingMutations()
+
+    // No handler: not drained, not failed yet — just incremented retry
+    expect(result.drained).toBe(0)
+    expect(result.failed).toBe(0)
+    expect(vi.mocked(db.outbox).update).toHaveBeenCalledWith('outbox-5', { retryCount: 1 })
+  })
+
+  it('sem handler registado + retryCount=2 → marca como failed (>= 3)', async () => {
+    mockOutboxWith([
+      { id: 'outbox-6', kind: 'unknown.kind.xyz', payload: {}, retryCount: 2, status: 'pending' },
+    ])
+
+    const result = await drainPendingMutations()
+
+    expect(result.failed).toBe(1)
+    expect(vi.mocked(db.outbox).update).toHaveBeenCalledWith('outbox-6', { status: 'failed' })
+  })
+
+  it('handler error não-validação + retryCount=2 → marca como failed imediatamente', async () => {
+    vi.mocked(upsertSessionSrpe).mockResolvedValue({
+      ok: false,
+      error: { code: 'internal_error', message: 'Erro interno' },
+    })
+    mockOutboxWith([
+      { id: 'outbox-7', kind: 'srpe.upsert', payload: VALID_SRPE_PAYLOAD, retryCount: 2, status: 'pending' },
+    ])
+
+    const result = await drainPendingMutations()
+
+    expect(result.failed).toBe(1)
+    expect(vi.mocked(db.outbox).update).toHaveBeenCalledWith(
+      'outbox-7',
+      expect.objectContaining({ status: 'failed', retryCount: 3 })
+    )
+  })
+})
+
+describe('attendance.upsert drain handler', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(upsertAttendance).mockResolvedValue({ ok: true, data: undefined })
+  })
+
+  it('attendance.upsert falha → handler lança erro com código correcto', async () => {
+    vi.mocked(upsertAttendance).mockResolvedValue({
+      ok: false,
+      error: { code: 'not_found', message: 'Sessão não encontrada' },
+    })
+    mockOutboxWith([
+      {
+        id: 'att-1',
+        kind: 'attendance.upsert',
+        payload: { id: 'uuid-att', session_id: 'sess-uuid', player_id: 'pl-uuid', status: 'present' },
+        retryCount: 0,
+        status: 'pending',
+      },
+    ])
+
+    const result = await drainPendingMutations()
+
+    expect(vi.mocked(upsertAttendance)).toHaveBeenCalled()
+    expect(result.failed).toBe(1)
+  })
+
+  it('attendance.upsert com occurred_at → ordena por timestamp', async () => {
+    mockOutboxWith([
+      {
+        id: 'att-2',
+        kind: 'attendance.upsert',
+        payload: {
+          id: 'uuid-att2',
+          session_id: 'sess-uuid',
+          player_id: 'pl-uuid',
+          status: 'present',
+          occurred_at: new Date().toISOString(),
+        },
+        retryCount: 0,
+        status: 'pending',
+      },
+    ])
+
+    const result = await drainPendingMutations()
+
+    expect(result.drained).toBe(1)
   })
 })
 
