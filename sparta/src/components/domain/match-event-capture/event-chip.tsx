@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import type { RecentEventEntry, MatchAction } from "@/lib/stores/match-session";
 import type { MATCH_ZONES } from "@/lib/schemas/match-events";
+import { TooltipExplain } from "@/components/ui/tooltip-explain";
 
 const ACTION_ICON: Record<MatchAction, React.ElementType> = {
   ball_loss: XCircle,
@@ -64,9 +65,10 @@ interface EventChipProps {
   entry: RecentEventEntry;
   onDelete: (id: string) => Promise<void>;
   isDeleting: boolean;
+  isWithinEditWindow?: boolean;
 }
 
-export function EventChip({ entry, onDelete, isDeleting }: EventChipProps) {
+export function EventChip({ entry, onDelete, isDeleting, isWithinEditWindow = true }: EventChipProps) {
   const [isConfirming, setIsConfirming] = useState(false);
 
   const Icon = ACTION_ICON[entry.action];
@@ -76,12 +78,6 @@ export function EventChip({ entry, onDelete, isDeleting }: EventChipProps) {
 
   const chipAriaLabel = `${actionLabel}, #${entry.jersey_number}, ${zoneLabel}`;
   const deleteAriaLabel = `Remover evento: ${actionLabel} #${entry.jersey_number} ${zoneLabel}`;
-
-  // TODO Story 6.6: substituir por check real de isWithinEditWindow(sessionId)
-  const isWithinEditWindow = true;
-  // if (!isWithinEditWindow) {
-  //   return <TooltipExplain term="..." definition="Janela de edição encerrada (24h após a sessão)" />;
-  // }
 
   if (isConfirming) {
     return (
@@ -119,12 +115,12 @@ export function EventChip({ entry, onDelete, isDeleting }: EventChipProps) {
     );
   }
 
-  return (
+  const chipButton = (
     <button
       onClick={() => isWithinEditWindow && setIsConfirming(true)}
       disabled={isDeleting || !isWithinEditWindow}
       aria-label={deleteAriaLabel}
-      className="flex items-center gap-1 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 min-h-[44px] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
+      className="flex items-center gap-1 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 min-h-[44px] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-60 disabled:cursor-not-allowed"
     >
       <Icon className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
       <span className="font-mono text-xs whitespace-nowrap">
@@ -132,4 +128,18 @@ export function EventChip({ entry, onDelete, isDeleting }: EventChipProps) {
       </span>
     </button>
   );
+
+  if (!isWithinEditWindow) {
+    return (
+      <div className="flex flex-col items-center gap-0.5">
+        {chipButton}
+        <TooltipExplain
+          term="Edição encerrada"
+          definition="Janela de edição encerrada (24h após a sessão)"
+        />
+      </div>
+    );
+  }
+
+  return chipButton;
 }

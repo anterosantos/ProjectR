@@ -21,9 +21,10 @@ interface MatchEventCaptureProps {
   sessionId: string;
   scheduledAt: string;
   durationMin: number;
+  isWithinEditWindow?: boolean;
 }
 
-export function MatchEventCapture({ sessionId, scheduledAt, durationMin }: MatchEventCaptureProps) {
+export function MatchEventCapture({ sessionId, scheduledAt, durationMin, isWithinEditWindow = true }: MatchEventCaptureProps) {
   const selectedPlayer = useSelectedPlayer();
   const lastPolarity = useLastActionPolarity();
   const { clearSelection } = useMatchSession();
@@ -130,7 +131,7 @@ export function MatchEventCapture({ sessionId, scheduledAt, durationMin }: Match
       </div>
 
       {/* Recent Events Footer */}
-      <RecentEventsRing sessionId={sessionId} />
+      <RecentEventsRing sessionId={sessionId} isWithinEditWindow={isWithinEditWindow} />
 
       {/* Zone Selector Modal */}
       <ZoneSelectorSheet sessionId={sessionId} />

@@ -16,6 +16,7 @@ export interface NotificationSettings {
   pre_minutes: number
   post_minutes: number
   is_enabled: boolean
+  event_edit_window_hours: number
   updated_at: string
 }
 
@@ -23,6 +24,7 @@ export const NotificationSettingsSchema = z.object({
   pre_minutes: z.number().int().min(5).max(120),
   post_minutes: z.number().int().min(5).max(120),
   is_enabled: z.boolean(),
+  event_edit_window_hours: z.number().int().min(1).max(168),
 })
 
 export type NotificationSettingsInput = z.infer<typeof NotificationSettingsSchema>
@@ -98,6 +100,7 @@ export async function getNotificationSettings(): Promise<
     pre_minutes: 30,
     post_minutes: 30,
     is_enabled: true,
+    event_edit_window_hours: 24,
     updated_at: new Date().toISOString(),
   }
 
@@ -165,7 +168,8 @@ export async function updateNotificationSettings(
   }
 
   // 4. Upsert notification_settings
-  const { data: updated, error: upsertError } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: updated, error: upsertError } = await (supabase as any)
     .from('notification_settings')
     .upsert(
       {
@@ -173,6 +177,7 @@ export async function updateNotificationSettings(
         pre_minutes: validated.data.pre_minutes,
         post_minutes: validated.data.post_minutes,
         is_enabled: validated.data.is_enabled,
+        event_edit_window_hours: validated.data.event_edit_window_hours,
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'club_id' }
@@ -196,6 +201,7 @@ export async function updateNotificationSettings(
     pre_minutes: validated.data.pre_minutes,
     post_minutes: validated.data.post_minutes,
     is_enabled: validated.data.is_enabled,
+    event_edit_window_hours: validated.data.event_edit_window_hours,
   })
 
   return ok(updated as NotificationSettings)

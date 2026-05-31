@@ -7,11 +7,12 @@ import { EventChip } from "./event-chip";
 
 interface RecentEventsRingProps {
   sessionId: string;
+  isWithinEditWindow?: boolean;
 }
 
 const RING_SIZE = 6;
 
-export function RecentEventsRing({ sessionId }: RecentEventsRingProps) {
+export function RecentEventsRing({ sessionId, isWithinEditWindow = true }: RecentEventsRingProps) {
   const recentEvents = useRecentEvents();
   const { setRecentEvents, removeRecentEvent, clearRecentEvents } =
     useMatchSession();
@@ -89,6 +90,7 @@ export function RecentEventsRing({ sessionId }: RecentEventsRingProps) {
           entry={entry}
           onDelete={handleDelete}
           isDeleting={deletingId === entry.id}
+          isWithinEditWindow={isWithinEditWindow}
         />
       ))}
 

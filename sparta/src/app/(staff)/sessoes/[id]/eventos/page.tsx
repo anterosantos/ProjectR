@@ -1,17 +1,19 @@
-import { createServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { MatchEventCapture } from "@/components/domain/match-event-capture/match-event-capture";
+import { createServerClient } from "@/lib/supabase/server";
+import { getMatchEventsForSession } from "@/lib/actions/events";
 import { isEditWindowOpen } from "@/lib/utils/match-events";
+import { StickyHeader } from "@/components/patterns/StickyHeader";
+import { EventsReviewPanel } from "./events-review-panel";
 import { z } from "zod";
 
+export const metadata = { title: "Revisão de eventos" };
+
 interface PageProps {
-  params: Promise<{
-    id: string;
-  }>;
+  params: Promise<{ id: string }>;
 }
 
-export default async function MatchCapturePage({ params }: PageProps) {
-  const { id: sessionId } = await params;
+export default async function EventsReviewPage({ params }: PageProps) {
+  const { id } = await params;
 
   const supabase = await createServerClient();
   const {
@@ -37,15 +39,14 @@ export default async function MatchCapturePage({ params }: PageProps) {
     redirect("/login");
   }
 
-  // Verify session exists and belongs to the club
-  const { data: session, error: sessionError } = await supabase
+  const { data: session } = await supabase
     .from("sessions")
-    .select("id, club_id, type, scheduled_at, duration_min")
-    .eq("id", sessionId)
+    .select("id, club_id, scheduled_at, duration_min")
+    .eq("id", id)
     .eq("club_id", profile.club_id)
     .single();
 
-  if (sessionError || !session) {
+  if (!session) {
     redirect("/sessoes");
   }
 
@@ -60,14 +61,19 @@ export default async function MatchCapturePage({ params }: PageProps) {
   const windowHours = validSettings.success ? validSettings.data.event_edit_window_hours : 24;
   const withinWindow = isEditWindowOpen(session.scheduled_at, session.duration_min ?? 90, windowHours);
 
+  const eventsResult = await getMatchEventsForSession(id);
+  const events = eventsResult.ok ? eventsResult.data : [];
+
   return (
-    <div className="w-full h-screen">
-      <MatchEventCapture
-        sessionId={sessionId}
-        scheduledAt={session.scheduled_at}
-        durationMin={session.duration_min ?? 90}
-        isWithinEditWindow={withinWindow}
-      />
+    <div className="flex flex-col min-h-screen">
+      <StickyHeader title="Revisão de eventos" backHref={`/sessoes/${id}`} />
+      <main className="flex-1 p-4">
+        <EventsReviewPanel
+          events={events}
+          sessionId={id}
+          isWithinEditWindow={withinWindow}
+        />
+      </main>
     </div>
   );
 }

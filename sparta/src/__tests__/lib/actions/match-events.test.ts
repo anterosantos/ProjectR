@@ -12,6 +12,14 @@ vi.mock("@/lib/data/audited", () => ({
   auditedRead: vi.fn((_opts: unknown, fn: () => unknown) => fn()),
 }));
 
+vi.mock("@/lib/utils/match-events", () => ({
+  isEditWindowOpen: vi.fn().mockReturnValue(true),
+}));
+
+vi.mock("@/lib/actions/audit", () => ({
+  logAccess: vi.fn().mockResolvedValue({ ok: true }),
+}));
+
 import { createServerClient } from "@/lib/supabase/server";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { submitMatchEvent, deleteMatchEvent, getRecentMatchEvents } from "@/lib/actions/events";
@@ -128,7 +136,7 @@ function buildServiceRoleForDelete(opts: {
   updateError?: object | null;
 } = {}) {
   const {
-    eventData = { id: EVENT_UUID, is_deleted: false },
+    eventData = { id: EVENT_UUID, is_deleted: false, session_id: SESSION_UUID },
     updateError = null,
   } = opts;
 
@@ -141,6 +149,12 @@ function buildServiceRoleForDelete(opts: {
           return makeSelectChain(eventData);
         }
         return makeUpdateChain(updateError);
+      }
+      if (table === "sessions") {
+        return makeSelectChain({ scheduled_at: "2026-05-31T10:00:00Z", duration_min: 90 });
+      }
+      if (table === "notification_settings") {
+        return makeSelectChain({ event_edit_window_hours: 24 });
       }
       return {};
     }),

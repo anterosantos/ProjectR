@@ -23,6 +23,7 @@ export function NotificationSettingsForm() {
       pre_minutes: 30,
       post_minutes: 30,
       is_enabled: true,
+      event_edit_window_hours: 24,
     },
   })
 
@@ -36,6 +37,7 @@ export function NotificationSettingsForm() {
             pre_minutes: result.data.pre_minutes,
             post_minutes: result.data.post_minutes,
             is_enabled: result.data.is_enabled,
+            event_edit_window_hours: result.data.event_edit_window_hours,
           })
         } else {
           form.setError('root', { message: result.error.message })
@@ -64,6 +66,7 @@ export function NotificationSettingsForm() {
           pre_minutes: result.data.pre_minutes,
           post_minutes: result.data.post_minutes,
           is_enabled: result.data.is_enabled,
+          event_edit_window_hours: result.data.event_edit_window_hours,
         })
       } catch {
         form.setError('root', { message: 'Erro ao comunicar com servidor' })
@@ -159,6 +162,32 @@ export function NotificationSettingsForm() {
           )}
           <p className="text-xs text-muted-foreground">
             Intervalo permitido: 5 a 120 minutos (padrão: 30)
+          </p>
+        </div>
+
+        {/* Edit window hours */}
+        <div className="space-y-2">
+          <label htmlFor="edit-window-hours" className="text-sm font-medium">
+            Janela de edição de eventos (horas) <span className="text-destructive">*</span>
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              id="edit-window-hours"
+              type="number"
+              min="1"
+              max="168"
+              className="w-24 rounded border border-border px-3 py-2 text-sm"
+              {...form.register('event_edit_window_hours', { valueAsNumber: true })}
+            />
+            <span className="text-sm text-muted-foreground">horas</span>
+          </div>
+          {form.formState.errors.event_edit_window_hours && (
+            <p className="text-xs text-destructive">
+              {form.formState.errors.event_edit_window_hours.message}
+            </p>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Horas após o fim da sessão para editar/apagar eventos (1–168, padrão 24)
           </p>
         </div>
 

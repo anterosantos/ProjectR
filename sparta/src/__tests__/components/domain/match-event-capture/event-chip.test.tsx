@@ -68,4 +68,40 @@ describe("<EventChip>", () => {
     render(<EventChip entry={mockEntry} onDelete={vi.fn()} isDeleting={true} />);
     expect(screen.getByRole("button", { name: /remover evento/i })).toBeDisabled();
   });
+
+  it("isWithinEditWindow=false — botão disabled e TooltipExplain renderizado", () => {
+    render(
+      <EventChip
+        entry={mockEntry}
+        onDelete={vi.fn()}
+        isDeleting={false}
+        isWithinEditWindow={false}
+      />
+    );
+    const btn = screen.getByRole("button", { name: /remover evento/i });
+    expect(btn).toBeDisabled();
+    // TooltipExplain renders the term text
+    expect(screen.getByText(/Edição encerrada/i)).toBeInTheDocument();
+  });
+
+  it("isWithinEditWindow=false — click não abre confirmação", () => {
+    render(
+      <EventChip
+        entry={mockEntry}
+        onDelete={vi.fn()}
+        isDeleting={false}
+        isWithinEditWindow={false}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /remover evento/i }));
+    expect(screen.queryByText("Remover evento?")).not.toBeInTheDocument();
+  });
+
+  it("isWithinEditWindow=true (default) — comportamento existente preservado", () => {
+    render(<EventChip entry={mockEntry} onDelete={vi.fn()} isDeleting={false} />);
+    const btn = screen.getByRole("button", { name: /remover evento/i });
+    expect(btn).not.toBeDisabled();
+    fireEvent.click(btn);
+    expect(screen.getByText("Remover evento?")).toBeInTheDocument();
+  });
 });

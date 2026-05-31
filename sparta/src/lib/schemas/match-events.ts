@@ -34,3 +34,25 @@ export const MatchEventInputSchema = z.object({
 });
 
 export type MatchEventInput = z.infer<typeof MatchEventInputSchema>;
+
+export const MatchEventUpdateSchema = z
+  .object({
+    action: z.enum(MATCH_ACTIONS).optional(),
+    zone: z.enum(MATCH_ZONES).optional(),
+  })
+  .refine((d) => d.action !== undefined || d.zone !== undefined, {
+    message: "Pelo menos um campo (action ou zone) deve ser alterado",
+  });
+
+export type MatchEventUpdate = z.infer<typeof MatchEventUpdateSchema>;
+
+export interface SessionEventEntry {
+  id: string;
+  action: (typeof MATCH_ACTIONS)[number];
+  zone: (typeof MATCH_ZONES)[number];
+  player_id: string | null;
+  player_name: string | null;
+  jersey_number: number | null;
+  occurred_at: string;
+  captured_via: "online" | "offline-drain";
+}

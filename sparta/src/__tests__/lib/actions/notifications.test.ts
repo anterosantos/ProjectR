@@ -119,6 +119,7 @@ describe('NotificationSettingsSchema — validação Zod', () => {
       pre_minutes: 30,
       post_minutes: 30,
       is_enabled: true,
+      event_edit_window_hours: 24,
     }
     const result = NotificationSettingsSchema.safeParse(input)
     expect(result.success).toBe(true)
@@ -129,6 +130,7 @@ describe('NotificationSettingsSchema — validação Zod', () => {
       pre_minutes: 5,
       post_minutes: 120,
       is_enabled: false,
+      event_edit_window_hours: 168,
     }
     const result = NotificationSettingsSchema.safeParse(input)
     expect(result.success).toBe(true)
@@ -268,6 +270,7 @@ describe('updateNotificationSettings', () => {
       pre_minutes: 4, // below min
       post_minutes: 30,
       is_enabled: true,
+      event_edit_window_hours: 24,
     })
 
     expect(result.ok).toBe(false)
@@ -284,6 +287,7 @@ describe('updateNotificationSettings', () => {
       pre_minutes: 30,
       post_minutes: 30,
       is_enabled: true,
+      event_edit_window_hours: 24,
     })
 
     expect(result.ok).toBe(false)
@@ -306,6 +310,7 @@ describe('updateNotificationSettings', () => {
       pre_minutes: 30,
       post_minutes: 30,
       is_enabled: true,
+      event_edit_window_hours: 24,
     })
 
     expect(result.ok).toBe(false)
@@ -328,6 +333,7 @@ describe('updateNotificationSettings', () => {
       pre_minutes: 30,
       post_minutes: 30,
       is_enabled: true,
+      event_edit_window_hours: 24,
     })
 
     expect(result.ok).toBe(false)
@@ -350,6 +356,7 @@ describe('updateNotificationSettings', () => {
       pre_minutes: 15,
       post_minutes: 45,
       is_enabled: false,
+      event_edit_window_hours: 24,
     })
 
     expect(result.ok).toBe(true)
@@ -369,6 +376,7 @@ describe('updateNotificationSettings', () => {
       pre_minutes: 20,
       post_minutes: 40,
       is_enabled: true,
+      event_edit_window_hours: 24,
     })
 
     expect(result.ok).toBe(true)
@@ -389,6 +397,7 @@ describe('updateNotificationSettings', () => {
       pre_minutes: 30,
       post_minutes: 30,
       is_enabled: true,
+      event_edit_window_hours: 24,
     })
 
     expect(result.ok).toBe(false)
