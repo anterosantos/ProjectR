@@ -258,8 +258,7 @@ export async function getLineupForSession(
       `*,
        players(full_name, jersey_num, age_group, processing_restricted, positions(position, is_primary))`
     )
-    .eq("session_id", sessionId)
-    .eq("role", "starter");
+    .eq("session_id", sessionId);
   const { data: lineupData, error } = selectResult as {
     data: Array<{
       id: string;

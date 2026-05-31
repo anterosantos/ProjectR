@@ -29,8 +29,9 @@ export function PlayerGrid({ sessionId, refreshTrigger = 0 }: PlayerGridProps) {
           setError("Erro ao carregar convocatória.");
           return;
         }
-        const transformedPlayers: MatchLineupRow[] = result.data.map(
-          (lineup) => ({
+        const transformedPlayers: MatchLineupRow[] = result.data
+          .filter((lineup) => lineup.role === "starter")
+          .map((lineup) => ({
             id: lineup.id,
             session_id: lineup.session_id,
             player_id: lineup.player_id,
@@ -40,8 +41,7 @@ export function PlayerGrid({ sessionId, refreshTrigger = 0 }: PlayerGridProps) {
             age_group: lineup.age_group,
             processing_restricted: lineup.processing_restricted,
             role: lineup.role,
-          })
-        );
+          }));
         setPlayers(transformedPlayers);
       } catch {
         if (!controller.signal.aborted) {
