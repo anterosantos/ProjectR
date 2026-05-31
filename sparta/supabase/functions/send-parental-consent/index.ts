@@ -180,7 +180,7 @@ const handler = async (req: Request): Promise<Response> => {
   });
 
   const timeoutPromise = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error("brevo_timeout")), 8000)
+    setTimeout(() => reject(new Error("brevo_timeout")), 5000)
   );
 
   let brevoRes: Response;
