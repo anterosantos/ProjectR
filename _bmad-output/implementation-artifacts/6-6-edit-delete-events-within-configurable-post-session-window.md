@@ -1,6 +1,6 @@
 # Story 6.6: Editar/Apagar Eventos Dentro de Janela Configurável Pós-Sessão
 
-Status: review
+Status: done
 
 **Story ID:** 6.6
 **Epic:** Epic 6 — Recolha de Performance — Touchscreen 3-ecrãs (jornada da Ana)

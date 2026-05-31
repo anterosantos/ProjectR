@@ -207,7 +207,7 @@ development_status:
   6-3-recent-events-ring-last-6-for-audit-on-the-go: done
   6-4-substitutions-auto-derived-minutes-played: done
   6-5-offline-match-event-capture-outbox-drain: done
-  6-6-edit-delete-events-within-configurable-post-session-window: review
+  6-6-edit-delete-events-within-configurable-post-session-window: done
   6-7-attendance-recording-for-training-sessions: ready-for-dev
   6-8-session-rpe-entry-per-player-at-end-of-session: ready-for-dev
   epic-6-retrospective: optional
