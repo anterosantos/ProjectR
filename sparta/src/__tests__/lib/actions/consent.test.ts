@@ -21,9 +21,9 @@ const { mockBrevoFetch } = vi.hoisted(() => ({
 }));
 
 // Mock global fetch for Brevo API
-global.fetch = vi.fn((url: string) => {
+global.fetch = vi.fn((url: string, options?: RequestInit) => {
   if (url.includes("api.brevo.com")) {
-    return mockBrevoFetch();
+    return mockBrevoFetch(url, options);
   }
   return Promise.reject(new Error("Unexpected fetch call"));
 });
@@ -187,26 +187,27 @@ describe("initiateParentalConsent", () => {
     }
   });
 
-  it("happy path: dispara fetch fire-and-forget para send-parental-consent", async () => {
+  it("happy path: dispara Brevo email via after() callback", async () => {
     const serviceRole = buildServiceRole();
     mockGetServiceRoleClient.mockReturnValue(serviceRole);
-    const fetchMock = vi.fn().mockResolvedValue(
+    mockBrevoFetch.mockResolvedValue(
       new Response(JSON.stringify({ ok: true }), { status: 200 })
     );
-    vi.stubGlobal("fetch", fetchMock);
 
     await initiateParentalConsent({
       playerId: PLAYER_UUID,
       parentEmail: "mae@mail.com",
     });
 
-    // fire-and-forget: flushes microtask queue
+    // fire-and-forget: flushes microtask queue (mocked after() runs immediately)
     await new Promise((r) => setTimeout(r, 0));
-    expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringContaining("/functions/v1/send-parental-consent"),
-      expect.objectContaining({ method: "POST" })
-    );
-    vi.unstubAllGlobals();
+
+    // Verify Brevo was called with email to parent
+    expect(mockBrevoFetch).toHaveBeenCalled();
+    const [url, options] = mockBrevoFetch.mock.calls[0] ?? [];
+    expect(url).toContain("api.brevo.com");
+    expect((options as RequestInit)?.method).toBe("POST");
+    expect((options as RequestInit)?.body).toContain("mae@mail.com");
   });
 });
 
