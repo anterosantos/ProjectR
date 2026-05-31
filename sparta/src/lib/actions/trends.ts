@@ -1,6 +1,7 @@
 "use server";
 
 import { createServerClient } from "@/lib/supabase/server";
+import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { auditedRead } from "@/lib/data/audited";
 import { ok, err } from "@/lib/types";
 import type { Result, AppError } from "@/lib/types";
@@ -107,10 +108,12 @@ export async function getFatigueTrendsData(
   if (!authResult.ok) return authResult;
   const { userId, clubId } = authResult.data;
 
-  const supabase = await createServerClient();
+  // Use service role for all DB queries — createServerClient JWT propagation
+  // is unreliable for Server Actions (AGENTS.md Rule 1)
+  const serviceRole = getServiceRoleClient();
 
   // 2. Query batch única — jogadores activos
-  const { data: playersData, error: playersError } = await supabase
+  const { data: playersData, error: playersError } = await serviceRole
     .from("players")
     .select("id, full_name, age_group")
     .eq("club_id", clubId)
@@ -130,7 +133,7 @@ export async function getFatigueTrendsData(
   if (playerIds.length === 0) {
     return ok({ players: [] });
   }
-  const { data: positionsData, error: positionsError } = await supabase
+  const { data: positionsData, error: positionsError } = await serviceRole
     .from("positions")
     .select("player_id, position")
     .in("player_id", playerIds)
@@ -166,7 +169,7 @@ export async function getFatigueTrendsData(
       },
       async () => {
         // eslint-disable-next-line custom/no-direct-health-data-read -- query is legitimately wrapped in auditedRead()
-        const { data, error } = await supabase
+        const { data, error } = await serviceRole
           .from("fatigue_responses")
           .select("player_id, submitted_at, dim_energy, dim_focus, dim_sleep, dim_soreness, dim_mood")
           .eq("club_id", clubId)
