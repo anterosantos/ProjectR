@@ -131,7 +131,7 @@ describe("LineupToggle", () => {
 
       fireEvent.click(starterButton);
 
-      expect(onChange).toHaveBeenCalledWith("starter");
+      expect(onChange).toHaveBeenCalledWith("starter", mockPlayer.jersey_num);
       expect(onChange).toHaveBeenCalledTimes(1);
     });
 
@@ -183,7 +183,7 @@ describe("LineupToggle", () => {
 
       let buttons = container.querySelectorAll("button");
       fireEvent.click(buttons[1]); // Click starter
-      expect(onChange).toHaveBeenCalledWith("starter");
+      expect(onChange).toHaveBeenCalledWith("starter", mockPlayer.jersey_num);
 
       rerender(
         <LineupToggle

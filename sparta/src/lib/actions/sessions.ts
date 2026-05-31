@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { createServerClient } from "@/lib/supabase/server";
+import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { logAccess } from "@/lib/actions/audit";
 import { getCurrentSeason } from "@/lib/actions/seasons";
 import {
@@ -126,7 +127,8 @@ export async function createSession(
         "Sem época actual definida. Configure em /configuracoes/epocas.",
     });
 
-  const { data, error } = await supabase
+  const serviceRole = getServiceRoleClient();
+  const { data, error } = await serviceRole
     .from("sessions")
     .insert({
       club_id: profile.club_id,
@@ -189,7 +191,8 @@ export async function updateSession(
     });
   }
 
-  const { data, error } = await supabase
+  const serviceRole = getServiceRoleClient();
+  const { data, error } = await serviceRole
     .from("sessions")
     .update({
       type: validated.data.type,
@@ -237,7 +240,8 @@ export async function cancelSession(
     });
   }
 
-  const { data, error } = await supabase
+  const serviceRole = getServiceRoleClient();
+  const { data, error } = await serviceRole
     .from("sessions")
     .update({ status: "cancelled" })
     .eq("id", sessionId)
