@@ -6,6 +6,8 @@ import {
   registerSubstitution,
   type SubstitutionLineupRow,
 } from "@/lib/actions/substitutions";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { enqueueMutation } from "@/lib/outbox/enqueue";
 
 interface SubstitutionSheetProps {
   sessionId: string;
@@ -29,6 +31,7 @@ export function SubstitutionSheet({
   const [minute, setMinute] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { isOnline } = useOnlineStatus();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -55,12 +58,63 @@ export function SubstitutionSheet({
     if (!selectedOut || !selectedIn || isSubmitting) return;
     setIsSubmitting(true);
     setError(null);
-    const result = await registerSubstitution(sessionId, selectedOut, selectedIn, minute);
-    setIsSubmitting(false);
-    if (!result.ok) {
-      setError(result.error.message);
+
+    // PATCH 5: Validate minute range before enqueueing
+    if (minute < 0 || minute > 120) {
+      setError(`Minuto inválido: ${minute}. Deve estar entre 0 e 120.`);
+      setIsSubmitting(false);
       return;
     }
+
+    // Path offline — enfileirar imediatamente sem chamar Server Action
+    if (!isOnline) {
+      try {
+        await enqueueMutation('lineup.substitution', {
+          sessionId,
+          outPlayerId: selectedOut,
+          inPlayerId: selectedIn,
+          minute,
+          occurred_at: new Date().toISOString(), // PATCH 9 AC #2: recorded for sort order
+        });
+        onClose();
+      } catch (err) {
+        // PATCH 6: Better error messaging for offline failures
+        const errorMsg = err instanceof Error ? err.message : 'Erro ao guardar offline';
+        setError(`Falha ao guardar: ${errorMsg}`);
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    // Path online — tentar Server Action primeiro
+    const result = await registerSubstitution(sessionId, selectedOut, selectedIn, minute);
+    setIsSubmitting(false);
+
+    if (!result.ok) {
+      // Erro de validação → mostrar inline (não enfileirar dados inválidos)
+      if (result.error.code === 'validation') {
+        setError(result.error.message);
+        return;
+      }
+      // Erro de rede/servidor → enfileirar para retry
+      try {
+        await enqueueMutation('lineup.substitution', {
+          sessionId,
+          outPlayerId: selectedOut,
+          inPlayerId: selectedIn,
+          minute,
+          occurred_at: new Date().toISOString(), // PATCH 9 AC #2: recorded for sort order
+        });
+        onClose();
+      } catch (err) {
+        // PATCH 6: Distinguish enqueue failure from Server Action error
+        const errorMsg = err instanceof Error ? err.message : 'Erro ao guardar offline';
+        setError(`Falha: ${result.error.message || errorMsg}`);
+      }
+      return;
+    }
+
     onSubstitutionSuccess?.();
     onClose();
   };

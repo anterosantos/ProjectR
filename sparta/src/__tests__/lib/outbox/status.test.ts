@@ -55,23 +55,29 @@ describe('useOutboxStatus()', () => {
     await waitFor(() => expect(result.current.pendingCount).toBe(0))
   })
 
-  it('returns pendingCount matching pending entries (fatigue.submit only)', async () => {
-    // useOutboxStatus now filters by kind='fatigue.submit' (Story 4.4)
+  it('conta todos os kinds pendentes (fatigue.submit + match-event.submit + lineup.substitution)', async () => {
+    await enqueueMutation('fatigue.submit', {})
+    await enqueueMutation('match-event.submit', {})
+    await enqueueMutation('lineup.substitution', {})
+
+    const { result } = renderHook(() => useOutboxStatus())
+    await waitFor(() => expect(result.current.pendingCount).toBe(3))
+  })
+
+  it('backward compat: ainda conta fatigue.submit como pendente', async () => {
     await enqueueMutation('fatigue.submit', {})
     await enqueueMutation('fatigue.submit', {})
-    // Add some other kind to verify it's not counted
-    await enqueueMutation('other.kind', {})
 
     const { result } = renderHook(() => useOutboxStatus())
     await waitFor(() => expect(result.current.pendingCount).toBe(2))
   })
 
-  it('ignores non-fatigue.submit kinds in pendingCount', async () => {
-    await enqueueMutation('match.event', {})
-    await enqueueMutation('other.mutation', {})
+  it('conta múltiplos kinds incluindo match-event.submit e lineup.substitution', async () => {
+    await enqueueMutation('match-event.submit', {})
+    await enqueueMutation('lineup.substitution', {})
 
     const { result } = renderHook(() => useOutboxStatus())
-    await waitFor(() => expect(result.current.pendingCount).toBe(0))
+    await waitFor(() => expect(result.current.pendingCount).toBe(2))
   })
 
   it('unsubscribes without throwing on unmount', async () => {

@@ -1,7 +1,9 @@
+import 'fake-indexeddb/auto'
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { axe } from "vitest-axe";
 import { SubstitutionSheet } from "@/components/domain/match-event-capture/substitution-sheet";
+import { db } from "@/lib/outbox/db";
 
 vi.mock("@/lib/actions/substitutions", () => ({
   getMatchLineupForSubs: vi.fn().mockResolvedValue({
@@ -32,9 +34,19 @@ vi.mock("@/lib/actions/substitutions", () => ({
   registerSubstitution: vi.fn().mockResolvedValue({ ok: true, data: undefined }),
 }));
 
+let mockIsOnline = true;
+vi.mock("@/hooks/useOnlineStatus", () => ({
+  useOnlineStatus: () => ({ isOnline: mockIsOnline }),
+}));
+
+vi.mock("@/lib/outbox/enqueue", () => ({
+  enqueueMutation: vi.fn().mockResolvedValue("mock-id"),
+}));
+
 const { getMatchLineupForSubs, registerSubstitution } = await import(
   "@/lib/actions/substitutions"
 );
+const { enqueueMutation } = await import("@/lib/outbox/enqueue");
 
 const SCHEDULED_AT_45 = new Date(Date.now() - 45 * 60_000).toISOString();
 
@@ -46,8 +58,10 @@ const defaultProps = {
 };
 
 describe("<SubstitutionSheet>", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+    mockIsOnline = true;
+    await db.outbox.clear();
     vi.mocked(getMatchLineupForSubs).mockResolvedValue({
       ok: true,
       data: {
@@ -258,5 +272,85 @@ describe("<SubstitutionSheet>", () => {
 
     const results = await axe(container);
     expect(results).toHaveNoViolations();
+  });
+
+  it("offline: enfileira como lineup.substitution sem chamar registerSubstitution", async () => {
+    mockIsOnline = false;
+
+    render(<SubstitutionSheet {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/#10 João Silva/i)).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText(/#10 João Silva/i));
+    fireEvent.click(screen.getByText(/#14 Carlos Matos/i));
+    fireEvent.click(screen.getByText("Confirmar Substituição"));
+
+    await waitFor(() => {
+      expect(defaultProps.onClose).toHaveBeenCalled();
+    });
+
+    expect(vi.mocked(registerSubstitution)).not.toHaveBeenCalled();
+    expect(vi.mocked(enqueueMutation)).toHaveBeenCalledWith(
+      "lineup.substitution",
+      expect.objectContaining({
+        sessionId: "sess-1",
+        outPlayerId: "p1",
+        inPlayerId: "p2",
+      })
+    );
+  });
+
+  it("online mas registerSubstitution retorna code 'unknown': enfileira offline e fecha", async () => {
+    vi.mocked(registerSubstitution).mockResolvedValueOnce({
+      ok: false,
+      error: { code: "unknown", message: "Erro de rede" },
+    });
+
+    render(<SubstitutionSheet {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/#10 João Silva/i)).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText(/#10 João Silva/i));
+    fireEvent.click(screen.getByText(/#14 Carlos Matos/i));
+    fireEvent.click(screen.getByText("Confirmar Substituição"));
+
+    await waitFor(() => {
+      expect(defaultProps.onClose).toHaveBeenCalled();
+    });
+
+    expect(vi.mocked(enqueueMutation)).toHaveBeenCalledWith(
+      "lineup.substitution",
+      expect.objectContaining({ sessionId: "sess-1" })
+    );
+  });
+
+  it("erro de validação (code 'validation'): NÃO enfileira, mostra erro inline", async () => {
+    vi.mocked(registerSubstitution).mockResolvedValueOnce({
+      ok: false,
+      error: { code: "validation", message: "Jogador que sai não está em campo." },
+    });
+
+    render(<SubstitutionSheet {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/#10 João Silva/i)).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText(/#10 João Silva/i));
+    fireEvent.click(screen.getByText(/#14 Carlos Matos/i));
+    fireEvent.click(screen.getByText("Confirmar Substituição"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Jogador que sai não está em campo.")
+      ).toBeInTheDocument();
+    });
+
+    expect(vi.mocked(enqueueMutation)).not.toHaveBeenCalled();
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
   });
 });

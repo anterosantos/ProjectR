@@ -13,7 +13,7 @@ import { ZoneSelectorSheet } from "./zone-selector-sheet";
 import { RecentEventsRing } from "./recent-events-ring";
 import { SubstitutionSheet } from "./substitution-sheet";
 import { PendingBadge } from "@/components/domain/pending-badge";
-import { useOutboxDrain } from "@/hooks/useOutboxDrain";
+import { useMatchOutboxDrain } from "@/hooks/useMatchOutboxDrain";
 import { closeMatchRecord } from "@/lib/actions/substitutions";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +27,7 @@ export function MatchEventCapture({ sessionId, scheduledAt, durationMin }: Match
   const selectedPlayer = useSelectedPlayer();
   const lastPolarity = useLastActionPolarity();
   const { clearSelection } = useMatchSession();
-  const { pendingCount, isDraining, drain } = useOutboxDrain();
+  const { pendingCount, isDraining, drain } = useMatchOutboxDrain();
   const [isSubSheetOpen, setIsSubSheetOpen] = useState(false);
   const [closeError, setCloseError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -95,6 +95,7 @@ export function MatchEventCapture({ sessionId, scheduledAt, durationMin }: Match
           count={pendingCount}
           isDraining={isDraining}
           onSyncClick={drain}
+          label="eventos por sincronizar"
         />
         <button
           type="button"

@@ -8,11 +8,7 @@ export function useOutboxStatus(): { pendingCount: number } {
 
   useEffect(() => {
     const subscription = liveQuery(
-      () => db.outbox
-        .where('kind')
-        .equals('fatigue.submit')
-        .and(m => m.status === 'pending')
-        .count()
+      () => db.outbox.where('status').equals('pending').count()
     ).subscribe({
       next: (count) => setPendingCount(count),
       error: () => setPendingCount(0),
