@@ -48,14 +48,20 @@ vi.mock("recharts", () => ({
   LineChart: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="line-chart">{children}</div>
   ),
+  BarChart: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="bar-chart">{children}</div>
+  ),
+  Bar: () => null,
+  Cell: () => null,
   Line: () => null,
   XAxis: () => null,
   YAxis: () => null,
   CartesianGrid: () => null,
   Tooltip: () => null,
   Legend: () => null,
+  ReferenceDot: () => null,
   ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
+    <div data-testid="recharts-container">{children}</div>
   ),
 }));
 
@@ -226,7 +232,7 @@ describe("PlayerDrillDownSheet", () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId("line-chart")).toBeInTheDocument();
+        expect(screen.getAllByTestId("recharts-container")[0]).toBeInTheDocument();
       });
     });
 
@@ -370,7 +376,7 @@ describe("PlayerDrillDownSheet", () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId("line-chart")).toBeInTheDocument();
+        expect(screen.getAllByTestId("recharts-container")[0]).toBeInTheDocument();
       });
 
       const results = await axe(container);
@@ -410,7 +416,7 @@ describe("PlayerDrillDownSheet", () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId("line-chart")).toBeInTheDocument();
+        expect(screen.getAllByTestId("recharts-container")[0]).toBeInTheDocument();
       });
 
       // Verify DataDrivenDecisionInput button is focusable (Story 5.10)
@@ -429,7 +435,7 @@ describe("PlayerDrillDownSheet", () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId("line-chart")).toBeInTheDocument();
+        expect(screen.getAllByTestId("recharts-container")[0]).toBeInTheDocument();
       });
 
       // Verify content is rendered (Dialog will auto-manage focus and ESC key via radix-ui)
