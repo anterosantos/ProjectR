@@ -8,9 +8,10 @@ import type { MatchLineupRow } from "@/lib/stores/match-session";
 
 interface PlayerGridProps {
   sessionId: string;
+  refreshTrigger?: number;
 }
 
-export function PlayerGrid({ sessionId }: PlayerGridProps) {
+export function PlayerGrid({ sessionId, refreshTrigger = 0 }: PlayerGridProps) {
   const [players, setPlayers] = useState<MatchLineupRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +56,7 @@ export function PlayerGrid({ sessionId }: PlayerGridProps) {
 
     loadPlayers();
     return () => controller.abort();
-  }, [sessionId]);
+  }, [sessionId, refreshTrigger]);
 
   if (loading) {
     return (

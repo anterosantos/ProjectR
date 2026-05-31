@@ -30,6 +30,7 @@ export function MatchEventCapture({ sessionId, scheduledAt, durationMin }: Match
   const { pendingCount, isDraining, drain } = useOutboxDrain();
   const [isSubSheetOpen, setIsSubSheetOpen] = useState(false);
   const [closeError, setCloseError] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleCloseMatch = async () => {
     const confirmed = window.confirm(
@@ -45,6 +46,10 @@ export function MatchEventCapture({ sessionId, scheduledAt, durationMin }: Match
         `Registo encerrado. ${result.data.updated_count} jogador(es) actualizados.`
       );
     }
+  };
+
+  const handleSubstitutionSuccess = () => {
+    setRefreshTrigger((prev) => prev + 1);
   };
 
   const headerBg =
@@ -117,7 +122,7 @@ export function MatchEventCapture({ sessionId, scheduledAt, durationMin }: Match
       {/* Body — full-bleed, no extra padding */}
       <div className="flex-1 overflow-auto p-4">
         {!selectedPlayer ? (
-          <PlayerGrid sessionId={sessionId} />
+          <PlayerGrid sessionId={sessionId} refreshTrigger={refreshTrigger} />
         ) : (
           <ActionList />
         )}
@@ -135,6 +140,7 @@ export function MatchEventCapture({ sessionId, scheduledAt, durationMin }: Match
         scheduledAt={scheduledAt}
         isOpen={isSubSheetOpen}
         onClose={() => setIsSubSheetOpen(false)}
+        onSubstitutionSuccess={handleSubstitutionSuccess}
       />
     </div>
   );

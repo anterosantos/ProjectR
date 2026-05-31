@@ -12,6 +12,7 @@ interface SubstitutionSheetProps {
   scheduledAt: string;
   isOpen: boolean;
   onClose: () => void;
+  onSubstitutionSuccess?: () => void;
 }
 
 export function SubstitutionSheet({
@@ -19,6 +20,7 @@ export function SubstitutionSheet({
   scheduledAt,
   isOpen,
   onClose,
+  onSubstitutionSuccess,
 }: SubstitutionSheetProps) {
   const [starters, setStarters] = useState<SubstitutionLineupRow[]>([]);
   const [bench, setBench] = useState<SubstitutionLineupRow[]>([]);
@@ -59,6 +61,7 @@ export function SubstitutionSheet({
       setError(result.error.message);
       return;
     }
+    onSubstitutionSuccess?.();
     onClose();
   };
 
