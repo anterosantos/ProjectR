@@ -17,7 +17,7 @@ const ROLE_DEFAULT_ROUTES: Record<string, string> = {
 
 const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
   player: ["/hoje", "/historico", "/configuracoes", "/aguardar-consentimento", "/questionario"],
-  coach: ["/prontidao", "/calendario", "/plantel", "/configuracoes"],
+  coach: ["/prontidao", "/calendario", "/plantel", "/tendencias", "/configuracoes"],
   analyst: ["/sessoes", "/plantel", "/tendencias", "/configuracoes"],
 };
 

@@ -24,6 +24,7 @@ const NAV_CONFIG: Record<"coach" | "analyst", NavItem[]> = {
     { label: "Prontidão", href: "/prontidao", icon: AlertCircle },
     { label: "Calendário", href: "/calendario", icon: Calendar },
     { label: "Plantel", href: "/plantel", icon: Users },
+    { label: "Tendências", href: "/tendencias", icon: TrendingUp },
     { label: "Configurações", href: "/configuracoes", icon: Settings },
   ],
   analyst: [
