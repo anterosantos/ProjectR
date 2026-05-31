@@ -4,6 +4,10 @@ vi.mock("@/lib/supabase/server", () => ({
   createServerClient: vi.fn(),
 }));
 
+vi.mock("@/lib/supabase/service-role", () => ({
+  getServiceRoleClient: vi.fn(),
+}));
+
 vi.mock("@/lib/actions/audit", () => ({
   logAccess: vi.fn().mockResolvedValue({ ok: true, data: undefined }),
 }));
@@ -13,6 +17,7 @@ vi.mock("@/lib/actions/seasons", () => ({
 }));
 
 import { createServerClient } from "@/lib/supabase/server";
+import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import { getCurrentSeason } from "@/lib/actions/seasons";
 import {
   getSessionsForClub,
@@ -267,6 +272,7 @@ describe("createSession", () => {
     });
     const mock = makeSupabaseMock();
     vi.mocked(createServerClient).mockResolvedValue(mock as never);
+    vi.mocked(getServiceRoleClient).mockReturnValue(mock as never);
 
     const result = await createSession(validInput);
     expect(result.ok).toBe(true);
@@ -330,6 +336,7 @@ describe("updateSession", () => {
   it("actualiza sessão com sucesso", async () => {
     const mock = makeSupabaseMock();
     vi.mocked(createServerClient).mockResolvedValue(mock as never);
+    vi.mocked(getServiceRoleClient).mockReturnValue(mock as never);
 
     const result = await updateSession(validInput);
     expect(result.ok).toBe(true);
@@ -408,6 +415,7 @@ describe("cancelSession", () => {
       };
     });
     vi.mocked(createServerClient).mockResolvedValue(mock as never);
+    vi.mocked(getServiceRoleClient).mockReturnValue(mock as never);
 
     const result = await cancelSession(SESSION_UUID);
     expect(result.ok).toBe(true);
