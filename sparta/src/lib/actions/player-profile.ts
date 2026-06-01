@@ -11,6 +11,8 @@ import type { DataDecision, DecisionKind } from "@/lib/types/decisions";
 import { ACWR_THRESHOLDS, type AgeGroup } from "@/lib/readiness/thresholds";
 import { computeRecoveryCurve } from "@/lib/readiness/recovery";
 import type { RecoveryCurveResult } from "@/lib/readiness/recovery";
+import { detectCorrelations } from "@/lib/readiness/correlations";
+import type { CorrelationsResult } from "@/lib/readiness/correlations";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -945,4 +947,59 @@ export async function getPlayerDataDecisionsTabData(
   }));
 
   return ok({ decisions });
+}
+
+// ── Correlations tab ──────────────────────────────────────────────────────────
+
+export type CorrelationsTabData = {
+  result: CorrelationsResult;
+  playerName: string;
+};
+
+/**
+ * getPlayerCorrelationsTabData — Spearman correlations between fatigue dims and match stats.
+ *
+ * Uses auditedRead() — health data from fatigue_responses (FR50).
+ */
+export async function getPlayerCorrelationsTabData(
+  playerId: string
+): Promise<Result<CorrelationsTabData, AppError>> {
+  if (!playerId?.trim()) {
+    return err({ code: "not_found", message: "Recurso não encontrado" });
+  }
+
+  const authResult = await requireStaffRole();
+  if (!authResult.ok) return authResult;
+  const { userId, clubId } = authResult.data;
+
+  const serviceRole = getServiceRoleClient();
+
+  const { data: player } = await serviceRole
+    .from("players")
+    .select("id, full_name, club_id")
+    .eq("id", playerId)
+    .eq("club_id", clubId)
+    .maybeSingle();
+
+  if (!player) {
+    return err({ code: "not_found", message: "Recurso não encontrado" });
+  }
+
+  let result: CorrelationsResult;
+  try {
+    result = await auditedRead<CorrelationsResult>(
+      {
+        action: "correlations.viewed",
+        targetKind: "player",
+        targetId: playerId,
+        actorId: userId,
+        clubId,
+      },
+      async () => detectCorrelations(serviceRole, { playerId, clubId })
+    );
+  } catch {
+    return err({ code: "internal", message: "Erro ao calcular correlações" });
+  }
+
+  return ok({ result, playerName: player.full_name ?? "—" });
 }

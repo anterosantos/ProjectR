@@ -9,8 +9,17 @@ import { PresencasTab } from "./PresencasTab";
 import { EstatisticasTab } from "./EstatisticasTab";
 import { DecisoesTab } from "./DecisoesTab";
 import { RecuperacaoTab } from "./RecuperacaoTab";
+import { CorrelacoesTab } from "./CorrelacoesTab";
 
-type TabId = "fadiga" | "acwr" | "fisicas" | "presencas" | "estatisticas" | "decisoes" | "recuperacao";
+type TabId =
+  | "fadiga"
+  | "acwr"
+  | "fisicas"
+  | "presencas"
+  | "estatisticas"
+  | "decisoes"
+  | "recuperacao"
+  | "correlacoes";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "fadiga", label: "Fadiga" },
@@ -20,6 +29,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "estatisticas", label: "Estatísticas" },
   { id: "decisoes", label: "Decisões data-driven" },
   { id: "recuperacao", label: "Recuperação" },
+  { id: "correlacoes", label: "Correlações" },
 ];
 
 const storageKey = (playerId: string) => `sparta-profile-tab-${playerId}`;
@@ -198,6 +208,15 @@ export function ProfileTabs({ playerId, isCumulative }: ProfileTabsProps) {
         hidden={activeTab !== "recuperacao"}
       >
         {activeTab === "recuperacao" && <RecuperacaoTab playerId={playerId} />}
+      </div>
+
+      <div
+        id="profile-panel-correlacoes"
+        role="tabpanel"
+        aria-labelledby="profile-tab-correlacoes"
+        hidden={activeTab !== "correlacoes"}
+      >
+        {activeTab === "correlacoes" && <CorrelacoesTab playerId={playerId} />}
       </div>
     </div>
   );
