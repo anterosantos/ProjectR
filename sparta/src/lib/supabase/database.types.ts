@@ -234,6 +234,64 @@ export type Database = {
           },
         ]
       }
+      consent_reconfirmations: {
+        Row: {
+          id: string
+          club_id: string
+          player_id: string
+          profile_id: string
+          token: string
+          status: 'pending' | 'confirmed' | 'anonymized'
+          created_at: string
+          confirmed_at: string | null
+          anonymized_at: string | null
+        }
+        Insert: {
+          id?: string
+          club_id: string
+          player_id: string
+          profile_id: string
+          token: string
+          status: 'pending' | 'confirmed' | 'anonymized'
+          created_at?: string
+          confirmed_at?: string | null
+          anonymized_at?: string | null
+        }
+        Update: {
+          id?: string
+          club_id?: string
+          player_id?: string
+          profile_id?: string
+          token?: string
+          status?: 'pending' | 'confirmed' | 'anonymized'
+          created_at?: string
+          confirmed_at?: string | null
+          anonymized_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consent_reconfirmations_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_reconfirmations_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_reconfirmations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           id: string
