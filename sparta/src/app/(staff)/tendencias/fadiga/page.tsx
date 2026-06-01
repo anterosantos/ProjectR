@@ -24,7 +24,7 @@ export default async function TendenciasFadigaPage() {
   }
 
   return (
-    <div className="container py-8 sm:py-12">
+    <div className="container-responsive py-8 sm:py-12">
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Tendências de Fadiga</h1>

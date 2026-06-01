@@ -13,7 +13,7 @@ export default async function TendenciasCargaPage() {
 
   if (!result.ok) {
     return (
-      <div className="container py-8 sm:py-12">
+      <div className="container-responsive py-8 sm:py-12">
         <EmptyState
           icon={<BarChart2 className="h-8 w-8 text-muted-foreground" aria-hidden="true" />}
           title="Erro ao carregar dados"
@@ -27,7 +27,7 @@ export default async function TendenciasCargaPage() {
 
   if (!currentSeason) {
     return (
-      <div className="container py-8 sm:py-12">
+      <div className="container-responsive py-8 sm:py-12">
         <EmptyState
           icon={<BarChart2 className="h-8 w-8 text-muted-foreground" aria-hidden="true" />}
           title="Sem época atual configurada"
@@ -41,7 +41,7 @@ export default async function TendenciasCargaPage() {
 
   if (players.length > 0 && !hasLoadData) {
     return (
-      <div className="container py-8 sm:py-12">
+      <div className="container-responsive py-8 sm:py-12">
         <EmptyState
           icon={<BarChart2 className="h-8 w-8 text-muted-foreground" aria-hidden="true" />}
           title="Sem dados de carga para esta época"
@@ -52,7 +52,7 @@ export default async function TendenciasCargaPage() {
   }
 
   return (
-    <div className="container py-8 sm:py-12">
+    <div className="container-responsive py-8 sm:py-12">
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Carga Acumulada</h1>

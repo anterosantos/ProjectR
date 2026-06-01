@@ -256,6 +256,13 @@
   }
 }
 
+@layer components {
+  /* Responsive container: full width on mobile, centered max-width on desktop */
+  .container-responsive {
+    @apply w-full px-4 sm:px-6 lg:max-w-7xl lg:mx-auto;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
