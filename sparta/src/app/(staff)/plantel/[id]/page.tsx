@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { format, differenceInYears, addDays, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
-import { ChevronLeft, Pencil, CircleDashed, Activity } from "lucide-react";
+import { ChevronLeft, Pencil, CircleDashed, Activity, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CalmConfirmation } from "@/components/ui/calm-confirmation";
 import { SemaforoBadge } from "@/components/ui/semaforo-badge";
@@ -170,6 +170,13 @@ export default async function PlayerDetailPage({
             }`}
           >
             Dossier
+          </Link>
+          <Link
+            href={`/plantel/${player.id}/perfil`}
+            className="px-4 py-1.5 text-sm font-medium rounded-md transition-colors text-muted-foreground hover:text-foreground flex items-center gap-1"
+          >
+            <LayoutDashboard className="h-3.5 w-3.5" aria-hidden="true" />
+            Perfil
           </Link>
         </div>
 
