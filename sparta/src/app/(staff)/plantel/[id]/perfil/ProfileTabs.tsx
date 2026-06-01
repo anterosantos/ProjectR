@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { FadigaTab } from "./FadigaTab";
 import { CargaAcwrTab } from "./CargaAcwrTab";
 import { MetricasFisicasTab } from "./MetricasFisicasTab";
@@ -30,6 +31,9 @@ interface ProfileTabsProps {
 
 export function ProfileTabs({ playerId, isCumulative }: ProfileTabsProps) {
   const [activeTab, setActiveTab] = useState<TabId>("fadiga");
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     try {
@@ -43,6 +47,35 @@ export function ProfileTabs({ playerId, isCumulative }: ProfileTabsProps) {
     }
   }, [playerId]);
 
+  function updateScrollButtons() {
+    const container = tabsContainerRef.current;
+    if (!container) return;
+    setCanScrollLeft(container.scrollLeft > 0);
+    setCanScrollRight(container.scrollLeft < container.scrollWidth - container.clientWidth - 10);
+  }
+
+  useEffect(() => {
+    const container = tabsContainerRef.current;
+    if (!container) return;
+    updateScrollButtons();
+    container.addEventListener("scroll", updateScrollButtons);
+    window.addEventListener("resize", updateScrollButtons);
+    return () => {
+      container.removeEventListener("scroll", updateScrollButtons);
+      window.removeEventListener("resize", updateScrollButtons);
+    };
+  }, []);
+
+  function scroll(direction: "left" | "right") {
+    const container = tabsContainerRef.current;
+    if (!container) return;
+    const scrollAmount = 200;
+    container.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+  }
+
   function handleTabChange(tab: TabId) {
     setActiveTab(tab);
     try {
@@ -54,29 +87,53 @@ export function ProfileTabs({ playerId, isCumulative }: ProfileTabsProps) {
 
   return (
     <div>
-      {/* Tab navigation */}
-      <div
-        role="tablist"
-        aria-label="Secções do perfil do jogador"
-        className="flex gap-0.5 overflow-x-auto pb-0 border-b border-border mb-6"
-      >
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            role="tab"
-            id={`profile-tab-${tab.id}`}
-            aria-selected={activeTab === tab.id}
-            aria-controls={`profile-panel-${tab.id}`}
-            onClick={() => handleTabChange(tab.id)}
-            className={`px-3 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-              activeTab === tab.id
-                ? "border-foreground text-foreground"
-                : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Tab navigation with carousel arrows */}
+      <div className="flex items-center gap-2 mb-6">
+        {/* Left arrow */}
+        <button
+          onClick={() => scroll("left")}
+          disabled={!canScrollLeft}
+          aria-label="Scroll tabs left"
+          className="flex-shrink-0 p-1 text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+
+        {/* Tabs container */}
+        <div
+          ref={tabsContainerRef}
+          role="tablist"
+          aria-label="Secções do perfil do jogador"
+          className="flex-1 flex gap-0.5 overflow-x-hidden pb-0 border-b border-border"
+        >
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              role="tab"
+              id={`profile-tab-${tab.id}`}
+              aria-selected={activeTab === tab.id}
+              aria-controls={`profile-panel-${tab.id}`}
+              onClick={() => handleTabChange(tab.id)}
+              className={`px-3 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                activeTab === tab.id
+                  ? "border-foreground text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Right arrow */}
+        <button
+          onClick={() => scroll("right")}
+          disabled={!canScrollRight}
+          aria-label="Scroll tabs right"
+          className="flex-shrink-0 p-1 text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
       </div>
 
       {/* Tab panels — lazy loading: only active panel is rendered */}
