@@ -100,6 +100,7 @@ export async function detectCorrelations(
   if (sessionIds.length === 0) return EMPTY;
 
   // Step 2: Match events for those sessions
+  // eslint-disable-next-line custom/no-direct-health-data-read -- called from getPlayerCorrelationsTabData via auditedRead()
   const { data: eventsData, error: eventsError } = await supabase
     .from("match_events")
     .select("session_id, action")
