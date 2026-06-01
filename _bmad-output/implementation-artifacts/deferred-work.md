@@ -2,6 +2,15 @@
 
 Items deferred from code reviews — pre-existing issues, out-of-scope work, or items blocked by future stories.
 
+## Deferred from: code review of 7-2-unified-player-profile-perfil-consolidado (2026-06-01)
+
+- **Queries sem LIMIT** [`player-profile.ts:230, 685, 326`]: `fatigue_responses`, `match_events` e `readiness_snapshots` sem `.limit()`. Performance concern para jogadores com histórico extenso; vista Cumulativo é by design ilimitada. Reavaliar com paginação se latência P95 for excedida.
+- **Estatísticas inclui sessões de qualquer tipo** [`player-profile.ts:682`]: Query de match_events não filtra por tipo de sessão. Na prática apenas sessões de jogo têm eventos; reavaliar se eventos de treino forem introduzidos no sistema.
+- **Tabs destroem/recriam estado em cada visita** [`ProfileTabs.tsx:84-132`]: Padrão `hidden` + render condicional faz unmount/remount em cada troca de tab, causando re-fetch. Lazy-load intencional per spec; considerar "mount-once" em iteração futura se re-fetches forem um problema de UX.
+- **UUID do jogador exposto no `<title>` da página** [`page.tsx:17`]: `title: "Perfil — Jogador {uuid}"`. Baixo impacto de privacidade; melhorar usando nome do jogador (já carregado no server component) numa iteração futura.
+- **Campo `wasDataDriven` mapeado mas não renderizado** [`DecisoesTab.tsx`]: `DataDecision.wasDataDriven` é mapeado no server action mas não exibido no UI. AC #7 não especifica este campo; exibir se UX futura o requerer.
+- **`created_by` UUID incluído em `PlayerMetric[]` response** [`player-profile.ts:478`]: UUID de staff exposto ao client component. Verificar se `PlayerMetricsChart` o renderiza; se não, excluir do SELECT por GDPR data minimization.
+
 ## Deferred from: code review of 6-8-session-rpe-entry-per-player-at-end-of-session (2026-05-31)
 
 - **Fire-and-forget audit log pode perder-se** [`session-srpe.ts:185-205`]: Se o processo terminar antes das micro-tasks de audit_log e readiness refresh completarem, ambos são silenciosamente perdidos. Padrão pré-existente em todo o projecto (fatigue.ts, attendance.ts); resolver quando durabilidade de audit logs for standardizada.
