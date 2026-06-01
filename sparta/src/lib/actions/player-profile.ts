@@ -574,7 +574,7 @@ export async function getPlayerAttendanceTabData(
   // Fetch only attendance records that exist explicitly for this player.
   // This avoids showing all club sessions with a default "absent" for sessions
   // the player was never enrolled in (e.g., a senior seeing U14 sessions).
-  let attQuery = serviceRole
+  const attQuery = serviceRole
     .from("attendances")
     .select("session_id, status, note")
     .eq("player_id", playerId)
