@@ -49,6 +49,16 @@ export function RecuperacaoTab({ playerId }: RecuperacaoTabProps) {
   const [playerName, setPlayerName] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth < 768);
+    }
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -125,8 +135,9 @@ export function RecuperacaoTab({ playerId }: RecuperacaoTabProps) {
 
       <div
         aria-label={`Gráfico de curva de recuperação de ${playerName}`}
+        className="w-full overflow-x-auto"
       >
-        <ResponsiveContainer width="100%" height={260}>
+        <ResponsiveContainer width="100%" height={isMobile ? 200 : 260}>
           <LineChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
             <XAxis dataKey="day" tick={{ fontSize: 12 }} />

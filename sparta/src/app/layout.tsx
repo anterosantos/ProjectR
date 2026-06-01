@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter_Tight, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { BrowserGate } from "@/components/patterns/BrowserGate";
@@ -33,6 +33,13 @@ export const metadata: Metadata = {
   title: "SPARTA",
   description: "Plataforma de gestão de treino e desempenho",
   manifest: "/manifest.webmanifest",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
