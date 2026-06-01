@@ -214,7 +214,7 @@ development_status:
 
   # Epic 7: Análise Avançada & Operacionalização "Dados Mediados" (Phase 2 / Growth)
   epic-7: in-progress
-  7-1-18-year-re-confirmation-flow-with-90-day-anonymization: review
+  7-1-18-year-re-confirmation-flow-with-90-day-anonymization: done
   7-2-unified-player-profile-perfil-consolidado: backlog
   7-3-recovery-curve-individual: backlog
   7-4-team-aggregate-dashboard: backlog
