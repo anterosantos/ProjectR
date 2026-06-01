@@ -442,7 +442,6 @@ export async function handler(req: Request): Promise<Response> {
             action: 'subject.export_failed',
             target_kind: 'player',
             target_id: playerId,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }).then(undefined, () => {
             // Silently fail if audit log fails — already error state
           })

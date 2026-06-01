@@ -82,11 +82,6 @@ export function CorrelacoesTab({ playerId }: CorrelacoesTabProps) {
   useEffect(() => {
     const controller = new AbortController();
 
-    if (!playerId?.trim()) {
-      setLoading(false);
-      return;
-    }
-
     async function load() {
       setLoading(true);
       setError(null);
