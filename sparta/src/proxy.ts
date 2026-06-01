@@ -17,8 +17,8 @@ const ROLE_DEFAULT_ROUTES: Record<string, string> = {
 
 const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
   player: ["/hoje", "/historico", "/configuracoes", "/aguardar-consentimento", "/questionario"],
-  coach: ["/prontidao", "/calendario", "/plantel", "/tendencias", "/configuracoes"],
-  analyst: ["/sessoes", "/plantel", "/tendencias", "/configuracoes"],
+  coach: ["/prontidao", "/calendario", "/plantel", "/tendencias", "/configuracoes", "/equipa"],
+  analyst: ["/sessoes", "/plantel", "/tendencias", "/configuracoes", "/equipa"],
 };
 
 /**
@@ -32,6 +32,7 @@ const STAFF_ONLY_ROUTES_404 = [
   "/tendencias",
   "/relatorios",
   "/plantel",
+  "/equipa",
 ] as const;
 
 export async function proxy(request: NextRequest) {

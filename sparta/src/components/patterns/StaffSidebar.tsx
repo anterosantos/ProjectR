@@ -10,6 +10,7 @@ import {
   BarChart3,
   TrendingUp,
   Shield,
+  LayoutDashboard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,7 @@ const NAV_CONFIG: Record<"coach" | "analyst", NavItem[]> = {
     { label: "Calendário", href: "/calendario", icon: Calendar },
     { label: "Plantel", href: "/plantel", icon: Users },
     { label: "Tendências", href: "/tendencias", icon: TrendingUp },
+    { label: "Equipa", href: "/equipa/agregado", icon: LayoutDashboard },
     { label: "Configurações", href: "/configuracoes", icon: Settings },
   ],
   analyst: [
@@ -44,8 +46,15 @@ export function StaffSidebar({ role }: StaffSidebarProps) {
   const navItems = NAV_CONFIG[role];
 
   const isActive = (href: string) => {
-    const segment = pathname ? `/${pathname.split("/")[1] ?? ""}` : "";
-    return segment === href;
+    if (!pathname) return false;
+    if (pathname === href) return true;
+    if (pathname.startsWith(href + "/")) return true;
+    // Single-segment hrefs: match by first path segment
+    if (!href.slice(1).includes("/")) {
+      const segment = `/${pathname.split("/")[1] ?? ""}`;
+      return segment === href;
+    }
+    return false;
   };
 
   return (
