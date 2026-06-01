@@ -1,4 +1,4 @@
-# last_updated: 2026-06-01 (7-4 → ready-for-dev: bmad-create-story; /equipa/agregado Server Component, getTeamAggregateData() Server Action, TeamAggregateDashboard+TeamAggregateFiltersSheet, weekly fatigue+attendance line charts, top-3 loaded+fatigued cards, events-per-match bar chart, proxy.ts +/equipa STAFF_ONLY_ROUTES_404+ROLE_ALLOWED_ROUTES, StaffSidebar +Equipa coach nav; sem migração SQL; dependências: 4.1+5.1+6.1+6.7+2.6+2.5+4.6+1.12)
+# last_updated: 2026-06-01 (7-4 → done: code-review complete; 8 patches aplicados: requireStaffRole import, auditedRead rejected status check, unsafe type casting removed, sessionStorage useEffect cleanup, match_events limit(500→10), currentSeason fallback fix, attendance date validation, isActive() verification; 14+ novos testes ✅; 1915+/1915+ testes ✅; lint ✅; typecheck ✅)
 # last_updated: 2026-06-01 (7-3 → done: code-review complete; 3 patches aplicados: recovery.test.ts test comment explaining conservative threshold, recovery.ts explicit error handling for Supabase queries, component imports verified in @/components/ui/; 1902/1902 testes ✅; lint ✅; typecheck ✅)
 # 2026-05-25 (5-4 → review: dev-story complete; Painel de Prontidão lista-por-posição implementado; /prontidao Server Component, ReadinessPanel+Header+List+PositionGroup+PlayerRow+EmptyState, getReadinessPanelData+getUpcomingSession server actions, PlayerReadinessData type, SemaforoBadge, InsufficientDataIndicator aria-hidden, sessionStorage view toggle, axe zero violations; 24 prontidao testes + 8 readiness-snapshots testes; 1411/1411 testes ✅; lint ✅; typecheck ✅)
 # last_updated: 2026-05-25 (4-10 → done: code-review complete; 5 patches aplicados: getSessionFatigueStatus erro DB silenciado corrigido, implicit role guard documentado, limite superior lte→lt na query de sessão recente, mensagem de erro Portuguese substituída, cursor-default removido do cartão respondido; 1309/1309 testes ✅; build ✅; typecheck ✅ (sem novas regressões))
@@ -219,7 +219,7 @@ development_status:
   7-1-18-year-re-confirmation-flow-with-90-day-anonymization: done
   7-2-unified-player-profile-perfil-consolidado: done
   7-3-recovery-curve-individual: done
-  7-4-team-aggregate-dashboard: review
+  7-4-team-aggregate-dashboard: done
   7-5-fatigue-performance-correlation-detection: backlog
   7-6-mediated-pdf-report-generation-storage-sharing: backlog
   epic-7-retrospective: optional
