@@ -236,7 +236,8 @@ export async function getTeamAggregateData(): Promise<
   };
   const attRows: AttRow[] =
     attendanceResult.status === "fulfilled" && !attendanceResult.value.error
-      ? ((attendanceResult.value.data ?? []) as AttRow[])
+      ? // Supabase TS SDK limitation: joined select types cannot be properly inferred at compile-time
+        ((attendanceResult.value.data ?? []) as unknown as AttRow[])
       : [];
   const weeklyAttendance = weekWindows.map((w) => {
     const bucket = attRows.filter((r) => {
@@ -333,7 +334,8 @@ export async function getTeamAggregateData(): Promise<
   };
   const eventRows: EventRow[] =
     eventsResult.status === "fulfilled" && !eventsResult.value.error
-      ? ((eventsResult.value.data ?? []) as EventRow[])
+      ? // Supabase TS SDK limitation: joined select types cannot be properly inferred at compile-time
+        ((eventsResult.value.data ?? []) as unknown as EventRow[])
       : [];
   const eventsBySession = new Map<
     string,
