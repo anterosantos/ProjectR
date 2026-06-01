@@ -7,6 +7,7 @@ import {
   getPlayerAttendanceTabData,
   getPlayerStatisticsTabData,
   getPlayerDataDecisionsTabData,
+  getPlayerRecoveryTabData,
 } from "./player-profile";
 
 vi.mock("@/lib/actions/auth", () => ({
@@ -21,8 +22,13 @@ vi.mock("@/lib/data/audited", () => ({
   auditedRead: vi.fn((_opts: unknown, fn: () => Promise<unknown>) => fn()),
 }));
 
+vi.mock("@/lib/readiness/recovery", () => ({
+  computeRecoveryCurve: vi.fn(),
+}));
+
 import { requireStaffRole } from "@/lib/actions/auth";
 import { getServiceRoleClient } from "@/lib/supabase/service-role";
+import { computeRecoveryCurve } from "@/lib/readiness/recovery";
 
 const MOCK_AUTH = { userId: "user-1", clubId: "club-1", role: "coach" };
 const PLAYER_ID = "player-uuid-1";
@@ -500,5 +506,65 @@ describe("getPlayerDataDecisionsTabData", () => {
     const result = await getPlayerDataDecisionsTabData(PLAYER_ID);
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.data.decisions).toHaveLength(0);
+  });
+});
+
+// ── getPlayerRecoveryTabData ────────────────────────────────────────────────
+
+describe("getPlayerRecoveryTabData", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("retorna erro quando não autenticado", async () => {
+    setupAuthFailure();
+    const result = await getPlayerRecoveryTabData(PLAYER_ID);
+    expect(result.ok).toBe(false);
+  });
+
+  it("retorna erro quando playerId vazio", async () => {
+    setupAuth();
+    const result = await getPlayerRecoveryTabData("   ");
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe("not_found");
+  });
+
+  it("retorna erro quando jogador não encontrado no clube", async () => {
+    setupAuth();
+    setupServiceRole({ players: createChainableMock({ data: null, error: null }) });
+    const result = await getPlayerRecoveryTabData(PLAYER_ID);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe("not_found");
+  });
+
+  it("retorna curva de recuperação quando jogador existe", async () => {
+    setupAuth();
+    const playerMock = createChainableMock({ data: { id: PLAYER_ID, full_name: "João Silva", club_id: CLUB_ID }, error: null });
+    setupServiceRole({ players: playerMock });
+
+    const mockResult = {
+      points: [{ day: 0, avgFatigue: 7, sampleSize: 3, dimensions: { energy: 7, focus: 6, sleep: 8, soreness: 7, mood: 7 } }],
+      totalHighIntensitySessions: 3,
+      sampleSize: 3,
+    };
+    (computeRecoveryCurve as ReturnType<typeof vi.fn>).mockResolvedValue(mockResult);
+
+    const result = await getPlayerRecoveryTabData(PLAYER_ID);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.playerName).toBe("João Silva");
+      expect(result.data.result.totalHighIntensitySessions).toBe(3);
+      expect(result.data.result.points).toHaveLength(1);
+    }
+  });
+
+  it("retorna erro interno quando computeRecoveryCurve lança excepção", async () => {
+    setupAuth();
+    const playerMock = createChainableMock({ data: { id: PLAYER_ID, full_name: "João", club_id: CLUB_ID }, error: null });
+    setupServiceRole({ players: playerMock });
+
+    (computeRecoveryCurve as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("DB error"));
+
+    const result = await getPlayerRecoveryTabData(PLAYER_ID);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe("internal");
   });
 });

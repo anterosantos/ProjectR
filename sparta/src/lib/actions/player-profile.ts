@@ -9,6 +9,8 @@ import type { FatigueResponse, SessionInfo } from "@/lib/actions/fatigue-staff";
 import type { PlayerMetric } from "@/lib/actions/metrics";
 import type { DataDecision, DecisionKind } from "@/lib/types/decisions";
 import { ACWR_THRESHOLDS, type AgeGroup } from "@/lib/readiness/thresholds";
+import { computeRecoveryCurve } from "@/lib/readiness/recovery";
+import type { RecoveryCurveResult } from "@/lib/readiness/recovery";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -96,6 +98,11 @@ export interface StatisticsTabData {
 export interface DataDecisionsTabData {
   decisions: DataDecision[];
 }
+
+export type RecoveryTabData = {
+  result: RecoveryCurveResult;
+  playerName: string;
+};
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -501,7 +508,6 @@ export async function getPlayerPhysicalMetricsTabData(
         clubId,
       },
       async () => {
-        // eslint-disable-next-line custom/no-direct-health-data-read -- inside auditedRead()
         let query = serviceRole
           .from("player_metrics")
           .select("id, player_id, club_id, weight_kg, height_cm, recorded_at, created_by, created_at")
@@ -839,6 +845,54 @@ export async function getPlayerStatisticsTabData(
   }
 
   return ok({ rows, totals, zoneHeatmap });
+}
+
+/**
+ * getPlayerRecoveryTabData — Recovery curve from high-intensity sessions.
+ *
+ * Uses auditedRead() — health data from fatigue_responses + session_metrics (FR50).
+ */
+export async function getPlayerRecoveryTabData(
+  playerId: string
+): Promise<Result<RecoveryTabData, AppError>> {
+  if (!playerId?.trim()) {
+    return err({ code: "not_found", message: "Recurso não encontrado" });
+  }
+
+  const authResult = await requireStaffRole();
+  if (!authResult.ok) return authResult;
+  const { userId, clubId } = authResult.data;
+
+  const serviceRole = getServiceRoleClient();
+
+  const { data: player } = await serviceRole
+    .from("players")
+    .select("id, full_name, club_id")
+    .eq("id", playerId)
+    .eq("club_id", clubId)
+    .maybeSingle();
+
+  if (!player) {
+    return err({ code: "not_found", message: "Recurso não encontrado" });
+  }
+
+  let result: RecoveryCurveResult;
+  try {
+    result = await auditedRead<RecoveryCurveResult>(
+      {
+        action: "recovery_curve.viewed",
+        targetKind: "player",
+        targetId: playerId,
+        actorId: userId,
+        clubId,
+      },
+      async () => computeRecoveryCurve(serviceRole, { playerId, clubId })
+    );
+  } catch {
+    return err({ code: "internal", message: "Erro ao calcular curva de recuperação" });
+  }
+
+  return ok({ result, playerName: player.full_name ?? "—" });
 }
 
 /**
